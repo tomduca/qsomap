@@ -86,6 +86,8 @@ function loadLocalStorage() {
     $("#hamqthPass").val(tmpHamQTHPass);
     let tmpRememberPasswords = localStorageGetOrDefault('rememberPasswords', rememberPasswords);
     $("#rememberPasswords").val(tmpRememberPasswords);
+    let tmpFineZoomControl = localStorageGetOrDefault('fineZoomControl', fineZoomControl);
+    $("#fineZoomControl").prop('checked', tmpFineZoomControl);
 
     // Load lookup data. This had to be converted to an object for storage, now we need it back as a map.
     const lookupDataStr = localStorage.getItem('lookupData');

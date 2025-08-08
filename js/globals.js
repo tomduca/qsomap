@@ -132,3 +132,4 @@ let queryXOTA = true;
 let queryQRZ = false;
 let queryHamQTH = false;
 let rememberPasswords = true;
+let fineZoomControl = false;

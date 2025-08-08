@@ -171,6 +171,22 @@ function enableWABGrid(show) {
     localStorage.setItem('showWABGrid', show);
 }
 
+// Enable/disable fine control of the map zoom level
+function setFineZoomControl(enable) {
+    console.log(enable);
+    if (enable) {
+        map.options.zoomDelta = 0.25;
+        map.options.zoomSnap = 0;
+        map.options.wheelPxPerZoomLevel = 200;
+    } else {
+        map.options.zoomDelta = 1.0;
+        map.options.zoomSnap = 1.0;
+        map.options.wheelPxPerZoomLevel = 60;
+    }
+    fineZoomControl = enable;
+    localStorage.setItem('fineZoomControl', fineZoomControl);
+}
+
 // Get text for the normal click-to-appear popups. Takes a data item that may contain multiple QSOs.
 function getPopupText(d) {
     let text = "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-user markerPopupIcon'></i>&nbsp;<span class='popupBlock'><a href='https://www.qrz.com/db/" + d.call + "' target='_blank'><b>" + d.call + "</b></a>";
