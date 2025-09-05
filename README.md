@@ -21,7 +21,7 @@ Use it at [https://qsomap.m0trt.radio](https://qsomap.m0trt.radio).
 * Filter by date, band and mode
 * Grid/location lookups from POTA, SOTA, WWBOTA, WWFF, GMA, QRZ.com & HamQTH
 
-For upcoming features, see the [issues backlog](https://github.com/ianrenton/qsomap/issues). If you'd like an extra feature, please let me know!
+For upcoming features, see the [issues backlog](https://git.ianrenton.com/ian/qsomap/issues). If you'd like an extra feature, please let me know!
 
 ### Privacy
 
