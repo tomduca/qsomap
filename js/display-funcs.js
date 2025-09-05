@@ -173,7 +173,6 @@ function enableWABGrid(show) {
 
 // Enable/disable fine control of the map zoom level
 function setFineZoomControl(enable) {
-    console.log(enable);
     if (enable) {
         map.options.zoomDelta = 0.25;
         map.options.zoomSnap = 0;
