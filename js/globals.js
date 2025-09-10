@@ -115,6 +115,7 @@ let modeColours = true;
 let smallMarkers = false;
 let outdoorSymbols = false;
 let hybridMarkerSize = false;
+let showMarkerShadows = true;
 let showMaidenheadGrid = false;
 let showCQZones = false;
 let showITUZones = false;

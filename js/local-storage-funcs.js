@@ -58,6 +58,8 @@ function loadLocalStorage() {
     $("#outdoorSymbols").prop('checked', tmpOutdoorSymbols);
     let tmpHybridMarkerSize = localStorageGetOrDefault('hybridMarkerSize', hybridMarkerSize);
     $("#hybridMarkerSize").prop('checked', tmpHybridMarkerSize);
+    let tmpShowMarkerShadows = localStorageGetOrDefault('showMarkerShadows', showMarkerShadows);
+    $("#showMarkerShadows").prop('checked', tmpShowMarkerShadows);
     let tmpShowCallsignLabels = localStorageGetOrDefault('showCallsignLabels', showCallsignLabels);
     $("#showCallsignLabels").prop('checked', tmpShowCallsignLabels);
     let tmpShowGridSquareLabels = localStorageGetOrDefault('showGridSquareLabels', showGridSquareLabels);

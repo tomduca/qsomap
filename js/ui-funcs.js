@@ -63,6 +63,9 @@ function updateModelFromUI() {
     localStorage.setItem('smallMarkers', smallMarkers);
     hybridMarkerSize = $("#hybridMarkerSize").is(':checked');
     localStorage.setItem('hybridMarkerSize', hybridMarkerSize);
+    showMarkerShadows = $("#showMarkerShadows").is(':checked');
+    showMarkerShadows ? $(".leaflet-shadow-pane").show() : $(".leaflet-shadow-pane").hide();
+    localStorage.setItem('showMarkerShadows', showMarkerShadows);
     outdoorSymbols = $("#outdoorSymbols").is(':checked');
     localStorage.setItem('outdoorSymbols', outdoorSymbols);
     showCallsignLabels = $("#showCallsignLabels").is(':checked');
