@@ -410,7 +410,7 @@ function updateStatus() {
 
         // Icon. Spinner if we are doing something, check if all done and every QSO has a grid, exclamation mark if
         // we have qsos without grids.
-        if (loading || (queue.length > 0 && qrzToken)) {
+        if (loading || queue.length > 0) {
             statusText = "<i class=\"fa-solid fa-spinner\"></i> ";
         } else if (queue.length > 0 || failedLookupCount > 0 || qsoCount === 0 || !lastLoadTypeRecognised) {
             statusText += "<i class=\"fa-solid fa-triangle-exclamation\"></i> ";
@@ -429,11 +429,7 @@ function updateStatus() {
             } else if (queue.length === 0) {
                 statusText += "Loaded " + qsoCount + " QSOs, failed to find grids for " + failedLookupCount + ".";
             } else if (failedLookupCount === 0) {
-                if (qrzToken) {
-                    statusText += "Loaded " + qsoCount + " QSOs, " + queue.length + " in lookup queue.";
-                } else {
-                    statusText += "Loaded " + qsoCount + " QSOs, " + queue.length + " had no grid.";
-                }
+                statusText += "Loaded " + qsoCount + " QSOs, " + queue.length + " in lookup queue.";
             } else {
                 statusText += "Loaded " + qsoCount + " QSOs, " + queue.length + " in queue, failed to find grids for " + failedLookupCount + ".";
             }
@@ -442,7 +438,7 @@ function updateStatus() {
         }
 
         // Abort option
-        if (queue.length > 0 && qrzToken) {
+        if (queue.length > 0) {
             statusText += "&nbsp;&nbsp;<a href='#' onClick='clearQueue();'>Cancel</a>";
         }
 

@@ -72,22 +72,6 @@ function loadLocalStorage() {
     $("#showComments").prop('checked', tmpShowComments);
     let tmpInferOutdoorActivitiesFromComments = localStorageGetOrDefault('inferOutdoorActivitiesFromComments', inferOutdoorActivitiesFromComments);
     $("#inferOutdoorActivitiesFromComments").prop('checked', tmpInferOutdoorActivitiesFromComments);
-    let tmpQueryXOTA = localStorageGetOrDefault('queryXOTA', queryXOTA);
-    $("#queryXOTA").prop('checked', tmpQueryXOTA);
-    let tmpQueryQRZ = localStorageGetOrDefault('queryQRZ', queryQRZ);
-    $("#queryQRZ").prop('checked', tmpQueryQRZ);
-    let tmpQrzUser = localStorageGetOrDefault('qrzUser', '');
-    $("#qrzUser").val(tmpQrzUser);
-    let tmpQrzPass = localStorageGetOrDefault('qrzPass', '');
-    $("#qrzPass").val(tmpQrzPass);
-    let tmpQueryHamQTH = localStorageGetOrDefault('queryHamQTH', queryHamQTH);
-    $("#queryHamQTH").prop('checked', tmpQueryHamQTH);
-    let tmpHamQTHUser = localStorageGetOrDefault('hamQTHUser', '');
-    $("#hamqthUser").val(tmpHamQTHUser);
-    let tmpHamQTHPass = localStorageGetOrDefault('hamQTHPass', '');
-    $("#hamqthPass").val(tmpHamQTHPass);
-    let tmpRememberPasswords = localStorageGetOrDefault('rememberPasswords', rememberPasswords);
-    $("#rememberPasswords").val(tmpRememberPasswords);
     let tmpFineZoomControl = localStorageGetOrDefault('fineZoomControl', fineZoomControl);
     $("#fineZoomControl").prop('checked', tmpFineZoomControl);
 

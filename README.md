@@ -19,7 +19,7 @@ Use it at [https://qsomap.m0trt.radio](https://qsomap.m0trt.radio).
 * Lots more options for drawing lines, labelling markers etc
 * Popup balloons showing your QSO history
 * Filter by date, band and mode
-* Grid/location lookups from POTA, SOTA, WWBOTA, WWFF, GMA, QRZ.com & HamQTH
+* Grid/location lookups using the Spothole API
 
 For upcoming features, see the [issues backlog](https://git.ianrenton.com/ian/qsomap/issues). If you'd like an extra feature, please let me know!
 

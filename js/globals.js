@@ -19,13 +19,7 @@ const BANDS = [
     {name: "70cm", startFreq: 420.0, stopFreq: 450.0, color: "#999900", contrastColor: "white"},
     {name: "23cm", startFreq: 1240.0, stopFreq: 1325.0, color: "#5AB8C7", contrastColor: "black"},
     {name: "13cm", startFreq: 2300.0, stopFreq: 2450.0, color: "#FF7F50", contrastColor: "black"}];
-const API_LOOKUP_USER_AGENT_STRING = "M0TRT_QSO_Map_v1.0";
-const QRZ_API_BASE_URL = "https://xmldata.qrz.com/xml/current/";
-const HAMQTH_API_BASE_URL = "https://www.hamqth.com/xml.php";
-const POTA_PARK_BASE_URL = "https://api.pota.app/park/";
-const SOTA_SUMMIT_BASE_URL = "https://api-db2.sota.org.uk/api/summits/";
-const WWBOTA_BUNKER_BASE_URL = "https://api.wwbota.org/bunkers/";
-const GMA_REF_BASE_URL = "https://www.cqgma.org/api/ref/?";
+const SPOTHOLE_BASE_URL = "https://spothole.app/api/v1";
 const MAIDENHEAD_GRID_COLOR_LIGHT = 'rgba(200, 140, 140, 1.0)';
 const CQ_ZONES_COLOR_LIGHT = 'rgba(140, 200, 140, 1.0)';
 const ITU_ZONES_COLOR_LIGHT = 'rgba(200, 200, 140, 1.0)';
@@ -47,7 +41,7 @@ let data = new Map();
 // A list of QSOs received without grid information, which have been held for lookup. Once they have
 // grid information, they are removed from here and added to data.
 let queue = [];
-// A map of callsign to data we looked up from QRZ.com. Used so that we don't re-query QRZ again for a call we have
+// A map of callsign to data we looked up from Spothole. Used so that we don't re-query Spothole again for a call we have
 // already seen.
 let lookupData = new Map();
 // Count of all QSOs loaded from file(s)
@@ -85,10 +79,6 @@ let maidenheadGrid;
 let wabGrid;
 let cqZones;
 let ituZones;
-// Session token for QRZ.com lookups
-let qrzToken;
-// Session token for HamQTH lookups
-let hamQTHToken;
 // Tracker for how many years, bands and modes we have in our data set.
 let years = new Set();
 let bands = new Set();
@@ -129,8 +119,4 @@ let inferOutdoorActivitiesFromComments = false;
 let filterYear = "*";
 let filterMode = "*";
 let filterBand = "*";
-let queryXOTA = true;
-let queryQRZ = false;
-let queryHamQTH = false;
-let rememberPasswords = true;
 let fineZoomControl = false;
