@@ -322,7 +322,7 @@ function getIconPosition(d) {
         if (lat != null && lon != null && !isNaN(lat) && !isNaN(lon) && (lat !== 0.0 || lon !== 0.0)) {
             let wrapEitherSideOfLon = 0;
             if (qthPos != null) {
-                wrapEitherSideOfLon = qthPos.lng;
+                wrapEitherSideOfLon = qthPos[1];
             }
             let tmpLon = lon;
             while (tmpLon < wrapEitherSideOfLon - 180) {

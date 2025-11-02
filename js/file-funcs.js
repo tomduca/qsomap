@@ -82,13 +82,13 @@ function loadADIF(text) {
             }
 
             // Find "special interest group" info e.g. POTA, SOTA
-            if (qsoData.has("SIG") && qsoData.has("SIG_INFO")) {
+            if (qsoData.has("SIG") && qsoData.get("SIG").length > 0 && qsoData.has("SIG_INFO") && qsoData.get("SIG_INFO").length > 0) {
                 qso.sigRefs.push({program: qsoData.get("SIG"), ref: qsoData.get("SIG_INFO")});
             }
 
             // Some ADIFs feature POTA_REF, SOTA_REF and WWFF_REF separately to SIG/SIG_INFO. But don't duplicate these
             // if they would be duplicates of what we already got from SIG/SIG_INFO.
-            if (qsoData.has("POTA_REF")) {
+            if (qsoData.has("POTA_REF") && qsoData.get("POTA_REF").length > 0) {
                 // POTA allows more than one reference at a time
                 let potaRefs = qsoData.get("POTA_REF").split(",");
                 potaRefs.forEach(ref => {
@@ -97,12 +97,12 @@ function loadADIF(text) {
                     }
                 });
             }
-            if (qsoData.has("SOTA_REF")) {
+            if (qsoData.has("SOTA_REF") && qsoData.get("SOTA_REF").length > 0) {
                 if (!qso.sigRefs.some(p => p.program === "SOTA" && p.ref === qsoData.get("SOTA_REF"))) {
                     qso.sigRefs.push({program: "SOTA", ref: qsoData.get("SOTA_REF")});
                 }
             }
-            if (qsoData.has("WWFF_REF")) {
+            if (qsoData.has("WWFF_REF") && qsoData.get("WWFF_REF").length > 0) {
                 if (!qso.sigRefs.some(p => p.program === "WWFF" && p.ref === qsoData.get("WWFF_REF"))) {
                     qso.sigRefs.push({program: "WWFF", ref: qsoData.get("WWFF_REF")});
                 }
