@@ -373,7 +373,11 @@ function anyQSOMatchesFilter(d) {
 // Given a QSO, list any SIG/xOTA references that the QSO partner was logged at, as a string in a deterministic order,
 // including HTML links to each reference. If there are none, a blank string will be returned.
 function listSIGRefsWithLinks(q) {
-    return "" + q.sigRefs.map(p => sigRefToHTMLLink(p)).sort().join(", ");
+    if (q.sigRefs != null) {
+        return "" + q.sigRefs.map(p => sigRefToHTMLLink(p)).sort().join(", ");
+    } else {
+        return "";
+    }
 }
 
 // For a given SIG/xOTA reference, produce an HTML link to it in the relevant programme.

@@ -14,7 +14,7 @@ setTimeout(function () {
 }, 1000);
 
 // Add the timed thread to process the queue.
-setInterval(function () { processQSOFromQueue(); }, 1000);
+setInterval(function () { processQSOFromQueue(); }, 100);
 
 // Add the timed thread to update the status indicator.
 setInterval(function () { updateStatus(); }, 500);
