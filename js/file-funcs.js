@@ -151,7 +151,7 @@ function loadCabrillo(text) {
     var lines = text.split(/\r?\n|\r|\n/g);
     lines.forEach(line => {
         if (line.startsWith("CALLSIGN:")) {
-            setMyCall(line.substring(10));
+            setMyCall(line.substring(9));
         }
 
         if (line.startsWith("QSO:")) {
