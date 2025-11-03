@@ -51,7 +51,9 @@ function updateModelFromUI() {
     smallMarkers = $("#smallMarkers").is(':checked');
     localStorage.setItem('smallMarkers', smallMarkers);
     outlineMarkers = $("#outlineMarkers").is(':checked');
-    localStorage.setItem('smallMarkers', outlineMarkers);
+    localStorage.setItem('outlineMarkers', outlineMarkers);
+    circleMarkers = $("#circleMarkers").is(':checked');
+    localStorage.setItem('circleMarkers', circleMarkers);
     hybridMarkerSize = $("#hybridMarkerSize").is(':checked');
     localStorage.setItem('hybridMarkerSize', hybridMarkerSize);
     showMarkerShadows = $("#showMarkerShadows").is(':checked');
@@ -122,6 +124,7 @@ $("#modeColours").change(function () {
 $("#smallMarkers").change(function () {
     if ($("#smallMarkers").is(':checked')) {
         $("#hybridMarkerSize").prop('checked', false);
+        $("#circleMarkers").prop('checked', false);
     }
 });
 
@@ -129,6 +132,7 @@ $("#smallMarkers").change(function () {
 $("#outdoorSymbols").change(function () {
     if (!$("#outdoorSymbols").is(':checked')) {
         $("#hybridMarkerSize").prop('checked', false);
+        $("#circleMarkers").prop('checked', false);
     }
 });
 
@@ -136,10 +140,22 @@ $("#outdoorSymbols").change(function () {
 $("#hybridMarkerSize").change(function () {
     if ($("#hybridMarkerSize").is(':checked')) {
         $("#smallMarkers").prop('checked', false);
-    }
-    if ($("#hybridMarkerSize").is(':checked')) {
         $("#outdoorSymbols").prop('checked', true);
+        $("#circleMarkers").prop('checked', false);
     }
+});
+
+// Listen for circle marker type toggle
+$("#circleMarkers").change(function () {
+    if ($("#circleMarkers").is(':checked')) {
+        $("#smallMarkers").prop('checked', false);
+        $("#outdoorSymbols").prop('checked', false);
+        $("#hybridMarkerSize").prop('checked', false);
+        $("#showMarkerShadows").prop('checked', false);
+    }
+    // Clear markers storage as we are changing not just the appearance but a whole new type of marker
+    markers = new Map();
+    markersLayer.clearLayers();
 });
 
 // Listen for control changes. Most controls have this class, and therefore all perform the same updateModelFromUI()

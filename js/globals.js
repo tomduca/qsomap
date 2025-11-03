@@ -104,6 +104,7 @@ let bandColours = true;
 let modeColours = true;
 let smallMarkers = false;
 let outlineMarkers = false;
+let circleMarkers = false;
 let outdoorSymbols = false;
 let hybridMarkerSize = false;
 let showMarkerShadows = true;

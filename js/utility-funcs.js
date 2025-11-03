@@ -17,17 +17,21 @@ function createOwnPosMarker(newPos) {
     }
 
     if (qthMarker && newPos != null) {
-        ownPosMarker = L.marker(newPos, {
-            icon: L.ExtraMarkers.icon({
-                icon: 'fa-tower-cell',
-                iconColor: 'white',
-                markerColor: 'grey',
-                shape: 'circle',
-                prefix: 'fa',
-                svg: true
-            }),
-            autoPan: true
-        });
+        if (circleMarkers) {
+            ownPosMarker = L.circleMarker(newPos, { radius: 5, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black", fillColor: "grey", stroke: outlineMarkers });
+        } else {
+            ownPosMarker = L.marker(newPos, {
+                icon: L.ExtraMarkers.icon({
+                    icon: 'fa-tower-cell',
+                    iconColor: 'white',
+                    markerColor: 'grey',
+                    shape: 'circle',
+                    prefix: 'fa',
+                    svg: true
+                }),
+                autoPan: true
+            });
+        }
 
         let tooltipText = getOwnQTHTooltipText();
         if (tooltipText) {
