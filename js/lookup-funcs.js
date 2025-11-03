@@ -11,7 +11,7 @@ function performCallsignLookup(qso) {
         async: false,
         timeout: 10000,
         success: async function (result) {
-            if (result.grid && result.grid.length > 0 && !qso.grid) {
+            if (result.grid && result.grid.length > 0 && !qso.grid && qso.grid.toUpperCase() !== "AA00" && qso.grid.toUpperCase() !== "AA00AA" && qso.grid.toUpperCase() !== "AA00AA00") {
                 qso.grid = result.grid;
             }
 
