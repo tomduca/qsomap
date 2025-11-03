@@ -103,6 +103,7 @@ let thickLines = true;
 let bandColours = true;
 let modeColours = true;
 let smallMarkers = false;
+let outlineMarkers = false;
 let outdoorSymbols = false;
 let hybridMarkerSize = false;
 let showMarkerShadows = true;

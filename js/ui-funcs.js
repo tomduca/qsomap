@@ -50,6 +50,8 @@ function updateModelFromUI() {
     localStorage.setItem('modeColours', modeColours);
     smallMarkers = $("#smallMarkers").is(':checked');
     localStorage.setItem('smallMarkers', smallMarkers);
+    outlineMarkers = $("#outlineMarkers").is(':checked');
+    localStorage.setItem('smallMarkers', outlineMarkers);
     hybridMarkerSize = $("#hybridMarkerSize").is(':checked');
     localStorage.setItem('hybridMarkerSize', hybridMarkerSize);
     showMarkerShadows = $("#showMarkerShadows").is(':checked');

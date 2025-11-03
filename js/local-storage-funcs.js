@@ -54,6 +54,8 @@ function loadLocalStorage() {
     $("#modeColours").prop('checked', tmpModeColours);
     let tmpSmallMarkers = localStorageGetOrDefault('smallMarkers', smallMarkers);
     $("#smallMarkers").prop('checked', tmpSmallMarkers);
+    let tmpOutlineMarkers = localStorageGetOrDefault('outlineMarkers', outlineMarkers);
+    $("#outlineMarkers").prop('checked', tmpOutlineMarkers);
     let tmpOutdoorSymbols = localStorageGetOrDefault('outdoorSymbols', outdoorSymbols);
     $("#outdoorSymbols").prop('checked', tmpOutdoorSymbols);
     let tmpHybridMarkerSize = localStorageGetOrDefault('hybridMarkerSize', hybridMarkerSize);

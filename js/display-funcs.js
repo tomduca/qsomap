@@ -60,6 +60,11 @@ function redraw(key) {
                 $(m._icon).addClass("smallmarker");
             }
 
+            // Use outlined icons if requested.
+            if (outlineMarkers) {
+                $(m._icon).addClass("outlinedmarker");
+            }
+
             // Store the marker for next time
             markers.set(key, m);
         }
