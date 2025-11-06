@@ -11,7 +11,7 @@ function performCallsignLookup(qso) {
         async: false,
         timeout: 10000,
         success: async function (result) {
-            if (result.grid && result.grid.length > 0 && !qso.grid) {
+            if (result.grid && result.grid.length > 0 && !qso.grid && result.grid !== "" && result.grid.toUpperCase() !== "AA00" && result.grid.toUpperCase() !== "AA00AA" && result.grid.toUpperCase() !== "AA00AA00") {
                 qso.grid = result.grid;
             }
 
@@ -65,7 +65,7 @@ function processQSOFromQueue() {
         let qso = queue.pop();
         // We have something in the queue. First see if it has a POTA/SOTA/WWBOTA reference; we can then query the
         // API for the reference's location.
-        if (qso.sigRefs.length > 0) {
+        if (qso.sigRefs != null && qso.sigRefs.length > 0) {
             performSIGRefLookup(qso)
         }
 

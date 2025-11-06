@@ -151,13 +151,14 @@ function loadCabrillo(text) {
     var lines = text.split(/\r?\n|\r|\n/g);
     lines.forEach(line => {
         if (line.startsWith("CALLSIGN:")) {
-            setMyCall(line.substring(10));
+            setMyCall(line.substring(9));
         }
 
         if (line.startsWith("QSO:")) {
             let parts = line.split(/\s+/);
+            let contestHasExchange = parts.length > 12;
             let qso = {
-                call: parts[8],
+                call: parts[contestHasExchange ? 9 : 8],
                 freq: parseFloat(parts[1]) / 1000.0,
                 mode: parts[2],
                 time: moment.utc(parts[3] + " " + parts[4], "YYYY-MM-DD HHmm"),

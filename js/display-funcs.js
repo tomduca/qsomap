@@ -35,10 +35,23 @@ function redraw(key) {
         // Add or update marker
         if (markersEnabled) {
             // Get an existing marker if we have one, else create a new one.
-            let m = (markers.has(key)) ? markers.get(key) : L.marker(pos);
+            let m;
+            if (markers.has(key)) {
+                m = markers.get(key)
+            } else if (circleMarkers) {
+                m = L.circleMarker(pos, { radius: 5, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black" });
+            } else {
+                m = L.marker(pos);
+            }
 
             // Set the icon for the marker
-            m.setIcon(getIcon(d));
+            if (circleMarkers) {
+                // Set the colour
+                m.options.fillColor = qsoToColour(d);
+            } else {
+                // Set the icon
+                m.setIcon(getIcon(d));
+            }
 
             // Set popup text for the marker
             m.bindPopup(getPopupText(d));
@@ -47,6 +60,11 @@ function redraw(key) {
             let tooltipText = getTooltipText(d);
             if (tooltipText) {
                 m.bindTooltip(tooltipText, {permanent: true, direction: 'bottom', offset: L.point(0, -10)});
+            }
+
+            // Use outlined icons if requested (circle markers version, needs doing before adding to layer)
+            if (circleMarkers) {
+                m.options.stroke = outlineMarkers;
             }
 
             // If this marker was newly created, add it to the layer
@@ -58,6 +76,11 @@ function redraw(key) {
             // is selected and the marker has no icon.
             if (smallMarkers || (hybridMarkerSize && getIconName(d) === "fa-none")) {
                 $(m._icon).addClass("smallmarker");
+            }
+
+            // Use outlined icons if requested (standard markers version, needs doing after adding to layer)
+            if (!circleMarkers && outlineMarkers) {
+                $(m._icon).addClass("outlinedmarker");
             }
 
             // Store the marker for next time
