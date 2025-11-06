@@ -18,11 +18,11 @@ function createOwnPosMarker(newPos) {
 
     if (qthMarker && newPos != null) {
         if (circleMarkers) {
-            ownPosMarker = L.circleMarker(newPos, { radius: 5, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black", fillColor: "grey", stroke: outlineMarkers });
+            ownPosMarker = L.circleMarker(newPos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black", fillColor: "grey", stroke: outlineMarkers });
         } else {
             ownPosMarker = L.marker(newPos, {
                 icon: L.ExtraMarkers.icon({
-                    icon: 'fa-tower-cell',
+                    icon: (markerSize > 0.5) ? 'fa-tower-cell' : 'fa-none',
                     iconColor: 'white',
                     markerColor: 'grey',
                     shape: 'circle',
@@ -39,6 +39,29 @@ function createOwnPosMarker(newPos) {
         }
 
         ownPosLayer.addLayer(ownPosMarker);
+
+        // Adjust marker size (if we're using real markers not circles, circles already have their radius set at
+        // creation, whereas markers need CSS applied here)
+        if (!circleMarkers) {
+            $(ownPosMarker._icon).find("svg").css("width", (32 * markerSize) + "px");
+            $(ownPosMarker._icon).find("svg").css("height", (44 * markerSize) + "px");
+            $(ownPosMarker._icon).find("svg").css("margin-top", ((1 - markerSize) * 40) + "px");
+            $(ownPosMarker._icon).find("svg").css("margin-left", ((1 - markerSize) * 8) + "px");
+            $(ownPosMarker._icon).find("i").css("font-size", (14 + (markerSize - 1) * 10) + "px");
+            $(ownPosMarker._icon).find("i").css("margin-top", (10 + (1 - markerSize) * 28) + "px");
+            let ml = 0;
+            if (markerSize > 1.3) {
+                ml = 3;
+            } else if (markerSize < 0.9 || markerSize > 1.1) {
+                ml = 1;
+            }
+            $(ownPosMarker._icon).find("i").css("margin-left", ml + "px");
+        }
+
+        // Use outlined icons if requested (standard markers version, needs doing after adding to layer)
+        if (!circleMarkers && outlineMarkers) {
+            $(ownPosMarker._icon).addClass("outlinedmarker");
+        }
     }
 }
 
