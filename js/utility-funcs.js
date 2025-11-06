@@ -310,11 +310,12 @@ function getIconName(d) {
             // Multiple different icons are specified by this QSO set, so show a star
             return "fa-star";
         }
-    } else if (smallMarkers) {
-        // Outdoor activity icons not in use, and small icons set, so use no symbol.
+    } else if (markerSize <= 0.5) {
+        // Outdoor activity icons not in use, and small icons in use, so use no symbol.
         return "fa-none";
     } else {
-        // Outdoor activity icons not in use, and small icons not set, so use a circle symbol like a "standard" map marker.
+        // Outdoor activity icons not in use, and normal or larger size icons in use, so use a circle symbol like a
+        // "standard" map marker.
         return "fa-circle"
     }
 }

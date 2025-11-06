@@ -48,8 +48,8 @@ function updateModelFromUI() {
     localStorage.setItem('bandColours', bandColours);
     modeColours = $("#modeColours").is(':checked');
     localStorage.setItem('modeColours', modeColours);
-    smallMarkers = $("#smallMarkers").is(':checked');
-    localStorage.setItem('smallMarkers', smallMarkers);
+    markerSize = $("#markerSize").val();
+    localStorage.setItem('markerSize', markerSize);
     outlineMarkers = $("#outlineMarkers").is(':checked');
     localStorage.setItem('outlineMarkers', outlineMarkers);
     circleMarkers = $("#circleMarkers").is(':checked');
@@ -120,35 +120,9 @@ $("#modeColours").change(function () {
     }
 });
 
-// Listen for small icons toggle
-$("#smallMarkers").change(function () {
-    if ($("#smallMarkers").is(':checked')) {
-        $("#hybridMarkerSize").prop('checked', false);
-        $("#circleMarkers").prop('checked', false);
-    }
-});
-
-// Listen for outdoor activity symbols toggle
-$("#outdoorSymbols").change(function () {
-    if (!$("#outdoorSymbols").is(':checked')) {
-        $("#hybridMarkerSize").prop('checked', false);
-        $("#circleMarkers").prop('checked', false);
-    }
-});
-
-// Listen for hybrid marker size toggle
-$("#hybridMarkerSize").change(function () {
-    if ($("#hybridMarkerSize").is(':checked')) {
-        $("#smallMarkers").prop('checked', false);
-        $("#outdoorSymbols").prop('checked', true);
-        $("#circleMarkers").prop('checked', false);
-    }
-});
-
 // Listen for circle marker type toggle
 $("#circleMarkers").change(function () {
     if ($("#circleMarkers").is(':checked')) {
-        $("#smallMarkers").prop('checked', false);
         $("#outdoorSymbols").prop('checked', false);
         $("#hybridMarkerSize").prop('checked', false);
         $("#showMarkerShadows").prop('checked', false);

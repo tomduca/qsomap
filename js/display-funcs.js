@@ -39,7 +39,7 @@ function redraw(key) {
             if (markers.has(key)) {
                 m = markers.get(key)
             } else if (circleMarkers) {
-                m = L.circleMarker(pos, { radius: 5, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black" });
+                m = L.circleMarker(pos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black" });
             } else {
                 m = L.marker(pos);
             }
@@ -72,10 +72,31 @@ function redraw(key) {
                 markersLayer.addLayer(m);
             }
 
-            // Use small icons if requested. This is if "small icons" is enabled, of if "hybrid marker size"
-            // is selected and the marker has no icon.
-            if (smallMarkers || (hybridMarkerSize && getIconName(d) === "fa-none")) {
-                $(m._icon).addClass("smallmarker");
+            // If we are using hybrid marker size and this is a non-xOTA marker, reduce its size
+            let thisMarkerSize = markerSize;
+            if (hybridMarkerSize && getIconName(d) === "fa-none") {
+                thisMarkerSize = thisMarkerSize - 0.5;
+                if (thisMarkerSize < 0.25) {
+                    thisMarkerSize = 0.25;
+                }
+            }
+
+            // Adjust marker size (if we're using real markers not circles, circles already have their radius set at
+            // creation, whereas markers need CSS applied here)
+            if (!circleMarkers) {
+                $(m._icon).find("svg").css("width", (32 * thisMarkerSize) + "px");
+                $(m._icon).find("svg").css("height", (44 * thisMarkerSize) + "px");
+                $(m._icon).find("svg").css("margin-top", ((1 - thisMarkerSize) * 40) + "px");
+                $(m._icon).find("svg").css("margin-left", ((1 - thisMarkerSize) * 8) + "px");
+                $(m._icon).find("i").css("font-size", (14 + (thisMarkerSize - 1) * 10) + "px");
+                $(m._icon).find("i").css("margin-top", (10 + (1 - thisMarkerSize) * 28) + "px");
+                let ml = 0;
+                if (thisMarkerSize > 1.3) {
+                    ml = 3;
+                } else if (thisMarkerSize < 0.9 || thisMarkerSize > 1.1) {
+                    ml = 1;
+                }
+                $(m._icon).find("i").css("margin-left", ml + "px");
             }
 
             // Use outlined icons if requested (standard markers version, needs doing after adding to layer)
@@ -303,7 +324,7 @@ function getTooltipText(d) {
     }
 
     if (labelText) {
-        return "<div style='padding-top: " + (circleMarkers ? "6px" : "0") + "; color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
+        return "<div style='padding-top: 5px; color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
     } else {
         return "";
     }
@@ -326,7 +347,7 @@ function getOwnQTHTooltipText() {
     }
 
     if (labelText) {
-        return "<div style='padding-top: " + (circleMarkers ? "6px" : "0") + "; color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
+        return "<div style='padding-top: 5px; color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
     } else {
         return "";
     }

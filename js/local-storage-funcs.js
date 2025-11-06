@@ -52,8 +52,8 @@ function loadLocalStorage() {
     $("#bandColours").prop('checked', tmpBandColours);
     let tmpModeColours = localStorageGetOrDefault('modeColours', modeColours);
     $("#modeColours").prop('checked', tmpModeColours);
-    let tmpSmallMarkers = localStorageGetOrDefault('smallMarkers', smallMarkers);
-    $("#smallMarkers").prop('checked', tmpSmallMarkers);
+    let tmpMarkerSize = localStorageGetOrDefault('markerSize', markerSize);
+    $("#markerSize").val(tmpMarkerSize);
     let tmpCircleMarkers = localStorageGetOrDefault('circleMarkers', circleMarkers);
     $("#circleMarkers").prop('checked', tmpCircleMarkers);
     let tmpOutlineMarkers = localStorageGetOrDefault('outlineMarkers', outlineMarkers);

@@ -98,27 +98,10 @@ a.closeButton {
     font-size: 0.8em;
 }
 
-/* Small markers */
-.leaflet-map-pane div.smallmarker svg {
-    width: 22px;
-    margin-top: 5px;
-}
-.leaflet-map-pane div.smallmarker i.fa {
-    margin-top: 18px;
-    font-size: 11px;
-}
-
 /* Marker outlines */
 .leaflet-map-pane div.outlinedmarker svg path:nth-child(2) {
     fill: black !important;
     opacity: 1.0 !important;
-}
-
-/* Fudge basic circle icon to be smaller */
-.fa-circle {
-    font-size: 11.5px !important;
-    padding-top: 2px !important;
-    padding-left: 0.5px !important;
 }
 
 /* Leaflet.js mods */
