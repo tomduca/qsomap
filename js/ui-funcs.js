@@ -63,8 +63,8 @@ function updateModelFromUI() {
     localStorage.setItem('showGridSquareLabels', showGridSquareLabels);
     showDistanceLabels = $("#showDistanceLabels").is(':checked');
     localStorage.setItem('showDistanceLabels', showDistanceLabels);
-    distancesInMiles = $("#distancesInMiles").is(':checked');
-    localStorage.setItem('distancesInMiles', distancesInMiles);
+    distanceUnit = $("#distanceUnit").val();
+    localStorage.setItem('distanceUnit', JSON.stringify(distanceUnit));
     showComments = $("#showComments").is(':checked');
     localStorage.setItem('showComments', showComments);
     inferOutdoorActivitiesFromComments = $("#inferOutdoorActivitiesFromComments").is(':checked');

@@ -322,7 +322,7 @@ function getDistanceString(d) {
     if (d.grid && qthPos) {
         let iconPos = getIconPosition(d);
         let distanceMetres = L.GeometryUtil.length([new L.LatLng(qthPos[0], qthPos[1]), new L.LatLng(iconPos[0], iconPos[1])]);
-        if (distancesInMiles) {
+        if (distanceUnit === "mi") {
             ret = (distanceMetres / 1609.0).toFixed(0) + "&nbsp;mi";
         } else {
             ret = (distanceMetres / 1000.0).toFixed(0) + "&nbsp;km";

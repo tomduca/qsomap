@@ -35,7 +35,6 @@
     <link rel="stylesheet" href="css/mobile.css" type="text/css">
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-ui@1.13.2/dist/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-csv@1.0.40/src/jquery.csv.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -143,9 +142,12 @@
         <label for="showGridSquareLabels" class="configLabel">
             <input type="checkbox" id="showGridSquareLabels" class="control" name="showGridSquareLabels">&nbsp;Grid square labels</label><br/>
         <label for="showDistanceLabels" class="configLabel">
-            <input type="checkbox" id="showDistanceLabels" class="control" name="showDistanceLabels">&nbsp;Distance labels</label><br/>
-        <label for="distancesInMiles" class="configLabel">
-            <input type="checkbox" id="distancesInMiles" class="control" name="distancesInMiles">&nbsp;Distances in miles</label>
+            <input type="checkbox" id="showDistanceLabels" class="control" name="showDistanceLabels">&nbsp;Distance labels in </label>
+            <select id="distanceUnit" class="control configSelect">
+                <option value="km" selected="selected">kilometers</option>
+                <option value="mi">miles</option>
+            </select>
+        <br/>
     </div>
 
 

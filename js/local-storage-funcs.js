@@ -18,8 +18,8 @@ function loadLocalStorage() {
     let tmpAppendOnLoad = localStorageGetOrDefault('appendOnLoad', appendOnLoad);
     appendOnLoad = tmpAppendOnLoad;
     $("#appendOnLoad").prop('checked', tmpAppendOnLoad);
-    let tmpBbasemap = localStorageGetOrDefault('basemap', basemap);
-    $("#basemap").val(tmpBbasemap);
+    let tmpBasemap = localStorageGetOrDefault('basemap', basemap);
+    $("#basemap").val(tmpBasemap);
     let tmpBasemapOpacity = localStorageGetOrDefault('basemapOpacity', basemapOpacity);
     $("#basemapOpacity").val(tmpBasemapOpacity);
     let tmpMyCall = localStorageGetOrDefault('myCall', '');
@@ -66,8 +66,8 @@ function loadLocalStorage() {
     $("#showGridSquareLabels").prop('checked', tmpShowGridSquareLabels);
     let tmpShowDistanceLabels = localStorageGetOrDefault('showDistanceLabels', showDistanceLabels);
     $("#showDistanceLabels").prop('checked', tmpShowDistanceLabels);
-    let tmpDistancesInMiles = localStorageGetOrDefault('distancesInMiles', distancesInMiles);
-    $("#distancesInMiles").prop('checked', tmpDistancesInMiles);
+    let tmpDistanceUnit = localStorageGetOrDefault('distanceUnit', distanceUnit);
+    $("#distanceUnit").val(tmpDistanceUnit);
     let tmpShowComments = localStorageGetOrDefault('showComments', showComments);
     $("#showComments").prop('checked', tmpShowComments);
     let tmpInferOutdoorActivitiesFromComments = localStorageGetOrDefault('inferOutdoorActivitiesFromComments', inferOutdoorActivitiesFromComments);
