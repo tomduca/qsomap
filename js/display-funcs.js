@@ -303,7 +303,7 @@ function getTooltipText(d) {
     }
 
     if (labelText) {
-        return "<div style='color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
+        return "<div style='padding-top: " + (circleMarkers ? "6px" : "0") + "; color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
     } else {
         return "";
     }
@@ -326,7 +326,7 @@ function getOwnQTHTooltipText() {
     }
 
     if (labelText) {
-        return "<div style='color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
+        return "<div style='padding-top: " + (circleMarkers ? "6px" : "0") + "; color: " + (basemapIsDark ? "white" : "black") + "; text-align: center;'>" + labelText + "</div>";
     } else {
         return "";
     }

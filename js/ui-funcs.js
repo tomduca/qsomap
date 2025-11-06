@@ -153,9 +153,6 @@ $("#circleMarkers").change(function () {
         $("#hybridMarkerSize").prop('checked', false);
         $("#showMarkerShadows").prop('checked', false);
     }
-    // Clear markers storage as we are changing not just the appearance but a whole new type of marker
-    markers = new Map();
-    markersLayer.clearLayers();
 });
 
 // Listen for control changes. Most controls have this class, and therefore all perform the same updateModelFromUI()
