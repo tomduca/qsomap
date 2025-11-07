@@ -21,5 +21,6 @@
     <orderEntry type="library" name="leaflet-providers" level="application" />
     <orderEntry type="library" name="leaflet.geodesic" level="application" />
     <orderEntry type="library" name="moment" level="application" />
+    <orderEntry type="library" name="leaflet-heat" level="application" />
   </component>
 </module>

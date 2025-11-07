@@ -57,6 +57,9 @@ function setUpMap() {
     gridSquaresWorkedLabelsLayer = new L.LayerGroup();
     gridSquaresWorkedLabelsLayer.addTo(map);
 
+    // Add heatmap layer
+    heatmapLayer = L.heatLayer([], {radius: 25});
+
     // Display a default view.
     map.setView([30, 0], 3);
 }

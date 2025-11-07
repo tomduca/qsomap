@@ -149,6 +149,13 @@ function redraw(key) {
                 gridSquareLabels.set(fourDigitGrid, label);
             }
         }
+
+        // Add a point to the heatmap layer. Heatmap point intensity is based on the overall number of QSOs in the data
+        // map, so we can have strong colours with small ADIFs without completely oversaturating large ones.
+        let intensity = 1000 / Math.max(Math.min(data.size / 100, 5), 1);
+        console.log(intensity)
+        heatmapLayer.addLatLng([pos[0], pos[1], intensity]);
+        heatmapLayer.redraw();
     }
 }
 
@@ -214,6 +221,20 @@ function enableWABGrid(show) {
         }
     }
     localStorage.setItem('showWABGrid', show);
+}
+
+// Shows/hides the Heatmap layer
+function enableHeatmap(show) {
+    heatmapEnabled = show;
+    if (heatmapLayer) {
+        if (show) {
+            heatmapLayer.addTo(map);
+            basemapLayer.bringToBack();
+        } else {
+            map.removeLayer(heatmapLayer);
+        }
+    }
+    localStorage.setItem('heatmapEnabled', show);
 }
 
 // Enable/disable fine control of the map zoom level
