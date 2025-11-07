@@ -15,6 +15,7 @@ function redrawAll() {
     gridSquares = new Map();
     gridSquareLabels.forEach(label => gridSquaresWorkedLabelsLayer.removeLayer(label));
     gridSquareLabels = new Map();
+    heatmapLayer.setLatLngs([]);
 
     // Add own position marker
     createOwnPosMarker(qthPos);
