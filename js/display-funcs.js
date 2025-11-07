@@ -153,7 +153,6 @@ function redraw(key) {
         // Add a point to the heatmap layer. Heatmap point intensity is based on the overall number of QSOs in the data
         // map, so we can have strong colours with small ADIFs without completely oversaturating large ones.
         let intensity = 1000 / Math.max(Math.min(data.size / 100, 5), 1);
-        console.log(intensity)
         heatmapLayer.addLatLng([pos[0], pos[1], intensity]);
         heatmapLayer.redraw();
     }
