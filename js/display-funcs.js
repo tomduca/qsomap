@@ -6,7 +6,7 @@
 // called when a bulk change needs to happen, for example the first load occurs, a clear occurs,
 // or a UI change occurs e.g. changing how colours are done for all markers.
 function redrawAll() {
-    // Clear existing markers and lines
+    // Clear existing markers, lines and heatmaps
     markers.forEach(marker => markersLayer.removeLayer(marker));
     markers = new Map();
     lines.forEach(line => linesLayer.removeLayer(line));
@@ -15,13 +15,49 @@ function redrawAll() {
     gridSquares = new Map();
     gridSquareLabels.forEach(label => gridSquaresWorkedLabelsLayer.removeLayer(label));
     gridSquareLabels = new Map();
-    heatmapLayer.setLatLngs([]);
+    try {
+        heatmapLayer.setLatLngs([]);
+    } catch (e) {}
+    perBandHeatmapsGroup.eachLayer(function (l) {
+        try {
+            l.setLatLngs([]);
+        } catch (e) {}
+    });
 
     // Add own position marker
     createOwnPosMarker(qthPos);
 
-    // Iterate through qsos, creating markers
+    // Iterate through qsos, creating markers, lines, worked squares etc. This covers everything displayed per-QSO apart
+    // from the heatmaps, which are covered further down.
     data.forEach((value, key) => redraw(key));
+
+    // Calculate data sets for the heatmaps. We have to do this in two stages because the "intensity" value we use when
+    // drawing the heatmap is based on how many total qsos there are, or how qsos per band there are. So first, we build
+    // data sets. Each item is simply a [lat,lon].
+    let heatmapData = [];
+    let perBandHeatmapsData = new Map();
+    BANDS.forEach(band => perBandHeatmapsData.set(band.name, []));
+    data.forEach((d) => {
+        let pos = getIconPosition(d);
+        d.qsos.forEach((qso) => {
+            heatmapData.push([pos[0], pos[1], 1]);
+            if (qso.band && perBandHeatmapsData.has(qso.band)) {
+                perBandHeatmapsData.get(qso.band).push([pos[0], pos[1], 1]);
+            }
+        });
+    });
+
+    // Now for every point, calculate an intensity based on the total number of points, and store it.
+    heatmapData.forEach(d => d[2] = 1000 / Math.max(Math.min(heatmapData.size / 100, 5), 1));
+    perBandHeatmapsData.forEach(pbd => {
+        pbd.forEach(d => {d[2] = 5000 / Math.max(Math.min(pbd.size / 100, 5), 1); console.log(d[2])});
+    });
+
+    // Load the data into the heatmaps
+    heatmapLayer.setLatLngs(heatmapData);
+    perBandHeatmaps.forEach((value, key) => {
+        value.setLatLngs(perBandHeatmapsData.get(key));
+    });
 }
 
 // Redraw a specific QSO (which can include creating the marker for the first time if it doesn't
@@ -150,12 +186,6 @@ function redraw(key) {
                 gridSquareLabels.set(fourDigitGrid, label);
             }
         }
-
-        // Add a point to the heatmap layer. Heatmap point intensity is based on the overall number of QSOs in the data
-        // map, so we can have strong colours with small ADIFs without completely oversaturating large ones.
-        let intensity = 1000 / Math.max(Math.min(data.size / 100, 5), 1);
-        heatmapLayer.addLatLng([pos[0], pos[1], intensity]);
-        heatmapLayer.redraw();
     }
 }
 
@@ -235,6 +265,20 @@ function enableHeatmap(show) {
         }
     }
     localStorage.setItem('heatmapEnabled', show);
+}
+
+// Shows/hides the Per-Band Heatmap layer
+function enablePerBandHeatmap(show) {
+    perBandHeatmapEnabled = show;
+    if (perBandHeatmapsGroup) {
+        if (show) {
+            perBandHeatmapsGroup.addTo(map);
+            basemapLayer.bringToBack();
+        } else {
+            map.removeLayer(perBandHeatmapsGroup);
+        }
+    }
+    localStorage.setItem('perBandHeatmapEnabled', show);
 }
 
 // Enable/disable fine control of the map zoom level

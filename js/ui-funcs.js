@@ -28,6 +28,7 @@ function updateModelFromUI() {
     enableITUZones($("#showITUZones").is(':checked'));
     enableWABGrid($("#showWABGrid").is(':checked'));
     enableHeatmap($("#heatmapEnabled").is(':checked'));
+    enablePerBandHeatmap($("#perBandHeatmapEnabled").is(':checked'));
     setFineZoomControl($("#fineZoomControl").is(':checked'));
     markersEnabled = $("#markersEnabled").is(':checked');
     localStorage.setItem('markersEnabled', markersEnabled);

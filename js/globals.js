@@ -19,6 +19,8 @@ const BANDS = [
     {name: "70cm", startFreq: 420.0, stopFreq: 450.0, color: "#999900", contrastColor: "white"},
     {name: "23cm", startFreq: 1240.0, stopFreq: 1325.0, color: "#5AB8C7", contrastColor: "black"},
     {name: "13cm", startFreq: 2300.0, stopFreq: 2450.0, color: "#FF7F50", contrastColor: "black"}];
+// Heatmap band render order. From "longest" range to "shortest". This is an ugly hack.
+HEATMAP_BAND_RENDER_ORDER = ["10m", "12m", "15m", "17m", "20m", "30m", "40m", "60m", "80m", "160m", "6m", "4m", "2m", "70cm", "23cm", "13cm"];
 const SPOTHOLE_BASE_URL = "https://spothole.app/api/v1";
 const MAIDENHEAD_GRID_COLOR_LIGHT = 'rgba(200, 140, 140, 1.0)';
 const CQ_ZONES_COLOR_LIGHT = 'rgba(140, 200, 140, 1.0)';
@@ -76,6 +78,8 @@ let gridSquaresWorkedLabelsLayer;
 let ownPosLayer;
 let ownPosMarker;
 let heatmapLayer;
+let perBandHeatmapsGroup;
+let perBandHeatmaps = new Map();
 let maidenheadGrid;
 let wabGrid;
 let cqZones;
@@ -102,6 +106,7 @@ let labelGridSquaresWorked = false;
 let colourLines = true;
 let thickLines = true;
 let heatmapEnabled = false;
+let perBandHeatmapEnabled = false;
 let bandColours = true;
 let modeColours = true;
 let markerSize = 1;

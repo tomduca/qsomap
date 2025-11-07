@@ -50,6 +50,8 @@ function loadLocalStorage() {
     $("#thickLines").prop('checked', tmpThickLines);
     let tmpHeatmapEnabled = localStorageGetOrDefault('heatmapEnabled', heatmapEnabled);
     $("#heatmapEnabled").prop('checked', tmpHeatmapEnabled);
+    let tmpPerBandHeatmapEnabled = localStorageGetOrDefault('perBandHeatmapEnabled', perBandHeatmapEnabled);
+    $("#perBandHeatmapEnabled").prop('checked', tmpPerBandHeatmapEnabled);
     let tmpBandColours = localStorageGetOrDefault('bandColours', bandColours);
     $("#bandColours").prop('checked', tmpBandColours);
     let tmpModeColours = localStorageGetOrDefault('modeColours', modeColours);
