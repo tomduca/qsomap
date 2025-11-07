@@ -50,7 +50,7 @@ function redraw(key) {
                 m.options.fillColor = qsoToColour(d);
             } else {
                 // Set the icon
-                m.setIcon(getIcon(d));
+                m.setIcon(getIcon(d, markerSize));
             }
 
             // Set popup text for the marker
@@ -74,11 +74,12 @@ function redraw(key) {
 
             // If we are using hybrid marker size and this is a non-xOTA marker, reduce its size
             let thisMarkerSize = markerSize;
-            if (hybridMarkerSize && getIconName(d) === "fa-none") {
+            if (hybridMarkerSize && (getIconName(d) === "fa-crosshairs" || getIconName(d) === "fa-none")) {
                 thisMarkerSize = thisMarkerSize - 0.5;
-                if (thisMarkerSize < 0.25) {
-                    thisMarkerSize = 0.25;
+                if (thisMarkerSize < 0.125) {
+                    thisMarkerSize = 0.125;
                 }
+                m.setIcon(getIcon(d, thisMarkerSize));
             }
 
             // Adjust marker size (if we're using real markers not circles, circles already have their radius set at

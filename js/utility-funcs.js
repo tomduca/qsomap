@@ -22,7 +22,7 @@ function createOwnPosMarker(newPos) {
         } else {
             ownPosMarker = L.marker(newPos, {
                 icon: L.ExtraMarkers.icon({
-                    icon: (markerSize > 0.5) ? 'fa-tower-cell' : 'fa-none',
+                    icon: (markerSize >= 0.75) ? 'fa-tower-cell' : 'fa-none',
                     iconColor: 'white',
                     markerColor: 'grey',
                     shape: 'circle',
@@ -247,9 +247,10 @@ function qsoToContrastColor(d) {
 }
 
 // Get an icon for a data item, based on its band, using PSK Reporter colours, its program etc.
-function getIcon(d) {
+function getIcon(d, thisMarkerSize) {
     return L.ExtraMarkers.icon({
-        icon: getIconName(d),
+        // If marker scale is less than 75%, there's no room for an icon
+        icon: (thisMarkerSize >= 0.75) ? getIconName(d) : "fa-none",
         iconColor: qsoToContrastColor(d),
         markerColor: qsoToColour(d),
         shape: 'circle',
@@ -260,6 +261,7 @@ function getIcon(d) {
 
 // Get Font Awesome icon name for the data item. If multiple icons would be used, a star is used instead.
 function getIconName(d) {
+    let chosenIcon;
     if (outdoorSymbols) {
         // Outdoor activity symbols in use, so figure out what they are for each QSO.
         let qsoIcons = [];
@@ -315,10 +317,6 @@ function getIconName(d) {
                 } else {
                     qsoIcons.push("fa-crosshairs");
                 }
-            } else if (hybridMarkerSize) {
-                // No outdoor activity program could be inferred. Since "show activity symbols" is on, we assume we were portable, so
-                // this is a QSO with a hunter, and we have hybrid size turned on, so this will be a small marker, and we want no icon.
-                qsoIcons.push("fa-none");
             } else {
                 // No outdoor activity program could be inferred. Since "show activity symbols" is on, we assume we were portable, so
                 // this is a QSO with a hunter, and we don't have hybrid size on, so use crosshairs symbol.
@@ -328,19 +326,17 @@ function getIconName(d) {
         let allEqual = qsoIcons.every( (val, i, arr) => val === arr[0] );
         if (allEqual) {
             // All QSOs with this callsign + grid have the same icon, so use it
-            return qsoIcons[0];
+            chosenIcon = qsoIcons[0];
         } else {
             // Multiple different icons are specified by this QSO set, so show a star
-            return "fa-star";
+            chosenIcon = "fa-star";
         }
-    } else if (markerSize <= 0.5) {
-        // Outdoor activity icons not in use, and small icons in use, so use no symbol.
-        return "fa-none";
     } else {
         // Outdoor activity icons not in use, and normal or larger size icons in use, so use a circle symbol like a
         // "standard" map marker.
-        return "fa-circle"
+        chosenIcon = "fa-circle"
     }
+    return chosenIcon;
 }
 
 // Utility function to get the distance to a QSO's grid from your grid, in a format for displaying on screen.
