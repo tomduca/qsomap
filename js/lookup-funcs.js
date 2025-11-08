@@ -15,8 +15,20 @@ function performCallsignLookup(qso) {
                 qso.grid = result.grid;
             }
 
+            if (result.dxcc && !qso.dxcc) {
+                qso.dxcc = result.dxcc;
+            }
+
+            if (result.cqz && !qso.cqz) {
+                qso.cqz = result.cqz;
+            }
+
+            if (result.ituz && !qso.ituz) {
+                qso.ituz = result.ituz;
+            }
+
             if (result.name && result.name.length > 0 && !qso.name) {
-                qso.name = name;
+                qso.name = result.name;
             }
 
             let bestQTH = (result.qth && result.qth.length > 0) ? result.qth : result.country;
@@ -85,10 +97,19 @@ function processQSOFromQueue() {
             if (!qso.grid) {
                 qso.grid = lookupData.get(qso.call).grid;
             }
+            if (!qso.dxcc) {
+                qso.dxcc = lookupData.get(qso.call).dxcc;
+            }
+            if (!qso.cqz) {
+                qso.cqz = lookupData.get(qso.call).cqz;
+            }
+            if (!qso.ituz) {
+                qso.ituz = lookupData.get(qso.call).ituz;
+            }
         }
 
         // Now if we still have missing data, move on to making an actual query of the callsign
-        if (!qso.grid || !qso.qth || !qso.name) {
+        if (!qso.grid || !qso.dxcc || !qso.cqz || !qso.ituz || !qso.qth || !qso.name) {
             performCallsignLookup(qso);
         }
 

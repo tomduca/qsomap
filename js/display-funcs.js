@@ -586,6 +586,18 @@ function recalculateStats() {
     let allGrids = [...new Set(allQSOs.map(q => q.grid))];
     $("#stats-grid-count").text(allGrids.length);
 
+    // Find all unique DXCCs
+    let allDXCCs = [...new Set(allQSOs.map(q => q.dxcc))];
+    $("#stats-dxcc-count").text(allDXCCs.length);
+
+    // Find all unique CQ zones
+    let allCQZs = [...new Set(allQSOs.map(q => q.cqz))];
+    $("#stats-cqz-count").text(allCQZs.length);
+
+    // Find all unique ITU zones
+    let allITUZs = [...new Set(allQSOs.map(q => q.ituz))];
+    $("#stats-ituz-count").text(allITUZs.length);
+
     // Find all combinations of band and mode, and for each mode note down how many uses there were.
     let bandsUsed = [...new Set(allQSOs.map(q => q.band))];
     let modeFamilies = ["CW", "Phone", "Data"];

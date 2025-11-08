@@ -64,6 +64,15 @@ function loadADIF(text) {
             if (qsoData.has("QTH")) {
                 qso.qth = qsoData.get("QTH");
             }
+            if (qsoData.has("DXCC")) {
+                qso.dxcc = qsoData.get("DXCC");
+            }
+            if (qsoData.has("CQZ")) {
+                qso.cqz = qsoData.get("CQZ");
+            }
+            if (qsoData.has("ITUZ")) {
+                qso.ituz = qsoData.get("ITUZ");
+            }
             if (qsoData.has("FREQ")) {
                 qso.freq = parseFloat(qsoData.get("FREQ"));
                 qso.band = freqToBandName(qso.freq);
