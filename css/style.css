@@ -1,27 +1,37 @@
-h1#title {
-    margin: 0;
+h1.panelTitle {
+    margin: 0 0 1em 0;
     font-size: 1.3em;
 }
 
-p#subtitle {
+h1#stats-callsign {
+    margin: 0;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+p.stats-qth {
     margin-top: 0;
     font-size: 0.8em;
+    text-align: center;
 }
 
-div#controls {
+div.panel {
     background-color: var(--background);
     border: 1px solid var(--text);
     border-radius: 3px;
     color: var(--text);
 }
 
-div#menuButton {
-    background-color: var(--background);
+div.menuButton {
+    background-color: var(--faded);
     border: 1px solid var(--text);
     border-radius: 3px;
 }
-div#menuButton a {
+div.menuButton a {
     color: var(--text);
+}
+div.menuButtonActive {
+    background-color: var(--background) !important;
 }
 
 label.configLabel {
@@ -39,6 +49,10 @@ div#qsoFilterMessage, div#loadingStatus {
 /* Style for small info indicators */
 div#qsoFilterMessage {
     margin-bottom: 0.3em;
+}
+
+table.statsTable th {
+    background-color: var(--faded);
 }
 
 .leaflet-popup {

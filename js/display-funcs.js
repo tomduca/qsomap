@@ -48,9 +48,9 @@ function redrawAll() {
     });
 
     // Now for every point, calculate an intensity based on the total number of points, and store it.
-    heatmapData.forEach(d => d[2] = 1000 / Math.max(Math.min(heatmapData.size / 100, 5), 1));
+    heatmapData.forEach(d => d[2] = (heatmapData.size > 0) ? (1000 / Math.max(Math.min(heatmapData.size / 100, 5), 1)) : 1000);
     perBandHeatmapsData.forEach(pbd => {
-        pbd.forEach(d => {d[2] = 5000 / Math.max(Math.min(pbd.size / 100, 5), 1); console.log(d[2])});
+        pbd.forEach(d => d[2] = (heatmapData.size > 0) ? (5000 / Math.max(Math.min(pbd.size / 100, 5), 1)) : 1000);
     });
 
     // Load the data into the heatmaps
@@ -129,9 +129,9 @@ function redraw(key) {
                 $(m._icon).find("i").css("font-size", (14 + (thisMarkerSize - 1) * 10) + "px");
                 $(m._icon).find("i").css("margin-top", (10 + (1 - thisMarkerSize) * 28) + "px");
                 let ml = 0;
-                if (thisMarkerSize > 1.3) {
+                if (thisMarkerSize > 1.4) {
                     ml = 3;
-                } else if (thisMarkerSize < 0.9 || thisMarkerSize > 1.1) {
+                } else if (thisMarkerSize < 0.9 || (thisMarkerSize > 1.1 && thisMarkerSize < 1.4)) {
                     ml = 1;
                 }
                 $(m._icon).find("i").css("margin-left", ml + "px");
@@ -554,4 +554,65 @@ function updateStatus() {
 
         $("#loadingStatus").html(statusText);
     }
+}
+
+// Update the stats
+function recalculateStats() {
+    // Prepare a list of all QSOs, not structured underneath callsigns, to extract data that's easier to deal with this way.
+    let allQSOs = [];
+    data.forEach((d) => {
+        d.qsos.forEach((qso) => {
+            allQSOs.push(qso);
+        });
+    });
+
+    // QSO and callsign count
+    $("#stats-qso-count").text(allQSOs.length);
+    $("#stats-call-count").text(data.size);
+
+    // Sort QSOs by time, find start and end
+    allQSOs.sort((a, b) => a.time < b.time ? -1 : 1);
+    if (allQSOs.length > 0) {
+        $("#stats-start-time").text(allQSOs[0].time.format('DD MMM YYYY HH:mm'));
+        $("#stats-end-time").text(allQSOs[allQSOs.length - 1].time.format('DD MMM YYYY HH:mm'));
+        $("#stats-time-on").text(formatDurationText(moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time))));
+    } else {
+        $("#stats-start-time").text("-");
+        $("#stats-end-time").text("-");
+        $("#stats-time-on").text("-");
+    }
+
+    // Find all unique grids
+    let allGrids = [...new Set(allQSOs.map(q => q.grid))];
+    $("#stats-grid-count").text(allGrids.length);
+
+    // Find all combinations of band and mode, and for each mode note down how many uses there were.
+    let bandsUsed = [...new Set(allQSOs.map(q => q.band))];
+    let modesUsed = [...new Set(allQSOs.map(q => q.mode))];
+    let modesUsedMap = new Map();
+    modesUsed.forEach(m => {
+        modesUsedMap.set(m, allQSOs.filter(q => q.mode === m).length);
+    });
+    let modesInMostUsedOrder = Array.from(new Map([...modesUsedMap.entries()].sort((a, b) => a.value - b.value)).keys());
+
+    // Create band/mode table
+    let bandModeTable = $("#stats-band-mode-table");
+    bandModeTable.html("");
+    bandModeTable.append("<thead><tr><th>Band</th><th>QSOs</th></tr></thead>");
+    bandModeTable.append("<tbody>");
+    modesInMostUsedOrder.forEach(m => {
+        bandModeTable.find('thead tr').append(`<th>${m}</th>`);
+    });
+    BANDS.forEach(band => {
+       if (bandsUsed.includes(band.name)) {
+           let tr = $(`<tr></tr>`);
+           tr.append(`<th>${band.name}</th>`);
+           tr.append(`<td>${allQSOs.filter(q => q.band === band.name).length}</td>`);
+           modesInMostUsedOrder.forEach(m => {
+               tr.append(`<td>${allQSOs.filter(q => q.band === band.name && q.mode === m).length}</td>`);
+           });
+           bandModeTable.find('tbody').append(tr);
+       }
+    });
+
 }

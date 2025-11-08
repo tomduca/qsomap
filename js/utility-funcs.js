@@ -50,9 +50,9 @@ function createOwnPosMarker(newPos) {
             $(ownPosMarker._icon).find("i").css("font-size", (14 + (markerSize - 1) * 10) + "px");
             $(ownPosMarker._icon).find("i").css("margin-top", (10 + (1 - markerSize) * 28) + "px");
             let ml = 0;
-            if (markerSize > 1.3) {
+            if (markerSize > 1.4) {
                 ml = 3;
-            } else if (markerSize < 0.9 || markerSize > 1.1) {
+            } else if (markerSize < 0.9 || (markerSize > 1.1 && markerSize < 1.4)) {
                 ml = 1;
             }
             $(ownPosMarker._icon).find("i").css("margin-left", ml + "px");
@@ -433,5 +433,22 @@ function getURLforReference(program, reference) {
         return "https://www.cqgma.org/zinfo.php?ref=" + reference;
     } else {
         return null;
+    }
+}
+
+// Format a duration for the stats panel
+function formatDurationText(duration) {
+    let durationMins = duration.as('minutes');
+    let durationHours = Math.floor(durationMins / 60.0);
+    durationMins = durationMins - (durationHours * 60.0);
+    if (durationHours === 0) {
+        return durationMins + " minute" + (durationMins === 1 ? "s" : "");
+    } else if (durationHours === 1) {
+        return durationHours + " hour " + durationMins + " min" + (durationMins === 1 ? "" : "s");
+    } else if (durationHours < 72) {
+        return durationHours + " hours " + durationMins + " min" + (durationMins === 1 ? "" : "s");
+    } else {
+        let durationDays = Math.ceil(durationHours / 24.0);
+        return durationDays + " days ";
     }
 }

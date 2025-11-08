@@ -60,9 +60,13 @@
     <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<div id="controls">
-    <h1 id="title">QSO Map Tool</h1>
-    <p id="subtitle">By <a href="https://ianrenton.com" target="_blank">Ian Renton MØTRT</a> | <a href="https://git.ianrenton.com/ian/qsomap/src/branch/main/README.md" target="_blank">About</a> | <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">Source Code</a></p>
+<div id="menuButtonRow">
+    <div id="dataMenuButton" class="menuButton menuButtonActive" onClick="toggleData();"><i class="fa-solid fa-database"></i>&nbsp;Data</div>
+    <div id="displayMenuButton" class="menuButton" onClick="toggleDisplay();"><i class="fa-solid fa-palette"></i>&nbsp;Display</div>
+    <div id="statsMenuButton" class="menuButton" onClick="toggleStats();"><i class="fa-solid fa-chart-pie"></i>&nbsp;Stats</div>
+    <div id="aboutMenuButton" class="menuButton" onClick="toggleAbout();"><i class="fa-solid fa-circle-info"></i>&nbsp;About</div>
+</div>
+<div id="dataPanel" class="panel">
     <div><label for="fileSelect" class="configLabel">Log file:&nbsp;<input type="file" id="fileSelect"
            accept=".adi,.adif,.csv,.cbr,.log,.txt" /></label></div>
     <div id="loadingStatus">ADIF, Cabrillo and SOTA CSV files are supported.</div>
@@ -78,8 +82,8 @@
     </div>
 
 
-    <h4 class="menu-heading">My Callsign & QTH <span class="arrow">&#9654;</span></h4>
-    <div class="menu-content">
+    <h4 class="menu-heading">My Callsign & QTH <span class="arrow">&#9660;</span></h4>
+    <div class="menu-content" style="display:block;">
         <table><tr>
             <td><label for="myCall" class="configLabel">My callsign:</label></td>
             <td><input type="text" id="myCall" class="textControl textBox" name="myCall" placeholder="N0CALL" size="8"></td>
@@ -89,7 +93,11 @@
         </tr></table>
     </div>
 
+    <p style="text-align: right"><a class="closeButton" onClick="toggleData();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
 
+
+<div id="displayPanel" class="panel">
     <h4 class="menu-heading">Basemaps <span class="arrow">&#9654;</span></h4>
     <div class="menu-content">
         <table><tr>
@@ -227,9 +235,57 @@
             <input type="checkbox" id="fineZoomControl" class="control" name="fineZoomControl">&nbsp;Fine zoom control</label>
     </div>
 
-    <p style="text-align: right"><a class="closeButton" onClick="closeControls();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+    <p style="text-align: right"><a class="closeButton" onClick="toggleControls();"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
-<div id="menuButton"><a onClick="openControls();"><i class="fa-solid fa-bars"></i></a></div>
+
+<div id="statsPanel" class="panel">
+    <h1 id="stats-callsign">(Callsign not set)</h1>
+    <p class="stats-qth">QTH: <span id="stats-qth">(Not Set)</span></p>
+
+    <table class="statsTable">
+        <tr>
+            <th style="width: 7em;">Log start</th>
+            <td id="stats-start-time">-</td>
+        </tr>
+        <tr>
+            <th>Log end</th>
+            <td id="stats-end-time">-</td>
+        </tr>
+        <tr>
+            <th>Time on</th>
+            <td id="stats-time-on">-</td>
+        </tr>
+        <tr>
+            <th>QSOs</th>
+            <td id="stats-qso-count">0</td>
+        </tr>
+        <tr>
+            <th>Unique calls</th>
+            <td id="stats-call-count">0</td>
+        </tr>
+        <tr>
+            <th>Unique grids</th>
+            <td id="stats-grid-count">0</td>
+        </tr>
+    </table>
+
+    <table id="stats-band-mode-table" class="statsTable"></table>
+
+    <p style="text-align: right"><a class="closeButton" onClick="toggleStats();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="aboutPanel" class="panel">
+    <p style="margin-top: 0;">This is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
+    <p>Start by uploading a data file in ADIF, Cabrillo or SOTA CSV format on the <b style="display: inline-block;"><i class="fa-solid fa-database"></i>&nbsp;Data</b> tab. Information such as your callsign and location ("QTH") will be populated automatically, but you can override them if necessary.</p>
+    <p>Then, progress to the <b style="display: inline-block;"><i class="fa-solid fa-palette"></i>&nbsp;Display</b> tab if you want to customise the appearance of the map, markers, lines, heatmaps, overlays etc. Lots of options are available.</p>
+    <p>Finally, the <b style="display: inline-block;"><i class="fa-solid fa-chart-pie"></i>&nbsp;Stats</b> tab will give you some information on the data you have loaded.</p>
+    <p>This tool was created by <a href="https://ianrenton.com" target="_blank">Ian Renton, MØTRT</a>. The <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">source code</a> is Public Domain licenced, meaning you can do anything you like with it without restriction.</p>
+    <p>The QSO Map Tool is free to use, has no adverts, no cookies, and does not store any data outside of your own computer. Where QSOs are found with missing data, the <a href="https://spothole.app" target="_blank">Spothole</a> API is queried to fetch the data. No personally identifying information such as your own callsign is transmitted.</p>
+
+    <p style="text-align: right"><a class="closeButton" onClick="toggleAbout();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+
 <div id="map"></div>
 
 <script src="js/globals.js"></script>

@@ -100,5 +100,11 @@ function processQSOFromQueue() {
             // We tried and failed to look up this QSO with any available methods.
             failedLookupCount++;
         }
+
+        // If we have now completed the queue, update stats and redraw everything.
+        if (queue.length === 0) {
+            redrawAll();
+            recalculateStats();
+        }
     }
 }

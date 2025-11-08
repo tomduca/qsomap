@@ -33,6 +33,7 @@ function updateModelFromUI() {
     markersEnabled = $("#markersEnabled").is(':checked');
     localStorage.setItem('markersEnabled', markersEnabled);
     myCall = $("#myCall").val();
+    $("#stats-callsign").text(myCall);
     localStorage.setItem('myCall', JSON.stringify(myCall));
     qthMarker = $("#qthMarker").is(':checked');
     localStorage.setItem('qthMarker', qthMarker);
@@ -89,6 +90,7 @@ function updateModelFromUI() {
 
 function updatePosFromGridInput() {
     qthGrid = $("#qthGrid").val().toUpperCase();
+    $("#stats-qth").text(qthGrid);
     localStorage.setItem('qthGrid', JSON.stringify(qthGrid));
 
     let pos = latLonForGridCentre(qthGrid);
@@ -107,6 +109,7 @@ $(".loadBehaviourControl").change(function () {
 $("#clearQSOs").click(function () {
     clearData();
     redrawAll();
+    recalculateStats();
 });
 
 // Listen for toggle changes where another should be toggled off when this is toggled on. These are called before the
@@ -141,14 +144,42 @@ $(".textControl").on("input", function() {
     updateModelFromUI();
 });
 
-// Open/close controls
-function openControls() {
-    $("#menuButton").hide();
-    $("#controls").show(100);
+// Open/close panels
+function toggleData() {
+    hidePanel("displayPanel", "displayMenuButton");
+    hidePanel("aboutPanel", "aboutMenuButton");
+    hidePanel("statsPanel", "statsMenuButton");
+    togglePanel("dataPanel", "dataMenuButton");
 }
-function closeControls() {
-    $("#controls").hide(100);
-    $("#menuButton").show();
+function toggleDisplay() {
+    hidePanel("dataPanel", "dataMenuButton");
+    hidePanel("aboutPanel", "aboutMenuButton");
+    hidePanel("statsPanel", "statsMenuButton");
+    togglePanel("displayPanel", "displayMenuButton");
+}
+function toggleStats() {
+    hidePanel("displayPanel", "displayMenuButton");
+    hidePanel("aboutPanel", "aboutMenuButton");
+    hidePanel("dataPanel", "dataMenuButton");
+    togglePanel("statsPanel", "statsMenuButton");
+}
+function toggleAbout() {
+    hidePanel("displayPanel", "displayMenuButton");
+    hidePanel("dataPanel", "dataMenuButton");
+    hidePanel("statsPanel", "statsMenuButton");
+    togglePanel("aboutPanel", "aboutMenuButton");
+}
+function hidePanel(panelID, buttonID) {
+    $("#" + panelID).hide(100);
+    $("#" + buttonID).removeClass("menuButtonActive");
+}
+function togglePanel(panelID, buttonID) {
+    if ($("#" + panelID).is(":visible")) {
+        $("#" + buttonID).removeClass("menuButtonActive");
+    } else {
+        $("#" + buttonID).addClass("menuButtonActive");
+    }
+    $("#" + panelID).toggle(100);
 }
 
 // Open/close menu sections
@@ -198,5 +229,6 @@ function clearQueue() {
 function setMyCall(call) {
     myCall = call;
     $("#myCall").val(myCall);
+    $("#stats-callsign").text(myCall);
     localStorage.setItem('myCall', JSON.stringify(myCall));
 }

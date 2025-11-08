@@ -258,6 +258,8 @@ function loadFile(text) {
                 redrawAll();
                 // Zoom the map to fit the markers
                 zoomToFit();
+                // Update the stats
+                recalculateStats();
 
                 // Populate the filter controls
                 populateFilterControls(years, bands, modes);
