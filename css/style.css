@@ -23,7 +23,7 @@ div.panel {
 }
 
 div.menuButton {
-    background-color: var(--faded);
+    background-color: var(--background);
     border: 1px solid var(--text);
     border-radius: 3px;
 }
@@ -31,7 +31,8 @@ div.menuButton a {
     color: var(--text);
 }
 div.menuButtonActive {
-    background-color: var(--background) !important;
+   color: var(--link-color);
+    border: 1px solid var(--link-color);
 }
 
 label.configLabel {
