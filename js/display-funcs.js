@@ -572,14 +572,32 @@ function recalculateStats() {
 
     // Sort QSOs by time, find start and end
     allQSOs.sort((a, b) => a.time < b.time ? -1 : 1);
+    let totalDuration = moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time));
     if (allQSOs.length > 0) {
         $("#stats-start-time").text(allQSOs[0].time.format('DD MMM YYYY HH:mm'));
         $("#stats-end-time").text(allQSOs[allQSOs.length - 1].time.format('DD MMM YYYY HH:mm'));
-        $("#stats-time-on").text(formatDurationText(moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time))));
+        $("#stats-duration").text(formatDurationText(totalDuration));
     } else {
         $("#stats-start-time").text("-");
         $("#stats-end-time").text("-");
-        $("#stats-time-on").text("-");
+        $("#stats-duration").text("-");
+    }
+
+    // Find any "off times". The rows for these are normally hidden, but if we have a gap of >1 hour anywhere in the
+    // log, we consider this an "off time" for contesting purposes and show how much on/off time there was.
+    let totalOffTime = moment.duration(0);
+    for (let i = 1; i < allQSOs.length; i++) {
+        let gap = moment.duration(allQSOs[i].time.diff(allQSOs[i - 1].time));
+        if (gap.as('minutes') >= 60) {
+            totalOffTime.add(gap);
+        }
+    }
+    if (totalOffTime.as('minutes') > 0) {
+        $("#stats-time-off").text(formatDurationText(totalOffTime));
+        $("#stats-time-on").text(formatDurationText(totalDuration.subtract(totalOffTime)));
+        $(".statsTimeOnOffRow").show();
+    } else {
+        $(".statsTimeOnOffRow").hide();
     }
 
     // Find all unique grids

@@ -442,7 +442,7 @@ function formatDurationText(duration) {
     let durationHours = Math.floor(durationMins / 60.0);
     durationMins = durationMins - (durationHours * 60.0);
     if (durationHours === 0) {
-        return durationMins + " minute" + (durationMins === 1 ? "s" : "");
+        return durationMins + " minute" + (durationMins === 1 ? "" : "s");
     } else if (durationHours === 1) {
         return durationHours + " hour " + durationMins + " min" + (durationMins === 1 ? "" : "s");
     } else if (durationHours < 72) {

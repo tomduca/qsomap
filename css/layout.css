@@ -76,6 +76,11 @@ table.statsTable th, table.statsTable td {
     padding: 0.2em 0.5em;
 }
 
+/* Stats rows that are hidden by default */
+tr.statsTimeOnOffRow {
+    display: none;
+}
+
 /* Popup layout */
 table.popupQSOTable {
     line-height: 1em;
