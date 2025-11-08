@@ -452,3 +452,14 @@ function formatDurationText(duration) {
         return durationDays + " days ";
     }
 }
+
+// For a mode, return the "mode family".
+function getModeFamily(mode) {
+    if (mode.toUpperCase() === "CW") {
+        return "CW";
+    } else if (["PHONE", "PH", "SSB", "USB", "LSB", "AM", "FM", "DV", "DMR", "DSTAR", "C4FM", "M17"].includes(mode.toUpperCase())) {
+        return "Phone";
+    } else {
+        return "Data";
+    }
+}

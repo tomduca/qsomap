@@ -588,19 +588,14 @@ function recalculateStats() {
 
     // Find all combinations of band and mode, and for each mode note down how many uses there were.
     let bandsUsed = [...new Set(allQSOs.map(q => q.band))];
-    let modesUsed = [...new Set(allQSOs.map(q => q.mode))];
-    let modesUsedMap = new Map();
-    modesUsed.forEach(m => {
-        modesUsedMap.set(m, allQSOs.filter(q => q.mode === m).length);
-    });
-    let modesInMostUsedOrder = Array.from(new Map([...modesUsedMap.entries()].sort((a, b) => a.value - b.value)).keys());
+    let modeFamilies = ["CW", "Phone", "Data"];
 
     // Create band/mode table
     let bandModeTable = $("#stats-band-mode-table");
     bandModeTable.html("");
     bandModeTable.append("<thead><tr><th>Band</th><th>QSOs</th></tr></thead>");
     bandModeTable.append("<tbody>");
-    modesInMostUsedOrder.forEach(m => {
+    modeFamilies.forEach(m => {
         bandModeTable.find('thead tr').append(`<th>${m}</th>`);
     });
     BANDS.forEach(band => {
@@ -608,8 +603,8 @@ function recalculateStats() {
            let tr = $(`<tr></tr>`);
            tr.append(`<th>${band.name}</th>`);
            tr.append(`<td>${allQSOs.filter(q => q.band === band.name).length}</td>`);
-           modesInMostUsedOrder.forEach(m => {
-               tr.append(`<td>${allQSOs.filter(q => q.band === band.name && q.mode === m).length}</td>`);
+           modeFamilies.forEach(m => {
+               tr.append(`<td>${allQSOs.filter(q => q.band === band.name && getModeFamily(q.mode) === m).length}</td>`);
            });
            bandModeTable.find('tbody').append(tr);
        }
