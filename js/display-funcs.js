@@ -583,8 +583,10 @@ function recalculateStats() {
     }
 
     // Find all unique grids
-    let allGrids = [...new Set(allQSOs.map(q => q.grid))];
-    $("#stats-grid-count").text(allGrids.length);
+    let allGridSquares = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 4) : null))];
+    $("#stats-gridsquare-count").text(allGridSquares.length);
+    let allGridFields = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 2) : null))];
+    $("#stats-gridfield-count").text(allGridFields.length);
 
     // Find all unique DXCCs
     let allDXCCs = [...new Set(allQSOs.map(q => q.dxcc))];
