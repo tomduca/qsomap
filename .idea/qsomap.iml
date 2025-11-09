@@ -29,5 +29,6 @@
     <orderEntry type="library" name="L.ITUzones" level="application" />
     <orderEntry type="library" name="L.WorkedAllBritain" level="application" />
     <orderEntry type="library" name="L.CQzones" level="application" />
+    <orderEntry type="library" name="requirejs" level="application" />
   </component>
 </module>

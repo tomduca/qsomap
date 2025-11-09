@@ -572,11 +572,16 @@ function recalculateStats() {
 
     // Sort QSOs by time, find start and end
     allQSOs.sort((a, b) => a.time < b.time ? -1 : 1);
-    let totalDuration = moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time));
     if (allQSOs.length > 0) {
         $("#stats-start-time").text(allQSOs[0].time.format('DD MMM YYYY HH:mm'));
-        $("#stats-end-time").text(allQSOs[allQSOs.length - 1].time.format('DD MMM YYYY HH:mm'));
-        $("#stats-duration").text(formatDurationText(totalDuration));
+        if (allQSOs.length > 1) {
+            let totalDuration = moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time));
+            $("#stats-end-time").text(allQSOs[allQSOs.length - 1].time.format('DD MMM YYYY HH:mm'));
+            $("#stats-duration").text(formatDurationText(totalDuration));
+        } else {
+            $("#stats-end-time").text("-");
+            $("#stats-duration").text("-");
+        }
     } else {
         $("#stats-start-time").text("-");
         $("#stats-end-time").text("-");
@@ -615,9 +620,8 @@ function recalculateStats() {
     let dxccDetailsFormatted = [];
     allDXCCs.forEach(dxcc => {
         let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];
-        let str = (qsosInDXCC[0].flag != null ? qsosInDXCC[0].flag + " " : "");
-        str = str + (qsosInDXCC[0].country != null ? qsosInDXCC[0].country : dxcc);
-        str = str + " (" + qsosInDXCC.length + ")";
+        let str = DXCC_DATA[dxcc].flag !== "" ? DXCC_DATA[dxcc].flag + " " : "";
+        str = str + DXCC_DATA[dxcc].name + " (" + qsosInDXCC.length + ")";
         dxccDetailsFormatted.push(str);
     });
     $("#stats-dxcc-list").text(dxccDetailsFormatted.join(", "));
