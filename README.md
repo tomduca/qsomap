@@ -31,7 +31,9 @@ The website itself does not use cookies, is not monetised, does not contain adve
 
 ### Third Party Libraries
 
-The project contains a self-hosted copy of Font Awesome's free library, in the `/fa/` directory. This is subject to Font Awesome's licence and is not covered by the overall licence declared in the `LICENSE` file. This approach was taken in preference to using their hosted kits due to the popularity of this project exceeding the page view limit for their free hosted offering.
+This project contains a self-hosted variant of `dxcc.json` from [this project](https://github.com/k0swe/dxcc-json/) by Chris K0SWE, in the `/data/` directory. This is subject to the Apache licence and is not covered by the overall licence declared in the `LICENSE` file, and used with many thanks.
+
+It also contains a self-hosted copy of Font Awesome's free library, in the `/fa/` directory. This is subject to Font Awesome's licence. This approach was taken in preference to using their hosted kits due to the popularity of this project exceeding the page view limit for their free hosted offering.
 
 Other third party libraries, such as Leaflet and jQuery, plus many plugins for them, are included from a CDN in the head of `index.html`.
 

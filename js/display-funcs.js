@@ -514,7 +514,7 @@ function setBasemapOpacity(opacity) {
 
 
 // Update the status indicator. Called regularly, and uses internal software state to choose what to display.
-function updateStatus() {
+async function updateStatus() {
     if (loadedAtLeastOnce) {
         let statusText = "";
 

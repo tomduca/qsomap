@@ -121,9 +121,9 @@ function loadADIF(text) {
                 qso.comment = qsoData.get("COMMENT");
             }
 
-            if (qso.grid) {
-                // If the QSO has a grid, we can put it straight into the data map and it will be displayed immediately
-                // once we have finished parsing the file.
+            if (qso.grid && qso.dxcc && qso.cqz && qso.ituz) {
+                // If the QSO has all the necessary data for display and statistics, we can put it straight into the
+                // data map and it will be displayed immediately once we have finished parsing the file.
                 putQSOIntoDataMap(qso);
             } else {
                 // The QSO has no grid, so we need to look it up. We place it in a queue, it will be dealt with

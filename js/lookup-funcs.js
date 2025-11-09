@@ -67,18 +67,19 @@ function performSIGRefLookup(qso) {
     });
 }
 
-// Process an item from the queue. Called regularly, this looks for a queued QSO (i.e. no grid) and tries to use the
-// Spothole API or our local cache of QRZ.com results to populate the grid fields. If successful,
-// the QSO will be inserted into the proper data map. The map objects will then be updated to match.
-// We only clear one at a time this way to avoid overloading the remote APIs.
-function processQSOFromQueue() {
-    if (queue.length > 0) {
+// Process an item from the queue. This looks for queued QSOs (i.e. missing some data) and tries to use the Spothole API
+// or our local cache of results to populate the grid fields. If successful, the QSO will be inserted into the proper
+// data map. The map objects will then be updated to match.
+async function processQSOFromQueue() {
+    while (queue.length > 0) {
         // Pop the next QSO out of the queue
         let qso = queue.pop();
         // We have something in the queue. First see if it has a POTA/SOTA/WWBOTA reference; we can then query the
         // API for the reference's location.
         if (qso.sigRefs != null && qso.sigRefs.length > 0) {
-            performSIGRefLookup(qso)
+            performSIGRefLookup(qso);
+            // Just done a lookup, so add an artificial pause to slow the process down and avoid hammering the server
+            await new Promise(r => setTimeout(r, 100));
         }
 
         // If we still have some missing data (and we will, because the SIG ref lookup above don't give an operator
@@ -111,9 +112,13 @@ function processQSOFromQueue() {
         // Now if we still have missing data, move on to making an actual query of the callsign
         if (!qso.grid || !qso.dxcc || !qso.cqz || !qso.ituz || !qso.qth || !qso.name) {
             performCallsignLookup(qso);
+            // Just done a lookup, so add an artificial pause to slow the process down and avoid hammering the server
+            await new Promise(r => setTimeout(r, 100));
         }
 
-        // If we got a grid from any of the above methods, we can put the QSO into the data map and render it.
+        // If we got a grid from any of the above methods, we can put the QSO into the data map and render it. This
+        // is a bit wasteful in terms of CPU given we're going to re-render once the queue is empty anyway, but it
+        // helps keep the user interested during long loads.
         if (qso.grid) {
             putQSOIntoDataMap(qso);
             redraw(qso.call + "-" + qso.grid);
@@ -128,4 +133,8 @@ function processQSOFromQueue() {
             recalculateStats();
         }
     }
+
+    // Re-set a timeout for the next execution. This is done as a setTimeout rather than setInterval, because the
+    // function is async and we don't know how long it will take.
+    setTimeout(function () { processQSOFromQueue(); }, 1000);
 }
