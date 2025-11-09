@@ -618,19 +618,30 @@ function recalculateStats() {
     $("#stats-gridfield-count").text(allGridFields.length);
     $("#stats-gridfield-list").text(allGridFields.join(", "));
 
-    // Find all unique DXCCs
-    let allDXCCs = [...new Set(allQSOs.filter(q => q.dxcc != null && q.dxcc !== "").map(q => q.dxcc))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
+    // Find all unique DXCCs, sort them by their name
+    let allDXCCs = [...new Set(allQSOs.filter(q => q.dxcc != null && q.dxcc !== "").map(q => q.dxcc))].sort((a, b) => DXCC_DATA[a].name < DXCC_DATA[b].name ? -1 : 1);
     $("#stats-dxcc-count").text(allDXCCs.length);
     // For DXCCs, the list is a bit more complex as we want counts per DXCC and names/flags. We also want the display to
     // be a table to improve the layout. So now we map DXCCs to QSOs and extract details, and build the table.
-    let dxccDetailsFormatted = [];
-    allDXCCs.forEach(dxcc => {
-        let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];
-        let str = DXCC_DATA[dxcc].flag !== "" ? DXCC_DATA[dxcc].flag + " " : "";
-        str = str + DXCC_DATA[dxcc].name + " (" + qsosInDXCC.length + ")";
-        dxccDetailsFormatted.push(str);
-    });
-    $("#stats-dxcc-list").text(dxccDetailsFormatted.join(", "));
+    let dxccTable = $("#stats-dxcc-table");
+    dxccTable.html("");
+    dxccTable.append("<thead><tr><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th></tr></thead>");
+    dxccTable.append("<tbody>");
+    // Faff making the table because we need three sets of columns to use the space neatly
+    let rowCount = Math.ceil(allDXCCs.length / 3.0) * 3;
+    for (let row = 0; row < rowCount; row++) {
+        let tr2 = $(`<tr></tr>`);
+        for (let col = 0; col < 3; col++) {
+            if (allDXCCs.length > (row * 3) + col) {
+                // Create cells for DXCC flag/name and QSO count
+                let dxcc = allDXCCs[(row * 3) + col];
+                let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];
+                tr2.append(`<td>${(DXCC_DATA[dxcc].flag !== "" ? DXCC_DATA[dxcc].flag + " " : "") + DXCC_DATA[dxcc].name}</td>`);
+                tr2.append(`<td>${qsosInDXCC.length}</td>`);
+            }
+        }
+        dxccTable.find('tbody').append(tr2);
+    }
 
     // Find all unique CQ zones
     let allCQZs = [...new Set(allQSOs.filter(q => q.cqz != null && q.cqz !== "").map(q => q.cqz))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
