@@ -601,25 +601,34 @@ function recalculateStats() {
     }
 
     // Find all unique grids
-    let allGridSquares = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 4) : null))].sort();
+    let allGridSquares = [...new Set(allQSOs.filter(q => q.grid != null && q.grid.length >= 4).map(q => q.grid.substring(0, 4)))].sort();
     $("#stats-gridsquare-count").text(allGridSquares.length);
     $("#stats-gridsquare-list").text(allGridSquares.join(", "));
-    let allGridFields = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 2) : null))].sort();
+    let allGridFields = [...new Set(allQSOs.filter(q => q.grid != null && q.grid.length >= 2).map(q => q.grid.substring(0, 2)))].sort();
     $("#stats-gridfield-count").text(allGridFields.length);
     $("#stats-gridfield-list").text(allGridFields.join(", "));
 
     // Find all unique DXCCs
-    let allDXCCs = [...new Set(allQSOs.map(q => q.dxcc))].sort();
+    let allDXCCs = [...new Set(allQSOs.filter(q => q.dxcc != null && q.dxcc !== "").map(q => q.dxcc))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
     $("#stats-dxcc-count").text(allDXCCs.length);
-    $("#stats-dxcc-list").text(allDXCCs.join(", "));
+    // For DXCCs, the list is a bit more complex as we want counts per DXCC and names/flags. So now we map DXCCs to QSOs and extract details
+    let dxccDetailsFormatted = [];
+    allDXCCs.forEach(dxcc => {
+        let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];
+        let str = (qsosInDXCC[0].flag != null ? qsosInDXCC[0].flag + " " : "");
+        str = str + (qsosInDXCC[0].country != null ? qsosInDXCC[0].country : dxcc);
+        str = str + " (" + qsosInDXCC.length + ")";
+        dxccDetailsFormatted.push(str);
+    });
+    $("#stats-dxcc-list").text(dxccDetailsFormatted.join(", "));
 
     // Find all unique CQ zones
-    let allCQZs = [...new Set(allQSOs.map(q => q.cqz))].sort();
+    let allCQZs = [...new Set(allQSOs.filter(q => q.cqz != null && q.cqz !== "").map(q => q.cqz))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
     $("#stats-cqz-count").text(allCQZs.length);
     $("#stats-cqz-list").text(allCQZs.join(", "));
 
     // Find all unique ITU zones
-    let allITUZs = [...new Set(allQSOs.map(q => q.ituz))].sort();
+    let allITUZs = [...new Set(allQSOs.filter(q => q.ituz != null && q.ituz !== "").map(q => q.ituz))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
     $("#stats-ituz-count").text(allITUZs.length);
     $("#stats-ituz-list").text(allITUZs.join(", "));
 
