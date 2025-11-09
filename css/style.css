@@ -18,21 +18,18 @@ p.stats-qth {
 div.panel {
     background-color: var(--background);
     border: 1px solid var(--text);
-    border-radius: 3px;
     color: var(--text);
 }
 
 div.menuButton {
     background-color: var(--background);
     border: 1px solid var(--text);
-    border-radius: 3px;
 }
 div.menuButton a {
     color: var(--text);
 }
 div.menuButtonActive {
-   color: var(--link-color);
-    border: 1px solid var(--link-color);
+    border-bottom: 1px solid white;
 }
 
 label.configLabel {
@@ -59,7 +56,6 @@ table.statsTable th {
 div.dialog {
     background-color: var(--background);
     border: 1px solid var(--text);
-    border-radius: 3px;
 }
 
 .leaflet-popup {

@@ -8,7 +8,7 @@ div#map {
 
 div.panel {
     position: absolute;
-    top: 3.5em;
+    top: 2.9em;
     left: 1em;
     width: 19em;
     margin: 0;
@@ -28,7 +28,7 @@ div#menuButtonRow {
     top: 1em;
     left: 1em;
     margin: 0;
-    z-index: 1001;
+    z-index: 1200;
 }
 
 div.menuButton {

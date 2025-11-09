@@ -69,9 +69,10 @@
     <div id="aboutMenuButton" class="menuButton" onClick="toggleAbout();"><i class="fa-solid fa-circle-info"></i>&nbsp;About</div>
 </div>
 <div id="dataPanel" class="panel">
-    <div><label for="fileSelect" class="configLabel">Log file:&nbsp;<input type="file" id="fileSelect"
+    <p style="margin-top: 0;">To begin, click the <b>Browse</b> button and select a log file. ADIF, Cabrillo and SOTA CSV files are supported.</p>
+    <div><label for="fileSelect" class="configLabel"><input type="file" id="fileSelect"
            accept=".adi,.adif,.csv,.cbr,.log,.txt" /></label></div>
-    <div id="loadingStatus">ADIF, Cabrillo and SOTA CSV files are supported.</div>
+    <div id="loadingStatus"></div>
 
 
     <h4 class="menu-heading" style="margin-top: 1em">File Loading Behaviour <span class="arrow">&#9654;</span></h4>

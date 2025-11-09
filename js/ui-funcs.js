@@ -170,7 +170,7 @@ function toggleAbout() {
     togglePanel("aboutPanel", "aboutMenuButton");
 }
 function hidePanel(panelID, buttonID) {
-    $("#" + panelID).hide(100);
+    $("#" + panelID).hide(0);
     $("#" + buttonID).removeClass("menuButtonActive");
 }
 function togglePanel(panelID, buttonID) {
@@ -179,7 +179,7 @@ function togglePanel(panelID, buttonID) {
     } else {
         $("#" + buttonID).addClass("menuButtonActive");
     }
-    $("#" + panelID).toggle(100);
+    $("#" + panelID).toggle(0);
 }
 
 // Open/close menu sections
