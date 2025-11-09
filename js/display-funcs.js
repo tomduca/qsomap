@@ -601,22 +601,27 @@ function recalculateStats() {
     }
 
     // Find all unique grids
-    let allGridSquares = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 4) : null))];
+    let allGridSquares = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 4) : null))].sort();
     $("#stats-gridsquare-count").text(allGridSquares.length);
-    let allGridFields = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 2) : null))];
+    $("#stats-gridsquare-list").text(allGridSquares.join(", "));
+    let allGridFields = [...new Set(allQSOs.map(q => (q.grid != null) ? q.grid.substring(0, 2) : null))].sort();
     $("#stats-gridfield-count").text(allGridFields.length);
+    $("#stats-gridfield-list").text(allGridFields.join(", "));
 
     // Find all unique DXCCs
-    let allDXCCs = [...new Set(allQSOs.map(q => q.dxcc))];
+    let allDXCCs = [...new Set(allQSOs.map(q => q.dxcc))].sort();
     $("#stats-dxcc-count").text(allDXCCs.length);
+    $("#stats-dxcc-list").text(allDXCCs.join(", "));
 
     // Find all unique CQ zones
-    let allCQZs = [...new Set(allQSOs.map(q => q.cqz))];
+    let allCQZs = [...new Set(allQSOs.map(q => q.cqz))].sort();
     $("#stats-cqz-count").text(allCQZs.length);
+    $("#stats-cqz-list").text(allCQZs.join(", "));
 
     // Find all unique ITU zones
-    let allITUZs = [...new Set(allQSOs.map(q => q.ituz))];
+    let allITUZs = [...new Set(allQSOs.map(q => q.ituz))].sort();
     $("#stats-ituz-count").text(allITUZs.length);
+    $("#stats-ituz-list").text(allITUZs.join(", "));
 
     // Find all combinations of band and mode, and for each mode note down how many uses there were.
     let bandsUsed = [...new Set(allQSOs.map(q => q.band))];

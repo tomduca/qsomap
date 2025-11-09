@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-extra-markers@1.2.2/dist/css/leaflet.extra-markers.min.css">
     <link href="fa/css/fontawesome.min.css" rel="stylesheet" />
     <link href="fa/css/solid.min.css" rel="stylesheet" />
+    <link href=" https://cdn.jsdelivr.net/npm/jquery-ui@1.14.1/themes/base/autocomplete.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="css/base.css" type="text/css">
     <link rel="stylesheet" href="css/layout.css" type="text/css">
@@ -36,6 +37,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-csv@1.0.40/src/jquery.csv.min.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/jquery-ui@1.14.1/dist/jquery-ui.min.js "></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-providers@2.0.0/leaflet-providers.min.js"></script>
@@ -93,7 +95,7 @@
         </tr></table>
     </div>
 
-    <p style="text-align: right"><a class="closeButton" onClick="toggleData();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="toggleData();"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 
@@ -235,7 +237,7 @@
             <input type="checkbox" id="fineZoomControl" class="control" name="fineZoomControl">&nbsp;Fine zoom control</label>
     </div>
 
-    <p style="text-align: right"><a class="closeButton" onClick="toggleDisplay();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="toggleDisplay();"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 <div id="statsPanel" class="panel">
@@ -245,57 +247,57 @@
     <table class="statsTable">
         <tr>
             <th style="width: 7em;">Log start</th>
-            <td id="stats-start-time">-</td>
+            <td><span id="stats-start-time">-</span></td>
         </tr>
         <tr>
             <th>Log end</th>
-            <td id="stats-end-time">-</td>
+            <td><span id="stats-end-time">-</span></td>
         </tr>
         <tr>
             <th>Duration</th>
-            <td id="stats-duration">-</td>
+            <td><span id="stats-duration">-</span></td>
         </tr>
         <tr class="statsTimeOnOffRow">
             <th>Time On</th>
-            <td id="stats-time-on">-</td>
+            <td><span id="stats-time-on">-</span></td>
         </tr>
         <tr class="statsTimeOnOffRow">
             <th>Time Off</th>
-            <td id="stats-time-off">-</td>
+            <td><span id="stats-time-off">-</span></td>
         </tr>
         <tr>
             <th>QSOs</th>
-            <td id="stats-qso-count">0</td>
+            <td><span id="stats-qso-count">0</span></td>
         </tr>
         <tr>
             <th>Unique calls</th>
-            <td id="stats-call-count">0</td>
+            <td><span id="stats-call-count">0</span></td>
         </tr>
         <tr>
             <th>Grid squares</th>
-            <td id="stats-gridsquare-count">0</td>
+            <td><span id="stats-gridsquare-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-gridsquare-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>Grid fields</th>
-            <td id="stats-gridfield-count">0</td>
+            <td><span id="stats-gridfield-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-gridfield-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>DXCCs</th>
-            <td id="stats-dxcc-count">0</td>
+            <td><span id="stats-dxcc-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-dxcc-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>CQ zones</th>
-            <td id="stats-cqz-count">0</td>
+            <td><span id="stats-cqz-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-cqz-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>ITU zones</th>
-            <td id="stats-ituz-count">0</td>
+            <td><span id="stats-ituz-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-ituz-detail-dialog');">Details</a></span></td>
         </tr>
     </table>
 
     <table id="stats-band-mode-table" class="statsTable"></table>
 
-    <p style="text-align: right"><a class="closeButton" onClick="toggleStats();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="toggleStats();"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 <div id="aboutPanel" class="panel">
@@ -306,7 +308,32 @@
     <p>This tool was created by <a href="https://ianrenton.com" target="_blank">Ian Renton, MØTRT</a>. The <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">source code</a> is Public Domain licenced, meaning you can do anything you like with it without restriction.</p>
     <p>The QSO Map Tool is free to use, has no adverts, no cookies, and does not store any data outside of your own computer. Where QSOs are found with missing data, the <a href="https://spothole.app" target="_blank">Spothole</a> API is queried to fetch the data. No personally identifying information such as your own callsign is transmitted.</p>
 
-    <p style="text-align: right"><a class="closeButton" onClick="toggleAbout();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="toggleAbout();"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="stats-gridsquare-detail-dialog" class="dialog">
+    <p>Worked grid squares: <span id="stats-gridsquare-list"></span></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-gridsquare-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="stats-gridfield-detail-dialog" class="dialog">
+    <p>Worked grid fields: <span id="stats-gridfield-list"></span></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-gridfield-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="stats-dxcc-detail-dialog" class="dialog">
+    <p>Worked DXCCs: <span id="stats-dxcc-list"></span></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-dxcc-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="stats-cqz-detail-dialog" class="dialog">
+    <p>Worked CQ zones: <span id="stats-cqz-list"></span></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-cqz-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="stats-ituz-detail-dialog" class="dialog">
+    <p>Worked ITU zones: <span id="stats-ituz-list"></span></p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-ituz-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 

@@ -76,6 +76,22 @@ table.statsTable th, table.statsTable td {
     padding: 0.2em 0.5em;
 }
 
+span.stats-detail-link {
+    font-size: 0.8em;
+    float: right;
+    margin-top: 4px;
+}
+
+div.dialog {
+    position: relative;
+    z-index: 9999;
+    padding: 0 1em;
+    display: none;
+}
+.ui-dialog-titlebar {
+    display: none;
+}
+
 /* Stats rows that are hidden by default */
 tr.statsTimeOnOffRow {
     display: none;

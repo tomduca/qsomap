@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{L.Maidenhead, eb1770b90a, jquery, jquery-csv, jquery-ui, leaflet, leaflet-edgebuffer, leaflet-extra-markers, leaflet-geometryutil, leaflet-heat, leaflet-providers, leaflet.geodesic, moment}" />
+    <file url="PROJECT" libraries="{L.CQzones, L.ITUzones, L.Maidenhead, L.WorkedAllBritain, eb1770b90a, jquery, jquery-csv, jquery-modal, jquery-ui, leaflet, leaflet-edgebuffer, leaflet-extra-markers, leaflet-geometryutil, leaflet-heat, leaflet-providers, leaflet.geodesic, leaflet.vectorgrid, moment, text-image}" />
   </component>
 </project>
