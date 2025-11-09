@@ -84,13 +84,15 @@ span.stats-detail-link {
 }
 
 div.dialog {
-    position: relative;
+    position: absolute;
+    top:  50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
     z-index: 9999;
     padding: 0 1em;
     display: none;
-}
-.ui-dialog-titlebar {
-    display: none;
+    max-height: 85%;
+    overflow: scroll;
 }
 
 /* Stats rows that are hidden by default */

@@ -572,10 +572,11 @@ function recalculateStats() {
 
     // Sort QSOs by time, find start and end
     allQSOs.sort((a, b) => a.time < b.time ? -1 : 1);
+    let totalDuration;
     if (allQSOs.length > 0) {
         $("#stats-start-time").text(allQSOs[0].time.format('DD MMM YYYY HH:mm'));
         if (allQSOs.length > 1) {
-            let totalDuration = moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time));
+            totalDuration = moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time));
             $("#stats-end-time").text(allQSOs[allQSOs.length - 1].time.format('DD MMM YYYY HH:mm'));
             $("#stats-duration").text(formatDurationText(totalDuration));
         } else {
@@ -590,17 +591,21 @@ function recalculateStats() {
 
     // Find any "off times". The rows for these are normally hidden, but if we have a gap of >1 hour anywhere in the
     // log, we consider this an "off time" for contesting purposes and show how much on/off time there was.
-    let totalOffTime = moment.duration(0);
-    for (let i = 1; i < allQSOs.length; i++) {
-        let gap = moment.duration(allQSOs[i].time.diff(allQSOs[i - 1].time));
-        if (gap.as('minutes') >= 60) {
-            totalOffTime.add(gap);
+    if (allQSOs.length > 1) {
+        let totalOffTime = moment.duration(0);
+        for (let i = 1; i < allQSOs.length; i++) {
+            let gap = moment.duration(allQSOs[i].time.diff(allQSOs[i - 1].time));
+            if (gap.as('minutes') >= 60) {
+                totalOffTime.add(gap);
+            }
         }
-    }
-    if (totalOffTime.as('minutes') > 0) {
-        $("#stats-time-off").text(formatDurationText(totalOffTime));
-        $("#stats-time-on").text(formatDurationText(totalDuration.subtract(totalOffTime)));
-        $(".statsTimeOnOffRow").show();
+        if (totalOffTime.as('minutes') > 0) {
+            $("#stats-time-off").text(formatDurationText(totalOffTime));
+            $("#stats-time-on").text(formatDurationText(totalDuration.subtract(totalOffTime)));
+            $(".statsTimeOnOffRow").show();
+        } else {
+            $(".statsTimeOnOffRow").hide();
+        }
     } else {
         $(".statsTimeOnOffRow").hide();
     }
@@ -616,7 +621,8 @@ function recalculateStats() {
     // Find all unique DXCCs
     let allDXCCs = [...new Set(allQSOs.filter(q => q.dxcc != null && q.dxcc !== "").map(q => q.dxcc))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
     $("#stats-dxcc-count").text(allDXCCs.length);
-    // For DXCCs, the list is a bit more complex as we want counts per DXCC and names/flags. So now we map DXCCs to QSOs and extract details
+    // For DXCCs, the list is a bit more complex as we want counts per DXCC and names/flags. We also want the display to
+    // be a table to improve the layout. So now we map DXCCs to QSOs and extract details, and build the table.
     let dxccDetailsFormatted = [];
     allDXCCs.forEach(dxcc => {
         let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];

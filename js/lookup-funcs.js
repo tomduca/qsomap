@@ -38,7 +38,7 @@ function performCallsignLookup(qso) {
 
             // Store the looked up info in case we see this callsign again, then we don't need to query the
             // API unnecessarily.
-            lookupData.set(qso.call, {grid: result.grid, name: result.name, qth: bestQTH});
+            lookupData.set(qso.call, {grid: result.grid, name: result.name, qth: bestQTH, dxcc: result.dxcc, cqz: result.cqz, ituz:result.ituz});
             localStorage.setItem('lookupData', JSON.stringify(Object.fromEntries(lookupData)));
         },
         error: function () {

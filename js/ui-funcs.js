@@ -194,17 +194,12 @@ $(".menu-heading").click(function () {
     }
 });
 
-// Open jQuery UI Dialogs
-$("#stats-gridsquare-detail-dialog").dialog({autoOpen: false, minHeight: 30, maxHeight: 800, minWidth: 800, maxWidth: 1000});
-$("#stats-gridfield-detail-dialog").dialog({autoOpen: false, minHeight: 30, maxHeight: 800, minWidth: 600, maxWidth: 1000});
-$("#stats-dxcc-detail-dialog").dialog({autoOpen: false, minHeight: 30, maxHeight: 800, minWidth: 800, maxWidth: 1000});
-$("#stats-cqz-detail-dialog").dialog({autoOpen: false, minHeight: 30, maxHeight: 800, minWidth: 600, maxWidth: 1000});
-$("#stats-ituz-detail-dialog").dialog({autoOpen: false, minHeight: 30, maxHeight: 800, minWidth: 600, maxWidth: 1000});
+// Open dialogs
 function openDialog(id) {
-    $("#" + id).dialog("open");
+    $("#" + id).show();
 }
 function closeDialog(id) {
-    $("#" + id).dialog("close");
+    $("#" + id).hide();
 }
 
 // Populate the filter controls based on the years, bands and modes in the data we have loaded
