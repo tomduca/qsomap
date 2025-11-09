@@ -33,6 +33,7 @@ div#menuButtonRow {
 
 div.menuButton {
     display: inline-block;
+    height: calc(1.4em + 1px);
     padding: 0.2em 0.5em;
     text-align: center;
 }
