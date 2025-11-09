@@ -15,16 +15,16 @@ function performCallsignLookup(qso) {
                 qso.grid = result.grid;
             }
 
-            if (result.dxcc && !qso.dxcc) {
-                qso.dxcc = result.dxcc;
+            if (result.dxcc_id && !qso.dxcc) {
+                qso.dxcc = result.dxcc_id;
             }
 
-            if (result.cqz && !qso.cqz) {
-                qso.cqz = result.cqz;
+            if (result.cq_zone && !qso.cqz) {
+                qso.cqz = result.cq_zone;
             }
 
-            if (result.ituz && !qso.ituz) {
-                qso.ituz = result.ituz;
+            if (result.itu_zone && !qso.ituz) {
+                qso.ituz = result.itu_zone;
             }
 
             if (result.name && result.name.length > 0 && !qso.name) {
@@ -38,7 +38,7 @@ function performCallsignLookup(qso) {
 
             // Store the looked up info in case we see this callsign again, then we don't need to query the
             // API unnecessarily.
-            lookupData.set(qso.call, {grid: result.grid, name: result.name, qth: bestQTH, dxcc: result.dxcc, cqz: result.cqz, ituz:result.ituz});
+            lookupData.set(qso.call, {grid: qso.grid, name: qso.name, qth: qso.qth, dxcc: qso.dxcc, cqz: qso.cqz, ituz: qso.ituz});
             localStorage.setItem('lookupData', JSON.stringify(Object.fromEntries(lookupData)));
         },
         error: function () {
