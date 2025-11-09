@@ -42,7 +42,6 @@ function clearData() {
     data = new Map();
     queue = [];
     qsoCount = 0;
-    failedLookupCount = 0;
     loadedAtLeastOnce = false;
     years = new Set();
     bands = new Set();

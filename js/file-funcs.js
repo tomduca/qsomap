@@ -249,20 +249,19 @@ function loadFile(text) {
     setTimeout(function () {
         try {
             // Load the content, delegating to a function based on file type.
+            let good = true;
             if (text.substring(0, 4) === "ADIF" || text.includes("<EOH>")) {
                 loadADIF(text);
-                lastLoadTypeRecognised = true;
             } else if (text.substring(0, 13) === "START-OF-LOG:") {
                 loadCabrillo(text);
-                lastLoadTypeRecognised = true;
             } else if (text.substring(0, 3) === "V2,") {
                 loadSOTACSV(text);
-                lastLoadTypeRecognised = true;
             } else {
-                lastLoadTypeRecognised = false;
+                alert("Could not parse this file as a supported format (ADIF, Cabrillo or SOTA CSV).");
+                good = false;
             }
 
-            if (lastLoadTypeRecognised) {
+            if (good) {
                 // Update the map
                 redrawAll();
                 // Zoom the map to fit the markers

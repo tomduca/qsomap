@@ -48,12 +48,9 @@ let queue = [];
 let lookupData = new Map();
 // Count of all QSOs loaded from file(s)
 let qsoCount = 0;
-// Count of all QSOs we tried but failed to look up. Used for status reporting.
-let failedLookupCount = 0;
 // Track whether we have tried to load something, and whether we are still loading. Used to control the status indicator.
 let loadedAtLeastOnce = false
 let loading = false;
-let lastLoadTypeRecognised = false;
 // My callsign
 let myCall;
 // Position of the grey home marker

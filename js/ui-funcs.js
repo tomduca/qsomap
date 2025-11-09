@@ -227,12 +227,6 @@ function populateFilterControls(years, bands, modes) {
     });
 }
 
-// Clear the lookup queue, cancelling any pending requests.
-function clearQueue() {
-    failedLookupCount += queue.length;
-    queue = [];
-}
-
 // Set my callsign and save to local storage.
 function setMyCall(call) {
     myCall = call;

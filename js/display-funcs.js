@@ -516,43 +516,14 @@ function setBasemapOpacity(opacity) {
 // Update the status indicator. Called regularly, and uses internal software state to choose what to display.
 async function updateStatus() {
     if (loadedAtLeastOnce) {
-        let statusText = "";
-
-        // Icon. Spinner if we are doing something, check if all done and every QSO has a grid, exclamation mark if
-        // we have qsos without grids.
-        if (loading || queue.length > 0) {
-            statusText = "<i class=\"fa-solid fa-spinner\"></i> ";
-        } else if (queue.length > 0 || failedLookupCount > 0 || qsoCount === 0 || !lastLoadTypeRecognised) {
-            statusText += "<i class=\"fa-solid fa-triangle-exclamation\"></i> ";
-        } else {
-            statusText += "<i class=\"fa-solid fa-check\"></i> ";
+        let qsosDone = qsoCount - queue.length;
+        let status = `<progress id="file" value="${qsosDone}" max="${qsoCount}"></progress>&nbsp;${qsosDone}/${qsoCount}`;
+        if (qsosDone === qsoCount && qsoCount !== 0) {
+            status = status + " <b>Done!</b>";
         }
 
-        // Status text
-        if (loading) {
-            statusText += "Loading...";
-        } else if (!lastLoadTypeRecognised) {
-            statusText += "Could not parse this file as a supported format (ADIF, Cabrillo or SOTA CSV)"
-        } else if (qsoCount > 0) {
-            if (queue.length === 0 && failedLookupCount === 0) {
-                statusText += "Loaded and displayed " + qsoCount + " QSOs.";
-            } else if (queue.length === 0) {
-                statusText += "Loaded " + qsoCount + " QSOs, failed to find grids for " + failedLookupCount + ".";
-            } else if (failedLookupCount === 0) {
-                statusText += "Loaded " + qsoCount + " QSOs, " + queue.length + " in lookup queue.";
-            } else {
-                statusText += "Loaded " + qsoCount + " QSOs, " + queue.length + " in queue, failed to find grids for " + failedLookupCount + ".";
-            }
-        } else {
-            statusText += "Failed to parse QSOs in this file";
-        }
-
-        // Abort option
-        if (queue.length > 0) {
-            statusText += "&nbsp;&nbsp;<a href='#' onClick='clearQueue();'>Cancel</a>";
-        }
-
-        $("#loadingStatus").html(statusText);
+        $("#loadingStatus").html(status);
+        $("#loadingStatus").show();
     }
 }
 

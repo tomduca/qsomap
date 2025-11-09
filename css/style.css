@@ -38,7 +38,10 @@ label.configLabel {
 }
 
 /* Style for small info indicators */
-div#qsoFilterMessage, div#loadingStatus {
+div#loadingStatus {
+    margin-bottom: 2em;
+}
+div#qsoFilterMessage {
     margin-top: 0.1em;
     margin-bottom: 0;
     font-size: 0.8em;

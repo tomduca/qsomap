@@ -116,15 +116,14 @@ async function processQSOFromQueue() {
             await new Promise(r => setTimeout(r, 100));
         }
 
-        // If we got a grid from any of the above methods, we can put the QSO into the data map and render it. This
-        // is a bit wasteful in terms of CPU given we're going to re-render once the queue is empty anyway, but it
-        // helps keep the user interested during long loads.
+        // Put the QSO into the data map and render it. This is a bit wasteful in terms of CPU given we're going to
+        // re-render once the queue is empty anyway, but it helps keep the user interested during long loads. Note there
+        // is a check here to prevent the data going any further if there's no grid, but this will be incredibly rare-
+        // Spothole will give a grid for anything that looks like a valid call, even if it's just a default point for
+        // the DXCC, so this should only return no grid if the callsign is busted.
         if (qso.grid) {
             putQSOIntoDataMap(qso);
             redraw(qso.call + "-" + qso.grid);
-        } else {
-            // We tried and failed to look up this QSO with any available methods.
-            failedLookupCount++;
         }
 
         // If we have now completed the queue, update stats and redraw everything.
