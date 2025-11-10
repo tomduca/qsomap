@@ -47,4 +47,5 @@ function clearData() {
     bands = new Set();
     modes = new Set();
     $("#qsoFiltersTable").hide();
+    $("#loadingStatus").hide();
 }

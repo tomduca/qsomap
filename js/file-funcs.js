@@ -250,7 +250,7 @@ function loadFile(text) {
         try {
             // Load the content, delegating to a function based on file type.
             let good = true;
-            if (text.substring(0, 4) === "ADIF" || text.includes("<EOH>")) {
+            if (text.substring(0, 4) === "ADIF" || text.includes("<EOH>") || text.includes("<eoh>")) {
                 loadADIF(text);
             } else if (text.substring(0, 13) === "START-OF-LOG:") {
                 loadCabrillo(text);
