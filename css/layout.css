@@ -8,7 +8,7 @@ div#map {
 
 div.panel {
     position: absolute;
-    top: 2.9em;
+    top: 3.5em;
     left: 1em;
     width: 19em;
     margin: 0;
@@ -33,7 +33,6 @@ div#menuButtonRow {
 
 div.menuButton {
     display: inline-block;
-    height: calc(1.4em + 1px);
     padding: 0.2em 0.5em;
     text-align: center;
 }
