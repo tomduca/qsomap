@@ -34,8 +34,8 @@ function redrawAll() {
     // Calculate data sets for the heatmaps. We have to do this in two stages because the "intensity" value we use when
     // drawing the heatmap is based on how many total qsos there are, or how qsos per band there are. So first, we build
     // data sets. Each item is simply a [lat,lon].
-    let heatmapData = [];
-    let perBandHeatmapsData = new Map();
+    heatmapData = [];
+    perBandHeatmapsData = new Map();
     BANDS.forEach(band => perBandHeatmapsData.set(band.name, []));
     data.forEach((d) => {
         let pos = getIconPosition(d);
@@ -56,9 +56,13 @@ function redrawAll() {
     });
 
     // Load the data into the heatmaps
+    try {
     heatmapLayer.setLatLngs(heatmapData);
+    } catch (e) {}
     perBandHeatmaps.forEach((value, key) => {
+        try {
         value.setLatLngs(perBandHeatmapsData.get(key));
+        } catch (e) {}
     });
 }
 
@@ -260,6 +264,10 @@ function enableHeatmap(show) {
     heatmapEnabled = show;
     if (heatmapLayer) {
         if (show) {
+            // Repopulate the display
+            try {
+                heatmapLayer.setLatLngs(heatmapData);
+            } catch (e) {}
             heatmapLayer.addTo(map);
             basemapLayer.bringToBack();
         } else {
@@ -274,6 +282,12 @@ function enablePerBandHeatmap(show) {
     perBandHeatmapEnabled = show;
     if (perBandHeatmapsGroup) {
         if (show) {
+            // Repopulate the display
+            perBandHeatmaps.forEach((value, key) => {
+                try {
+                    value.setLatLngs(perBandHeatmapsData.get(key));
+                } catch (e) {}
+            });
             perBandHeatmapsGroup.addTo(map);
             basemapLayer.bringToBack();
         } else {

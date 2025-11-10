@@ -74,6 +74,8 @@ let gridSquaresWorkedLayer;
 let gridSquaresWorkedLabelsLayer;
 let ownPosLayer;
 let ownPosMarker;
+let heatmapData = [];
+let perBandHeatmapsData = new Map();
 let heatmapLayer;
 let perBandHeatmapsGroup;
 let perBandHeatmaps = new Map();
