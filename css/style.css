@@ -31,8 +31,7 @@ div.menuButton a {
     color: var(--text);
 }
 div.menuButtonActive {
-    color: var(--link-color);
-    border: 1px solid var(--link-color);
+    box-shadow: 0px -3px 0px 0px var(--link-color) inset;
 }
 
 label.configLabel {

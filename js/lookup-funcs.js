@@ -32,7 +32,7 @@ function performCallsignLookup(qso) {
             }
 
             let bestQTH = (result.qth && result.qth.length > 0) ? result.qth : result.country;
-            if (bestQTH.length > 0 && !qso.qth) {
+            if (bestQTH != null && bestQTH.length > 0 && !qso.qth) {
                 qso.qth = bestQTH;
             }
 
@@ -116,13 +116,10 @@ async function processQSOFromQueue() {
             await new Promise(r => setTimeout(r, 100));
         }
 
-        // Put the QSO into the data map and render it. This is a bit wasteful in terms of CPU given we're going to
-        // re-render once the queue is empty anyway, but it helps keep the user interested during long loads. Note there
-        // is a check here to prevent the data going any further if there's no grid, but this will be incredibly rare-
-        // Spothole will give a grid for anything that looks like a valid call, even if it's just a default point for
-        // the DXCC, so this should only return no grid if the callsign is busted.
+        putQSOIntoDataMap(qso);
         if (qso.grid) {
-            putQSOIntoDataMap(qso);
+            // If the QSO has grid info, render it. This is a bit wasteful in terms of CPU given we're going to
+            // re-render once the queue is empty anyway, but it helps keep the user interested during long loads.
             redraw(qso.call + "-" + qso.grid);
         }
 

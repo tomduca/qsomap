@@ -39,12 +39,14 @@ function redrawAll() {
     BANDS.forEach(band => perBandHeatmapsData.set(band.name, []));
     data.forEach((d) => {
         let pos = getIconPosition(d);
-        d.qsos.forEach((qso) => {
-            heatmapData.push([pos[0], pos[1], 1]);
-            if (qso.band && perBandHeatmapsData.has(qso.band)) {
-                perBandHeatmapsData.get(qso.band).push([pos[0], pos[1], 1]);
-            }
-        });
+        if (pos != null) {
+            d.qsos.forEach((qso) => {
+                heatmapData.push([pos[0], pos[1], 1]);
+                if (qso.band && perBandHeatmapsData.has(qso.band)) {
+                    perBandHeatmapsData.get(qso.band).push([pos[0], pos[1], 1]);
+                }
+            });
+        }
     });
 
     // Now for every point, calculate an intensity based on the total number of points, and store it.

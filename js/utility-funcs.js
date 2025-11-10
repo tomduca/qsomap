@@ -267,7 +267,7 @@ function getIconName(d) {
         let qsoIcons = [];
         getQSOsMatchingFilter(d).forEach((qso) => {
             // First, see if the QSO has any Special Interest Group (e.g. xOTA) references set.
-            if (qso.sigRefs.length > 0) {
+            if (qso.sigRefs && qso.sigRefs.length > 0) {
                 qso.sigRefs.forEach(p => {
                     if (p.program === "POTA") {
                         qsoIcons.push("fa-tree");
