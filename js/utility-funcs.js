@@ -49,6 +49,8 @@ function createOwnPosMarker(newPos) {
             $(ownPosMarker._icon).find("svg").css("margin-left", ((1 - markerSize) * 8) + "px");
             $(ownPosMarker._icon).find("i").css("font-size", (14 + (markerSize - 1) * 10) + "px");
             $(ownPosMarker._icon).find("i").css("margin-top", (10 + (1 - markerSize) * 28) + "px");
+            $(ownPosMarker._icon).find("i").css("position", "absolute");
+            $(ownPosMarker._icon).find("i").css("top", "0px");
             let ml = 0;
             if (markerSize > 1.4) {
                 ml = 3;

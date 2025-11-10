@@ -16,7 +16,7 @@ div.panel {
     z-index: 1001;
     max-height: 85%;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 div#displayPanel, div#statsPanel, div#aboutPanel {
@@ -95,7 +95,7 @@ div.dialog {
     padding: 0 1em;
     display: none;
     max-height: 85%;
-    overflow: scroll;
+    overflow: auto;
 }
 
 /* Stats rows that are hidden by default */

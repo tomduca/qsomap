@@ -134,6 +134,8 @@ function redraw(key) {
                 $(m._icon).find("svg").css("margin-left", ((1 - thisMarkerSize) * 8) + "px");
                 $(m._icon).find("i").css("font-size", (14 + (thisMarkerSize - 1) * 10 - ((getIconName(d) === "fa-circle") ? 2 : 0)) + "px");
                 $(m._icon).find("i").css("margin-top", (10 + (1 - thisMarkerSize) * 28 + ((getIconName(d) === "fa-circle") ? 2 : 0)) + "px");
+                $(m._icon).find("i").css("position", "absolute");
+                $(m._icon).find("i").css("top", "0px");
                 let ml = 0;
                 if (thisMarkerSize > 1.4) {
                     ml = 3;
