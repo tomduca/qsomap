@@ -625,7 +625,7 @@ function recalculateStats() {
                 // Create cells for DXCC flag/name and QSO count
                 let dxcc = allDXCCs[(row * 3) + col];
                 let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];
-                tr2.append(`<td>${(DXCC_DATA[dxcc].flag !== "" ? DXCC_DATA[dxcc].flag + " " : "") + DXCC_DATA[dxcc].name}</td>`);
+                tr2.append(`<td><img src="img/flags/${dxcc}.png" class="flag" width="24" alt="${DXCC_DATA[dxcc].name} flag"/>&nbsp;${DXCC_DATA[dxcc].name}</td>`);
                 tr2.append(`<td>${qsosInDXCC.length}</td>`);
             }
         }
