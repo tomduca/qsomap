@@ -137,13 +137,13 @@
         <label for="markerSize" style="margin-left: 1.5em; position: relative; top: -1px;">Marker Size</label>
             <input type="range" id="markerSize" name="markerSize" class="control" min="0.125" max="1.5" value="1.0" step="0.125" style="margin: 0 0 0 1em; position: relative; top: 4px; width: 10em;"/><br/>
         <label for="bandColours" class="configLabel">
-            <input type="checkbox" id="bandColours" class="control" name="bandColours" checked="checked">&nbsp;Colour according to band</label><br/>
+            <input type="checkbox" id="bandColours" class="control" name="bandColours" checked="checked">&nbsp;Colour according to band</label><span class="dialog-open-link"><a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
         <label for="modeColours" class="configLabel">
-            <input type="checkbox" id="modeColours" class="control" name="modeColours">&nbsp;Colour according to mode</label><br/>
+            <input type="checkbox" id="modeColours" class="control" name="modeColours">&nbsp;Colour according to mode</label><span class="dialog-open-link"><a href="#" onClick="openDialog('mode-colors-key-dialog');">Key</a></span><br/>
         <label for="circleMarkers" class="configLabel">
             <input type="checkbox" id="circleMarkers" class="control" name="circleMarkers">&nbsp;Simple dot markers</label><br/>
         <label for="outdoorSymbols" class="configLabel">
-            <input type="checkbox" id="outdoorSymbols" class="control" name="outdoorSymbols">&nbsp;xOTA activity symbols</label><br/>
+            <input type="checkbox" id="outdoorSymbols" class="control" name="outdoorSymbols">&nbsp;xOTA activity symbols</label><span class="dialog-open-link"><a href="#" onClick="openDialog('xota-icons-key-dialog');">Key</a></span><br/>
         <label for="hybridMarkerSize" class="configLabel">
             <input type="checkbox" id="hybridMarkerSize" class="control" name="hybridMarkerSize">&nbsp;Smaller hunter markers</label><br/>
         <label for="outlineMarkers" class="configLabel">
@@ -185,7 +185,7 @@
         <label for="heatmapEnabled" class="configLabel">
             <input type="checkbox" id="heatmapEnabled" class="control" name="heatmapEnabled">&nbsp;Draw heatmap</label><br/>
         <label for="perBandHeatmapEnabled" class="configLabel">
-            <input type="checkbox" id="perBandHeatmapEnabled" class="control" name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label><br/>
+            <input type="checkbox" id="perBandHeatmapEnabled" class="control" name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label><span class="dialog-open-link"><a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
     </div>
 
 
@@ -278,23 +278,23 @@
         </tr>
         <tr>
             <th>Grid squares</th>
-            <td><span id="stats-gridsquare-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-gridsquare-detail-dialog');">Details</a></span></td>
+            <td><span id="stats-gridsquare-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-gridsquare-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>Grid fields</th>
-            <td><span id="stats-gridfield-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-gridfield-detail-dialog');">Details</a></span></td>
+            <td><span id="stats-gridfield-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-gridfield-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>DXCCs</th>
-            <td><span id="stats-dxcc-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-dxcc-detail-dialog');">Details</a></span></td>
+            <td><span id="stats-dxcc-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-dxcc-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>CQ zones</th>
-            <td><span id="stats-cqz-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-cqz-detail-dialog');">Details</a></span></td>
+            <td><span id="stats-cqz-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-cqz-detail-dialog');">Details</a></span></td>
         </tr>
         <tr>
             <th>ITU zones</th>
-            <td><span id="stats-ituz-count">0</span><span class="stats-detail-link"><a href="#" onClick="openDialog('stats-ituz-detail-dialog');">Details</a></span></td>
+            <td><span id="stats-ituz-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-ituz-detail-dialog');">Details</a></span></td>
         </tr>
     </table>
 
@@ -338,6 +338,55 @@
 <div id="stats-ituz-detail-dialog" class="dialog">
     <p><b>Worked ITU zones</b><br/><span id="stats-ituz-list"></span></p>
     <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-ituz-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="band-colors-key-dialog" class="dialog">
+    <p><b>Band Colours</b><br/>
+        <span style='font-size:2em; color:#7cfc00; line-height: 0;'>&#9724;</span> 160m<br/>
+        <span style='font-size:2em; color:#e550e5; line-height: 0;'>&#9724;</span> 80m<br/>
+        <span style='font-size:2em; color:#00008b; line-height: 0;'>&#9724;</span> 60m<br/>
+        <span style='font-size:2em; color:#5959ff; line-height: 0;'>&#9724;</span> 40m<br/>
+        <span style='font-size:2em; color:#62d962; line-height: 0;'>&#9724;</span> 30m<br/>
+        <span style='font-size:2em; color:#f2c40c; line-height: 0;'>&#9724;</span> 20m<br/>
+        <span style='font-size:2em; color:#f2f261; line-height: 0;'>&#9724;</span> 17m<br/>
+        <span style='font-size:2em; color:#cca166; line-height: 0;'>&#9724;</span> 15m<br/>
+        <span style='font-size:2em; color:#b22222; line-height: 0;'>&#9724;</span> 12m<br/>
+        <span style='font-size:2em; color:#ff69b4; line-height: 0;'>&#9724;</span> 10m<br/>
+        <span style='font-size:2em; color:#FF0000; line-height: 0;'>&#9724;</span> 6m<br/>
+        <span style='font-size:2em; color:#cc0044; line-height: 0;'>&#9724;</span> 4m<br/>
+        <span style='font-size:2em; color:#FF1493; line-height: 0;'>&#9724;</span> 2m<br/>
+        <span style='font-size:2em; color:#999900; line-height: 0;'>&#9724;</span> 70cm<br/>
+        <span style='font-size:2em; color:#5AB8C7; line-height: 0;'>&#9724;</span> 23cm<br/>
+        <span style='font-size:2em; color:#FF7F50; line-height: 0;'>&#9724;</span> 13cm
+    </p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('band-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="mode-colors-key-dialog" class="dialog">
+    <p><b>Mode Colours</b><br/>
+        <span style='font-size:2em; color:red; line-height: 0;'>&#9724;</span> CW<br/>
+        <span style='font-size:2em; color:green; line-height: 0;'>&#9724;</span> Phone<br/>
+        <span style='font-size:2em; color:blue; line-height: 0;'>&#9724;</span> Data
+    </p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('mode-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+</div>
+
+<div id="xota-icons-key-dialog" class="dialog">
+    <p><b>xOTA Icons</b><br/>
+        <i class='fa-solid fa-tree'></i>&nbsp;Parks on the Air (POTA)<br/>
+        <i class='fa-solid fa-mountain-sun'></i>&nbsp;Summits on the Air (SOTA)<br/>
+        <i class='fa-solid fa-seedling'></i>&nbsp;Worldwide Flora & Fauna (WWFF)<br/>
+        <i class='fa-solid fa-person-hiking'></i>&nbsp;Global Mountain Activity (GMA)<br/>
+        <i class='fa-solid fa-radiation'></i>&nbsp;Bunkers on the Air (WWBOTA)<br/>
+        <i class='fa-solid fa-umbrella-beach'></i>&nbsp;Islands on the Air (IOTA)<br/>
+        <i class='fa-solid fa-chess-rook'></i>&nbsp;World Castles Award (WCA)<br/>
+        <i class='fa-solid fa-tower-observation'></i>&nbsp;Amateur Radio Lighthouse Society (ARLHS)<br/>
+        <i class='fa-solid fa-fan'></i>&nbsp;Mills on the Air (MOTA)<br/>
+        <i class='fa-solid fa-star'></i>&nbsp;(Multiple xOTA programmes)<br/>
+        <i class='fa-solid fa-question'></i>&nbsp;(Unknown xOTA programme)<br/>
+        <i class='fa-solid fa-crosshairs'></i>&nbsp;(Hunter)
+    </p>
+    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('xota-icons-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 

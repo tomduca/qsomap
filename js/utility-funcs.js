@@ -194,7 +194,7 @@ function qsoToColour(d) {
 
         } else if (modeColours) {
             if (qso.mode) {
-                if (qso.mode === "SSB" || qso.mode === "USB" || qso.mode === "LSB") {
+                if (getModeFamily(qso.mode) === "Phone") {
                     qsoColours.push("green");
                 } else if (qso.mode === "CW") {
                     qsoColours.push("red");

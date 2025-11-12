@@ -80,7 +80,7 @@ table.statsTable th, table.statsTable td {
     padding: 0.2em 0.5em;
 }
 
-span.stats-detail-link {
+span.dialog-open-link {
     font-size: 0.8em;
     float: right;
     margin-top: 4px;
