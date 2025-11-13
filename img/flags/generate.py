@@ -20,3 +20,6 @@ for dxcc in data["dxcc"]:
     draw.text((0, -10), flag, font=ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", 109), embedded_color=True)
     outfile = str(id) + ".png"
     image.save(outfile, "PNG")
+
+image = Image.new("RGBA", (140, 110), (255, 0, 0, 0))
+image.save("999.png", "PNG")
