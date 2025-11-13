@@ -39,6 +39,15 @@ label.configLabel {
     white-space: nowrap;
 }
 
+input#fixedMarkerColour {
+    padding: 0;
+    border: none;
+    height: 1.5em;
+    width: 2em;
+    position: relative;
+    top: 3px;
+}
+
 /* Style for small info indicators */
 div#loadingStatus {
     margin-bottom: 2em;

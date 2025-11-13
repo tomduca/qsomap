@@ -128,22 +128,24 @@
     <div class="menu-content">
         <label for="markersEnabled" class="configLabel">
             <input type="checkbox" id="markersEnabled" class="control" name="markersEnabled" checked="checked">&nbsp;Draw QSO markers</label><br/>
-        <label for="qthMarker" class="configLabel">
+        <label for="qthMarker" class="configLabel" style="margin-bottom: 0.5em;">
             <input type="checkbox" id="qthMarker" class="control" name="qthMarker" checked="checked">&nbsp;Draw QTH marker</label><br/>
-        <label for="markerSize" style="margin-left: 1.5em; position: relative; top: -1px;">Marker Size</label>
+        <label for="markerSize" style="margin-top: 1em; margin-left: 1.5em; position: relative; top: -1px;">Marker Size</label>
             <input type="range" id="markerSize" name="markerSize" class="control" min="0.125" max="1.5" value="1.0" step="0.125" style="margin: 0 0 0 1em; position: relative; top: 4px; width: 10em;"/><br/>
+        <label for="fixedColour" class="configLabel">
+            <input type="radio" id="fixedColour" class="control" name="markerColours" style="margin-top: 1em;">&nbsp;Fixed colour:</label> <input type="color" id="fixedMarkerColour" class="control" name="fixedMarkerColour" value="#1e90ff" /><br/>
         <label for="bandColours" class="configLabel">
-            <input type="checkbox" id="bandColours" class="control" name="bandColours" checked="checked">&nbsp;Colour according to band</label><span class="dialog-open-link"><a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
+            <input type="radio" id="bandColours" class="control" name="markerColours" checked="checked">&nbsp;Colour according to band</label><span class="dialog-open-link"><a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
         <label for="modeColours" class="configLabel">
-            <input type="checkbox" id="modeColours" class="control" name="modeColours">&nbsp;Colour according to mode</label><span class="dialog-open-link"><a href="#" onClick="openDialog('mode-colors-key-dialog');">Key</a></span><br/>
+            <input type="radio" id="modeColours" class="control" name="markerColours">&nbsp;Colour according to mode</label><span class="dialog-open-link"><a href="#" onClick="openDialog('mode-colors-key-dialog');">Key</a></span><br/>
         <label for="circleMarkers" class="configLabel">
-            <input type="checkbox" id="circleMarkers" class="control" name="circleMarkers">&nbsp;Simple dot markers</label><br/>
+            <input type="checkbox" id="circleMarkers" class="control" name="circleMarkers" style="margin-top: 1em;">&nbsp;Simple dot markers</label><br/>
         <label for="outdoorSymbols" class="configLabel">
             <input type="checkbox" id="outdoorSymbols" class="control" name="outdoorSymbols">&nbsp;xOTA activity symbols</label><span class="dialog-open-link"><a href="#" onClick="openDialog('xota-icons-key-dialog');">Key</a></span><br/>
         <label for="hybridMarkerSize" class="configLabel">
             <input type="checkbox" id="hybridMarkerSize" class="control" name="hybridMarkerSize">&nbsp;Smaller hunter markers</label><br/>
         <label for="outlineMarkers" class="configLabel">
-            <input type="checkbox" id="outlineMarkers" class="control" name="outlineMarkers">&nbsp;Draw outlines</label><br/>
+            <input type="checkbox" id="outlineMarkers" class="control" name="outlineMarkers" checked="checked">&nbsp;Draw outlines</label><br/>
         <label for="showMarkerShadows" class="configLabel">
             <input type="checkbox" id="showMarkerShadows" class="control" name="showMarkerShadows" checked="checked">&nbsp;Draw shadows</label>
     </div>
@@ -353,7 +355,9 @@
         <span style='font-size:2em; color:#FF1493; line-height: 0;'>&#9724;</span> 2m<br/>
         <span style='font-size:2em; color:#999900; line-height: 0;'>&#9724;</span> 70cm<br/>
         <span style='font-size:2em; color:#5AB8C7; line-height: 0;'>&#9724;</span> 23cm<br/>
-        <span style='font-size:2em; color:#FF7F50; line-height: 0;'>&#9724;</span> 13cm
+        <span style='font-size:2em; color:#FF7F50; line-height: 0;'>&#9724;</span> 13cm<br/>
+        <span style='font-size:2em; color:rebeccapurple; line-height: 0;'>&#9724;</span> Multiple bands<br/>
+        <span style='font-size:2em; color:grey; line-height: 0;'>&#9724;</span> Unknown band
     </p>
     <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('band-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
@@ -362,7 +366,9 @@
     <p><b>Mode Colours</b><br/>
         <span style='font-size:2em; color:red; line-height: 0;'>&#9724;</span> CW<br/>
         <span style='font-size:2em; color:green; line-height: 0;'>&#9724;</span> Phone<br/>
-        <span style='font-size:2em; color:blue; line-height: 0;'>&#9724;</span> Data
+        <span style='font-size:2em; color:blue; line-height: 0;'>&#9724;</span> Data<br/>
+        <span style='font-size:2em; color:rebeccapurple; line-height: 0;'>&#9724;</span> Multiple modes<br/>
+        <span style='font-size:2em; color:grey; line-height: 0;'>&#9724;</span> Unknown mode
     </p>
     <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('mode-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>

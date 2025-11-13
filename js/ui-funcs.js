@@ -51,6 +51,8 @@ function updateModelFromUI() {
     localStorage.setItem('bandColours', bandColours);
     modeColours = $("#modeColours").is(':checked');
     localStorage.setItem('modeColours', modeColours);
+    fixedMarkerColour = $("#fixedMarkerColour").val();
+    localStorage.setItem('fixedMarkerColour', JSON.stringify(fixedMarkerColour));
     markerSize = $("#markerSize").val();
     localStorage.setItem('markerSize', markerSize);
     outlineMarkers = $("#outlineMarkers").is(':checked');

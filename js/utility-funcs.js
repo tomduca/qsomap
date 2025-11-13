@@ -206,7 +206,7 @@ function qsoToColour(d) {
             }
 
         } else {
-            qsoColours.push("dodgerblue");
+            qsoColours.push(fixedMarkerColour);
         }
     });
     let allEqual = qsoColours.every( (val, i, arr) => val === arr[0] );
