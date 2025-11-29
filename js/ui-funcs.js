@@ -32,6 +32,10 @@ function updateModelFromUI() {
     setFineZoomControl($("#fineZoomControl").is(':checked'));
     markersEnabled = $("#markersEnabled").is(':checked');
     localStorage.setItem('markersEnabled', markersEnabled);
+    userLookupEnabled = $("#userLookupEnabled").is(':checked');
+    localStorage.setItem('userLookupEnabled', userLookupEnabled);
+    refLookupEnabled = $("#refLookupEnabled").is(':checked');
+    localStorage.setItem('refLookupEnabled', refLookupEnabled);
     myCall = $("#myCall").val();
     $("#stats-callsign").text(myCall);
     localStorage.setItem('myCall', JSON.stringify(myCall));

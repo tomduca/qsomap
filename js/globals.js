@@ -94,6 +94,8 @@ let modes = new Set();
 /////////////////////////////
 
 let appendOnLoad = false;
+let userLookupEnabled = true;
+let refLookupEnabled = true;
 let basemap = "Esri.NatGeoWorldMap";
 let basemapOpacity = 0.5;
 let basemapIsDark = false;

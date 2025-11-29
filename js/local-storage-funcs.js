@@ -19,6 +19,10 @@ function loadLocalStorage() {
     appendOnLoad = tmpAppendOnLoad;
     $("#appendOnLoad").prop('checked', tmpAppendOnLoad);
     let tmpBasemap = localStorageGetOrDefault('basemap', basemap);
+    let tmpUserLookupEnabled = localStorageGetOrDefault('userLookupEnabled', userLookupEnabled);
+    $("#userLookupEnabled").prop('checked', tmpUserLookupEnabled);
+    let tmpRefLookupEnabled = localStorageGetOrDefault('refLookupEnabled', refLookupEnabled);
+    $("#refLookupEnabled").prop('checked', tmpRefLookupEnabled);
     $("#basemap").val(tmpBasemap);
     let tmpBasemapOpacity = localStorageGetOrDefault('basemapOpacity', basemapOpacity);
     $("#basemapOpacity").val(tmpBasemapOpacity);
