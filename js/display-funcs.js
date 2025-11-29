@@ -247,18 +247,18 @@ function enableITUZones(show) {
     localStorage.setItem('showITUZones', show);
 }
 
-// Shows/hides the WAB grid overlay
-function enableWABGrid(show) {
-    showWABGrid = show;
-    if (wabGrid) {
+// Shows/hides the WAB/WAI grid overlay
+function enableWABWAIGrid(show) {
+    showWABWAIGrid = show;
+    if (wabwaiGrid) {
         if (show) {
-            wabGrid.addTo(map);
+            wabwaiGrid.addTo(map);
             basemapLayer.bringToBack();
         } else {
-            map.removeLayer(wabGrid);
+            map.removeLayer(wabwaiGrid);
         }
     }
-    localStorage.setItem('showWABGrid', show);
+    localStorage.setItem('showWABWAIGrid', show);
 }
 
 // Shows/hides the Heatmap layer
@@ -490,12 +490,12 @@ function setBasemap(basemapname) {
             maidenheadGrid.options.color = MAIDENHEAD_GRID_COLOR_DARK;
             cqZones.options.color = CQ_ZONES_COLOR_DARK;
             ituZones.options.color = ITU_ZONES_COLOR_DARK;
-            wabGrid.options.color = WAB_GRID_COLOR_DARK;
+            wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_DARK;
         } else {
             maidenheadGrid.options.color = MAIDENHEAD_GRID_COLOR_LIGHT;
             cqZones.options.color = CQ_ZONES_COLOR_LIGHT;
             ituZones.options.color = ITU_ZONES_COLOR_LIGHT;
-            wabGrid.options.color = WAB_GRID_COLOR_LIGHT;
+            wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_LIGHT;
         }
         if (showMaidenheadGrid) {
             map.removeLayer(maidenheadGrid);
@@ -512,9 +512,9 @@ function setBasemap(basemapname) {
             ituZones.addTo(map);
             basemapLayer.bringToBack();
         }
-        if (showWABGrid) {
-            map.removeLayer(wabGrid);
-            wabGrid.addTo(map);
+        if (showWABWAIGrid) {
+            map.removeLayer(wabwaiGrid);
+            wabwaiGrid.addTo(map);
             basemapLayer.bringToBack();
         }
     }

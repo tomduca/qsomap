@@ -34,9 +34,9 @@ function setUpMap() {
         color : ITU_ZONES_COLOR_LIGHT
     });
 
-    // Add WAB square layer (toggleable)
-    wabGrid = L.workedAllBritain({
-        color : WAB_GRID_COLOR_LIGHT
+    // Add WAB/WAI grid layer (toggleable)
+    wabwaiGrid = L.workedAllBritainIreland({
+        color : WAB_WAI_GRID_COLOR_LIGHT
     });
 
     // Add marker layer

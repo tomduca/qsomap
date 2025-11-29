@@ -36,8 +36,8 @@ function loadLocalStorage() {
     $("#showCQZones").prop('checked', tmpShowCQZones);
     let tmpShowITUZones = localStorageGetOrDefault('showITUZones', showITUZones);
     $("#showITUZones").prop('checked', tmpShowITUZones);
-    let tmpShowWABGrid = localStorageGetOrDefault('showWABGrid', showWABGrid);
-    $("#showWABGrid").prop('checked', tmpShowWABGrid);
+    let tmpShowWABWAIGrid = localStorageGetOrDefault('showWABWAIGrid', showWABWAIGrid);
+    $("#showWABWAIGrid").prop('checked', tmpShowWABWAIGrid);
     let tmpMarkersEnabled = localStorageGetOrDefault('markersEnabled', markersEnabled);
     $("#markersEnabled").prop('checked', tmpMarkersEnabled);
     let tmpQTHMarker = localStorageGetOrDefault('qthMarker', qthMarker);

@@ -25,11 +25,11 @@ const SPOTHOLE_BASE_URL = "https://spothole.app/api/v1";
 const MAIDENHEAD_GRID_COLOR_LIGHT = 'rgba(200, 140, 140, 1.0)';
 const CQ_ZONES_COLOR_LIGHT = 'rgba(140, 200, 140, 1.0)';
 const ITU_ZONES_COLOR_LIGHT = 'rgba(200, 200, 140, 1.0)';
-const WAB_GRID_COLOR_LIGHT = 'rgba(140, 140, 200, 1.0)';
+const WAB_WAI_GRID_COLOR_LIGHT = 'rgba(140, 140, 200, 1.0)';
 const MAIDENHEAD_GRID_COLOR_DARK = 'rgba(120, 60, 60, 1.0)';
 const CQ_ZONES_COLOR_DARK = 'rgba(60, 120, 60, 1.0)';
 const ITU_ZONES_COLOR_DARK = 'rgba(120, 120, 60, 1.0)';
-const WAB_GRID_COLOR_DARK = 'rgba(60, 60, 120, 1.0)';
+const WAB_WAI_GRID_COLOR_DARK = 'rgba(60, 60, 120, 1.0)';
 
 /////////////////////////////
 //      DATA STORAGE       //
@@ -80,7 +80,7 @@ let heatmapLayer;
 let perBandHeatmapsGroup;
 let perBandHeatmaps = new Map();
 let maidenheadGrid;
-let wabGrid;
+let wabwaiGrid;
 let cqZones;
 let ituZones;
 // Tracker for how many years, bands and modes we have in our data set.
@@ -120,7 +120,7 @@ let showMarkerShadows = true;
 let showMaidenheadGrid = false;
 let showCQZones = false;
 let showITUZones = false;
-let showWABGrid = false;
+let showWABWAIGrid = false;
 let showCallsignLabels = false;
 let showGridSquareLabels = false;
 let showDistanceLabels = false;

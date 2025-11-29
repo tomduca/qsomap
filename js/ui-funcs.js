@@ -26,7 +26,7 @@ function updateModelFromUI() {
     enableMaidenheadGrid($("#showMaidenheadGrid").is(':checked'));
     enableCQZones($("#showCQZones").is(':checked'));
     enableITUZones($("#showITUZones").is(':checked'));
-    enableWABGrid($("#showWABGrid").is(':checked'));
+    enableWABWAIGrid($("#showWABWAIGrid").is(':checked'));
     enableHeatmap($("#heatmapEnabled").is(':checked'));
     enablePerBandHeatmap($("#perBandHeatmapEnabled").is(':checked'));
     setFineZoomControl($("#fineZoomControl").is(':checked'));

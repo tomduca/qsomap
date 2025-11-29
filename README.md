@@ -39,7 +39,7 @@ Other third party libraries, such as Leaflet and jQuery, plus many plugins for t
 
 This project would not have been possible without these libraries, so many thanks to their developers.
 
-Particular thanks are due to HA8TKS for the Maidenhead, CQ and ITU zone layers, which were also the basis for my own WAB grid layer.
+Particular thanks are due to HA8TKS for the Maidenhead, CQ and ITU zone layers, which were also the basis for my own WAB/WAI grid layer.
 
 ### Alternatives
 
