@@ -144,7 +144,7 @@
             <input type="checkbox" id="markersEnabled" class="control" name="markersEnabled" checked="checked">&nbsp;Draw QSO markers</label><br/>
         <label for="qthMarker" class="configLabel" style="margin-bottom: 0.5em;">
             <input type="checkbox" id="qthMarker" class="control" name="qthMarker" checked="checked">&nbsp;Draw QTH marker</label><br/>
-        <label for="markerSize" style="margin-top: 1em; margin-left: 1.5em; position: relative; top: -1px;">Marker Size</label>
+        <label for="markerSize" style="margin-top: 1em; margin-left: 1.7em; position: relative; top: -1px;">Marker Size</label>
             <input type="range" id="markerSize" name="markerSize" class="control" min="0.125" max="1.5" value="1.0" step="0.125" style="margin: 0 0 0 1em; position: relative; top: 4px; width: 10em;"/><br/>
         <label for="fixedColour" class="configLabel">
             <input type="radio" id="fixedColour" class="control" name="markerColours" style="margin-top: 1em;">&nbsp;Fixed colour:</label> <input type="color" id="fixedMarkerColour" class="control" name="fixedMarkerColour" value="#1e90ff" /><br/>
@@ -152,6 +152,8 @@
             <input type="radio" id="bandColours" class="control" name="markerColours" checked="checked">&nbsp;Colour according to band</label><span class="dialog-open-link"><a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
         <label for="modeColours" class="configLabel">
             <input type="radio" id="modeColours" class="control" name="markerColours">&nbsp;Colour according to mode</label><span class="dialog-open-link"><a href="#" onClick="openDialog('mode-colors-key-dialog');">Key</a></span><br/>
+        <label for="bandColorScheme" class="configLabel" style="margin-top: 0.5em; margin-left: 1.7em">Band color scheme: </label><br/>
+            <select id="bandColorScheme" class="control configSelect" style="margin-left: 2em"></select><br/>
         <label for="circleMarkers" class="configLabel">
             <input type="checkbox" id="circleMarkers" class="control" name="circleMarkers" style="margin-top: 1em;">&nbsp;Simple dot markers</label><br/>
         <label for="outdoorSymbols" class="configLabel">
@@ -354,50 +356,70 @@
 
 <div id="band-colors-key-dialog" class="dialog">
     <p><b>Band Colours</b><br/>
-        <span style='font-size:2em; color:#7cfc00; line-height: 0.5em;'>&#9724;</span> 160m<br/>
-        <span style='font-size:2em; color:#b33fb3; line-height: 0.5em;'>&#9724;</span> 80m<br/>
-        <span style='font-size:2em; color:#00008b; line-height: 0.5em;'>&#9724;</span> 60m<br/>
-        <span style='font-size:2em; color:#5959ff; line-height: 0.5em;'>&#9724;</span> 40m<br/>
-        <span style='font-size:2em; color:#62d962; line-height: 0.5em;'>&#9724;</span> 30m<br/>
-        <span style='font-size:2em; color:#f2c40c; line-height: 0.5em;'>&#9724;</span> 20m<br/>
-        <span style='font-size:2em; color:#f2f261; line-height: 0.5em;'>&#9724;</span> 17m<br/>
-        <span style='font-size:2em; color:#cca166; line-height: 0.5em;'>&#9724;</span> 15m<br/>
-        <span style='font-size:2em; color:#b22222; line-height: 0.5em;'>&#9724;</span> 12m<br/>
-        <span style='font-size:2em; color:#ff7eb4; line-height: 0.5em;'>&#9724;</span> 10m<br/>
-        <span style='font-size:2em; color:#FF0000; line-height: 0.5em;'>&#9724;</span> 6m<br/>
-        <span style='font-size:2em; color:#cc0044; line-height: 0.5em;'>&#9724;</span> 4m<br/>
-        <span style='font-size:2em; color:#FF1493; line-height: 0.5em;'>&#9724;</span> 2m<br/>
-        <span style='font-size:2em; color:#999900; line-height: 0.5em;'>&#9724;</span> 70cm<br/>
-        <span style='font-size:2em; color:#5AB8C7; line-height: 0.5em;'>&#9724;</span> 23cm<br/>
-        <span style='font-size:2em; color:#FF7F50; line-height: 0.5em;'>&#9724;</span> 13cm<br/>
-        <span style='font-size:2em; color:rebeccapurple; line-height: 0.5em;'>&#9724;</span> Multiple bands<br/>
-        <span style='font-size:2em; color:grey; line-height: 0.5em;'>&#9724;</span> Unknown band
+        <table style="border-spacing: 1em;"><tr><td style="vertical-align: top;">
+            <span class="colorSample bandColorSample" id="bandColorSample-2200m"></span>2200m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-600m"></span>600m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-160m"></span>160m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-80m"></span>80m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-60m"></span>60m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-40m"></span>40m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-30m"></span>30m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-20m"></span>20m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-17m"></span>17m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-15m"></span>15m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-12m"></span>12m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-10m"></span>10m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-6m"></span>6m<br/>
+        </td><td style="vertical-align: top;">
+            <span class="colorSample bandColorSample" id="bandColorSample-4m"></span>4m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-2m"></span>2m<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-70cm"></span>70cm<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-23cm"></span>23cm<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-13cm"></span>13cm<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-5_8GHz"></span>5.8GHz<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-10GHz"></span>10GHz<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-24GHz"></span>24GHz<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-47GHz"></span>47GHz<br/>
+            <span class="colorSample bandColorSample" id="bandColorSample-76GHz"></span>76GHz<br/>
+            <span class="colorSample" style="background-color: white;"></span>Multiple bands<br/>
+            <span class="colorSample" style="background-color: black;"></span>Unknown band
+        </td></tr></table>
     </p>
     <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('band-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 <div id="mode-colors-key-dialog" class="dialog">
     <p><b>Mode Colours</b><br/>
-        <span style='font-size:2em; color:red; line-height: 0.5em;'>&#9724;</span> CW<br/>
-        <span style='font-size:2em; color:green; line-height: 0.5em;'>&#9724;</span> Phone<br/>
-        <span style='font-size:2em; color:blue; line-height: 0.5em;'>&#9724;</span> Data<br/>
-        <span style='font-size:2em; color:rebeccapurple; line-height: 0.5em;'>&#9724;</span> Multiple modes<br/>
-        <span style='font-size:2em; color:grey; line-height: 0.5em;'>&#9724;</span> Unknown mode
+        <span class="colorSample" style="background-color: red;"></span>CW<br/>
+        <span class="colorSample" style="background-color: green;"></span>Phone<br/>
+        <span class="colorSample" style="background-color: blue;"></span>Data<br/>
+        <span class="colorSample" style="background-color: white;"></span>Multiple modes<br/>
+        <span class="colorSample" style="background-color: black;"></span>Unknown mode
     </p>
     <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('mode-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
 
 <div id="xota-icons-key-dialog" class="dialog">
-    <p><b>xOTA Icons</b><br/>
+    <p><b>xOTA/SIG Icons</b><br/>
         <i class='fa-solid fa-tree markerPopupIcon'></i>&nbsp;Parks on the Air (POTA)<br/>
         <i class='fa-solid fa-mountain-sun markerPopupIcon'></i>&nbsp;Summits on the Air (SOTA)<br/>
         <i class='fa-solid fa-seedling markerPopupIcon'></i>&nbsp;Worldwide Flora & Fauna (WWFF)<br/>
         <i class='fa-solid fa-person-hiking markerPopupIcon'></i>&nbsp;Global Mountain Activity (GMA)<br/>
         <i class='fa-solid fa-radiation markerPopupIcon'></i>&nbsp;Bunkers on the Air (WWBOTA)<br/>
+        <i class='fa-solid fa-mound markerPopupIcon'></i>&nbsp;Humps Excluding Marilyns Award (HEMA)<br/>
         <i class='fa-solid fa-umbrella-beach markerPopupIcon'></i>&nbsp;Islands on the Air (IOTA)<br/>
-        <i class='fa-solid fa-chess-rook markerPopupIcon'></i>&nbsp;World Castles Award (WCA)<br/>
-        <i class='fa-solid fa-tower-observation markerPopupIcon'></i>&nbsp;Amateur Radio Lighthouse Society (ARLHS)<br/>
         <i class='fa-solid fa-fan markerPopupIcon'></i>&nbsp;Mills on the Air (MOTA)<br/>
+        <i class='fa-solid fa-tower-observation markerPopupIcon'></i>&nbsp;Amateur Radio Lighthouse Society (ARLHS)<br/>
+        <i class='fa-solid fa-tower-observation markerPopupIcon'></i>&nbsp;International Lighthouse Lightship Weekend (ILLW)<br/>
+        <i class='fa-solid fa-wheat-awn markerPopupIcon'></i>&nbsp;Silos on the Air (SiOTA)<br/>
+        <i class='fa-solid fa-chess-rook markerPopupIcon'></i>&nbsp;World Castles Award (WCA)<br/>
+        <i class='fa-solid fa-kiwi-bird markerPopupIcon'></i>&nbsp;New Zealand on the Air (ZLOTA)<br/>
+        <i class='fa-solid fa-w markerPopupIcon'></i>&nbsp;Wainwrights on the Air (WOTA)<br/>
+        <i class='fa-solid fa-water markerPopupIcon'></i>&nbsp;Beaches on the Air (BOTA)<br/>
+        <i class='fa-solid fa-earth-oceania markerPopupIcon'></i>&nbsp;Keith Roget Memorial National Parks Award (KRMNPA)<br/>
+        <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Britain (WAB)<br/>
+        <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Ireland (WAI)<br/>
+        <i class='fa-solid fa-toilet markerPopupIcon'></i>&nbsp;Toilets on the Air (TOTA)<br/>
         <i class='fa-solid fa-star markerPopupIcon'></i>&nbsp;(Multiple xOTA programmes)<br/>
         <i class='fa-solid fa-question markerPopupIcon'></i>&nbsp;(Unknown xOTA programme)<br/>
         <i class='fa-solid fa-crosshairs markerPopupIcon'></i>&nbsp;(Hunter)

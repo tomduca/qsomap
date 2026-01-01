@@ -119,3 +119,14 @@ table.popupQSOTable {
 table#qsoFiltersTable {
     display: none;
 }
+
+.colorSample {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    border: 1px solid black;
+    position: relative;
+    top: 2px;
+}

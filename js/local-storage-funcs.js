@@ -90,6 +90,15 @@ function loadLocalStorage() {
     let tmpFineZoomControl = localStorageGetOrDefault('fineZoomControl', fineZoomControl);
     $("#fineZoomControl").prop('checked', tmpFineZoomControl);
 
+    // Band colour schemes
+    getAvailableBandColorSchemes().forEach(sc => $("#bandColorScheme").append($('<option>', {
+        value: sc,
+        text: sc
+    })));
+    let tmpBandColorScheme = localStorageGetOrDefault('bandColorScheme', bandColorScheme);
+    $("#bandColorScheme").val(tmpBandColorScheme);
+    setBandColorSchemeQSOMap(tmpBandColorScheme);
+
     // Load lookup data. This had to be converted to an object for storage, now we need it back as a map.
     const lookupDataStr = localStorage.getItem('lookupData');
     if (lookupDataStr !== null) {

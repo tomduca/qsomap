@@ -259,3 +259,11 @@ function sigRefToHTMLLink(p) {
         return p.ref;
     }
 }
+
+// Sets the band colour scheme for the QSO Map, delegating to the util method but also updating the band colour samples in the menu
+function setBandColorSchemeQSOMap(scheme) {
+    setBandColorScheme(scheme);
+    $(".bandColorSample").each(function() {
+        $(this).css('background-color', bandToColor($(this).attr("id").replace("bandColorSample-", "").replace("_", ".")));
+    });
+}

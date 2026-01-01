@@ -140,6 +140,12 @@ $("#circleMarkers").change(function () {
     }
 });
 
+// Listen for band colour scheme change
+$("#bandColorScheme").change(function () {
+    setBandColorSchemeQSOMap($(this).val());
+    localStorage.setItem('bandColorScheme', JSON.stringify($(this).val()));
+});
+
 // Listen for control changes. Most controls have this class, and therefore all perform the same updateModelFromUI()
 // function when they are changed. WARNING: The order in which jQuery bindings are done is important, some bindings
 // deliberately happen before this section, and others after.
