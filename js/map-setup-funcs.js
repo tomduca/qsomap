@@ -61,13 +61,7 @@ function setUpMap() {
     heatmapLayer = L.heatLayer([], {radius: 25});
     perBandHeatmapsGroup = new L.LayerGroup();
     HEATMAP_BAND_RENDER_ORDER.forEach(bandName => {
-        let color = "black";
-        BANDS.forEach(band => {
-            if (band.name === bandName) {
-                color = band.color;
-            }
-        })
-        let l = L.heatLayer([], {radius: 25, gradient: {1: color}});
+        let l = L.heatLayer([], {radius: 25, gradient: {1: bandToColor(bandName)}});
         l.addTo(perBandHeatmapsGroup);
         perBandHeatmaps.set(bandName, l);
     });

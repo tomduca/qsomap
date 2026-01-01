@@ -219,9 +219,9 @@ function populateFilterControls(years, bands, modes) {
 
     $("#filter-band").empty();
     $("#filter-band").append($("<option></option>").attr("value", "*").text("All bands"));
-    // Bands are sorted according to the order they appear in our BANDS global
+    // Bands are sorted according to the order they appear in our global list of bands
     Array.from(bands).filter(b => b != null && b.length > 0)
-        .sort((a, b) => BANDS.findIndex((band) => band.name === a) - BANDS.findIndex((band) => band.name === b)).forEach(function (b) {
+        .sort((a, b) => getKnownBands().findIndex((band) => band === a) - getKnownBands().findIndex((band) => band === b)).forEach(function (b) {
         $("#filter-band").append($("<option></option>").attr("value", b).text(b));
     });
 

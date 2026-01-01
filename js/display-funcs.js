@@ -36,7 +36,7 @@ function redrawAll() {
     // data sets. Each item is simply a [lat,lon].
     heatmapData = [];
     perBandHeatmapsData = new Map();
-    BANDS.forEach(band => perBandHeatmapsData.set(band.name, []));
+    getKnownBands().forEach(band => perBandHeatmapsData.set(band, []));
     data.forEach((d) => {
         let pos = getIconPosition(d);
         if (pos != null) {
@@ -654,13 +654,13 @@ function recalculateStats() {
     modeFamilies.forEach(m => {
         bandModeTable.find('thead tr').append(`<th>${m}</th>`);
     });
-    BANDS.forEach(band => {
-       if (bandsUsed.includes(band.name)) {
+    getKnownBands().forEach(band => {
+       if (bandsUsed.includes(band)) {
            let tr = $(`<tr></tr>`);
-           tr.append(`<th>${band.name}</th>`);
-           tr.append(`<td>${allQSOs.filter(q => q.band === band.name).length}</td>`);
+           tr.append(`<th>${band}</th>`);
+           tr.append(`<td>${allQSOs.filter(q => q.band === band).length}</td>`);
            modeFamilies.forEach(m => {
-               tr.append(`<td>${allQSOs.filter(q => q.band === band.name && getModeFamily(q.mode) === m).length}</td>`);
+               tr.append(`<td>${allQSOs.filter(q => q.band === band && getModeFamily(q.mode) === m).length}</td>`);
            });
            bandModeTable.find('tbody').append(tr);
        }
