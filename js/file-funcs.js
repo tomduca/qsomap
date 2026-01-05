@@ -79,8 +79,13 @@ function loadADIF(text) {
                 bands.add(qso.band);
             }
             if (qso.band == null && qsoData.has("BAND")) {
-                qso.band = qsoData.get("BAND");
-                bands.add(qso.band);
+                for (band of getKnownBands()) {
+                    if (band.toUpperCase() === qsoData.get("BAND").toUpperCase().trim()) {
+                        qso.band = band;
+                        bands.add(qso.band);
+                        break;
+                    }
+                }
             }
             if (qsoData.has("MODE")) {
                 qso.mode = qsoData.get("MODE");
