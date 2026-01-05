@@ -78,6 +78,10 @@ function loadADIF(text) {
                 qso.band = freqToBandName(qso.freq);
                 bands.add(qso.band);
             }
+            if (qso.band == null && qsoData.has("BAND")) {
+                qso.band = qsoData.get("BAND");
+                bands.add(qso.band);
+            }
             if (qsoData.has("MODE")) {
                 qso.mode = qsoData.get("MODE");
                 modes.add(qso.mode);
