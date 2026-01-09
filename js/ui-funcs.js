@@ -206,14 +206,6 @@ $(".menu-heading").click(function () {
     }
 });
 
-// Open dialogs
-function openDialog(id) {
-    $("#" + id).show();
-}
-function closeDialog(id) {
-    $("#" + id).hide();
-}
-
 // Populate the filter controls based on the years, bands and modes in the data we have loaded
 function populateFilterControls(years, bands, modes) {
     $("#filter-year").empty();
