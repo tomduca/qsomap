@@ -146,16 +146,36 @@ function getIconName(d) {
                         qsoIcons.push("fa-seedling");
                     } else if (p.program === "GMA") {
                         qsoIcons.push("fa-person-hiking");
+                    } else if (p.program === "HEMA") {
+                        qsoIcons.push("fa-mound");
                     } else if (p.program === "WWBOTA" || p.program === "UKBOTA") {
                         qsoIcons.push("fa-radiation");
                     } else if (p.program === "IOTA") {
+                        qsoIcons.push("fa-book-atlas");
+                    } else if (p.program === "BOTA") {
                         qsoIcons.push("fa-umbrella-beach");
                     } else if (p.program === "WCA") {
                         qsoIcons.push("fa-chess-rook");
-                    } else if (p.program === "ARLHS") {
+                    } else if (p.program === "ARLHS" || p.program === "ILLW") {
+                        qsoIcons.push("fa-house-flood-water");
+                    } else if (p.program === "WWTOTA") {
                         qsoIcons.push("fa-tower-observation");
+                    } else if (p.program === "LLOTA") {
+                        qsoIcons.push("fa-water");
                     } else if (p.program === "MOTA") {
                         qsoIcons.push("fa-fan");
+                    } else if (p.program === "SIOTA") {
+                        qsoIcons.push("fa-wheat-awn");
+                    } else if (p.program === "WOTA") {
+                        qsoIcons.push("fa-w");
+                    } else if (p.program === "ZLOTA") {
+                        qsoIcons.push("fa-kiwi-bird");
+                    } else if (p.program === "KRMNPA") {
+                        qsoIcons.push("fa-earth-oceania");
+                    } else if (p.program === "WAB" || p.program === "WAI") {
+                        qsoIcons.push("fa-table-cells-large");
+                    } else if (p.program === "TOTA") {
+                        qsoIcons.push("fa-toilet");
                     } else {
                         // A program was set but not one we recognise, so show a question mark
                         qsoIcons.push("fa-question");
@@ -173,16 +193,34 @@ function getIconName(d) {
                     qsoIcons.push("fa-seedling");
                 } else if (comment.includes("GMA")) {
                     qsoIcons.push("fa-person-hiking");
+                } else if (comment.includes("HEMA")) {
+                    qsoIcons.push("fa-mound");
                 } else if (comment.includes("BOTA") || comment.includes("BUNKER")) {
                     qsoIcons.push("fa-radiation");
                 } else if (comment.includes("IOTA") || comment.includes("ISLAND")) {
-                    qsoIcons.push("fa-umbrella-beach");
+                    qsoIcons.push("fa-book-atlas");
                 } else if (comment.includes("WCA") || comment.includes("CASTLE")) {
                     qsoIcons.push("fa-chess-rook");
-                } else if (comment.includes("ALHRS") || comment.includes("LIGHTHOUSE")) {
-                    qsoIcons.push("fa-tower-observation");
+                } else if (comment.includes("ALHRS") || comment.includes("ILLW") || comment.includes("LIGHTHOUSE")) {
+                    qsoIcons.push("fa-house-flood-water");
                 } else if (comment.includes("MOTA") || comment.includes("MILL")) {
                     qsoIcons.push("fa-fan");
+                } else if (comment.includes("SIOTA") || comment.includes("SILO")) {
+                    qsoIcons.push("fa-wheat-awn");
+                } else if (comment.includes("WOTA")) {
+                    qsoIcons.push("fa-w");
+                } else if (comment.includes("WWTOTA")) {
+                    qsoIcons.push("fa-tower-observation");
+                } else if (comment.includes("LLOTA")) {
+                    qsoIcons.push("fa-water");
+                } else if (comment.includes("ZLOTA")) {
+                    qsoIcons.push("fa-kiwi-bird");
+                } else if (comment.includes("KRMNPA")) {
+                    qsoIcons.push("fa-earth-oceania");
+                } else if (comment.includes("WAB") || comment.includes("WAI")) {
+                    qsoIcons.push("fa-table-cells-large");
+                } else if (comment.includes("TOTA")) {
+                    qsoIcons.push("fa-toilet");
                 } else {
                     qsoIcons.push("fa-crosshairs");
                 }
