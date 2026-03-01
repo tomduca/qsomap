@@ -210,7 +210,7 @@ function loadSOTACSV(text) {
         let qso = {call: row[7], sigRefs: []};
 
         if (row[5].length > 3) {
-            qso.freq = parseFloat(row[5].substring(-3));
+            qso.freq = parseFloat(row[5].slice(0, -3));
             qso.band = freqToBandName(qso.freq);
             bands.add(qso.band);
         }
@@ -234,7 +234,7 @@ function loadSOTACSV(text) {
             qso.time = moment.utc(row[3] + " " + row[4], "DD/MM/YY HH:mm");
         }
         if (row[3].length > 0) {
-            qso.year = 2000 + parseInt(row[3].substring(-2));
+            qso.year = 2000 + parseInt(row[3].slice(-2));
             years.add(qso.year);
         }
 

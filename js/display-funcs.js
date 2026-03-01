@@ -50,9 +50,9 @@ function redrawAll() {
     });
 
     // Now for every point, calculate an intensity based on the total number of points, and store it.
-    heatmapData.forEach(d => d[2] = (heatmapData.size > 0) ? (1000 / Math.max(Math.min(heatmapData.size / 100, 5), 1)) : 1000);
+    heatmapData.forEach(d => d[2] = (heatmapData.length > 0) ? (1000 / Math.max(Math.min(heatmapData.length / 100, 5), 1)) : 1000);
     perBandHeatmapsData.forEach(pbd => {
-        pbd.forEach(d => d[2] = (heatmapData.size > 0) ? (5000 / Math.max(Math.min(pbd.size / 100, 5), 1)) : 1000);
+        pbd.forEach(d => d[2] = (heatmapData.length > 0) ? (5000 / Math.max(Math.min(pbd.length / 100, 5), 1)) : 1000);
     });
 
     // Load the data into the heatmaps
@@ -199,8 +199,8 @@ function redraw(key) {
 
 // Zoom the display to fit all markers, so long as we have at least three so the zoom isn't janky
 function zoomToFit() {
-    if (markers.length > 3) {
-        var group = new L.featureGroup(markers);
+    if (markers.size > 3) {
+        var group = new L.featureGroup([...markers.values()]);
         map.fitBounds(group.getBounds().pad(0.1));
     }
 }

@@ -3,68 +3,64 @@
 /////////////////////////////
 
 // Use a QSO's callsign to look up data through the Spothole API and fill in any missing info.
-function performCallsignLookup(qso) {
-    $.ajax({
-        url: SPOTHOLE_BASE_URL + "/lookup/call",
-        data: {call: qso.call},
-        dataType: 'json',
-        async: false,
-        timeout: 10000,
-        success: async function (result) {
-            if (result.grid && result.grid.length > 0 && !qso.grid && result.grid !== "" && result.grid.toUpperCase() !== "AA00" && result.grid.toUpperCase() !== "AA00AA" && result.grid.toUpperCase() !== "AA00AA00") {
-                qso.grid = result.grid;
-            }
+async function performCallsignLookup(qso) {
+    try {
+        const params = new URLSearchParams({call: qso.call});
+        const response = await fetch(SPOTHOLE_BASE_URL + "/lookup/call?" + params, {signal: AbortSignal.timeout(10000)});
+        const result = await response.json();
 
-            if (result.dxcc_id && !qso.dxcc) {
-                qso.dxcc = result.dxcc_id;
-            }
-
-            if (result.cq_zone && !qso.cqz) {
-                qso.cqz = result.cq_zone;
-            }
-
-            if (result.itu_zone && !qso.ituz) {
-                qso.ituz = result.itu_zone;
-            }
-
-            if (result.name && result.name.length > 0 && !qso.name) {
-                qso.name = result.name;
-            }
-
-            let bestQTH = (result.qth && result.qth.length > 0) ? result.qth : result.country;
-            if (bestQTH != null && bestQTH.length > 0 && !qso.qth) {
-                qso.qth = bestQTH;
-            }
-
-            // Store the looked up info in case we see this callsign again, then we don't need to query the
-            // API unnecessarily.
-            lookupData.set(qso.call, {grid: qso.grid, name: qso.name, qth: qso.qth, dxcc: qso.dxcc, cqz: qso.cqz, ituz: qso.ituz});
-            localStorage.setItem('lookupData', JSON.stringify(Object.fromEntries(lookupData)));
-        },
-        error: function () {
-            console.log("Error from Spothole when looking up " + qso.call);
+        if (result.grid && result.grid.length > 0 && !qso.grid && result.grid !== "" && result.grid.toUpperCase() !== "AA00" && result.grid.toUpperCase() !== "AA00AA" && result.grid.toUpperCase() !== "AA00AA00") {
+            qso.grid = result.grid;
         }
-    });
+
+        if (result.dxcc_id && !qso.dxcc) {
+            qso.dxcc = result.dxcc_id;
+        }
+
+        if (result.cq_zone && !qso.cqz) {
+            qso.cqz = result.cq_zone;
+        }
+
+        if (result.itu_zone && !qso.ituz) {
+            qso.ituz = result.itu_zone;
+        }
+
+        if (result.name && result.name.length > 0 && !qso.name) {
+            qso.name = result.name;
+        }
+
+        let bestQTH = (result.qth && result.qth.length > 0) ? result.qth : result.country;
+        if (bestQTH != null && bestQTH.length > 0 && !qso.qth) {
+            qso.qth = bestQTH;
+        }
+
+        // Store the looked up info in case we see this callsign again, then we don't need to query the
+        // API unnecessarily.
+        lookupData.set(qso.call, {grid: qso.grid, name: qso.name, qth: qso.qth, dxcc: qso.dxcc, cqz: qso.cqz, ituz: qso.ituz});
+        localStorage.setItem('lookupData', JSON.stringify(Object.fromEntries(lookupData)));
+    } catch (e) {
+        console.log("Error from Spothole when looking up " + qso.call);
+    }
 }
 
 // Use a QSO's SIG reference to look up a grid via the Spothole API.
-function performSIGRefLookup(qso) {
-    $.ajax({
-        url: SPOTHOLE_BASE_URL + "/lookup/sigref",
-        data: {sig: qso.sigRefs[0].program, id: qso.sigRefs[0].ref},
-        dataType: 'json',
-        async: false,
-        timeout: 10000,
-        success: async function (result) {
-            if (result.grid && !qso.grid) {
-                qso.grid = result.grid;
-            }
-            qso.qth = result.ref
-            if (result.name && !qso.qth) {
-                qso.qth = result.ref + " " + result.name;
-            }
+async function performSIGRefLookup(qso) {
+    try {
+        const params = new URLSearchParams({sig: qso.sigRefs[0].program, id: qso.sigRefs[0].ref});
+        const response = await fetch(SPOTHOLE_BASE_URL + "/lookup/sigref?" + params, {signal: AbortSignal.timeout(10000)});
+        const result = await response.json();
+
+        if (result.grid && !qso.grid) {
+            qso.grid = result.grid;
         }
-    });
+        if (result.name) {
+            qso.qth = result.ref + " " + result.name;
+        } else {
+            qso.qth = result.ref;
+        }
+    } catch (e) {
+        console.log("Error from Spothole when looking up SIG ref " + qso.sigRefs[0].ref);
+    }
 }
 
 // Process an item from the queue. This looks for queued QSOs (i.e. missing some data) and tries to use the Spothole API
@@ -77,7 +73,7 @@ async function processQSOFromQueue() {
         // We have something in the queue. First see if it has a POTA/SOTA/WWBOTA reference; we can then query the
         // API for the reference's location if we need to.
         if (refLookupEnabled && qso.sigRefs != null && qso.sigRefs.length > 0 && (!qso.grid || !qso.qth)) {
-            performSIGRefLookup(qso);
+            await performSIGRefLookup(qso);
             // Just done a lookup, so add an artificial pause to slow the process down and avoid hammering the server
             await new Promise(r => setTimeout(r, 100));
         }
@@ -111,7 +107,7 @@ async function processQSOFromQueue() {
 
         // Now if we still have missing data, move on to making an actual query of the callsign
         if (userLookupEnabled && (!qso.grid || !qso.dxcc || !qso.cqz || !qso.ituz || !qso.qth || !qso.name)) {
-            performCallsignLookup(qso);
+            await performCallsignLookup(qso);
             // Just done a lookup, so add an artificial pause to slow the process down and avoid hammering the server
             await new Promise(r => setTimeout(r, 100));
         }
