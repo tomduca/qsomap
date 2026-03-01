@@ -79,7 +79,7 @@ function qsoToColour(d) {
             if (qso.mode) {
                 qsoColours.push(modeTypeToColor(getModeFamily(qso.mode)));
             } else {
-                qsoColours.push("grey");
+                qsoColours.push("#808080");
             }
 
         } else {
@@ -90,29 +90,16 @@ function qsoToColour(d) {
     if (allEqual) {
         return qsoColours[0];
     } else {
-        return "white";
+        return "#ffffff";
     }
 }
 
 // Returns a colour to contrast with the result of qsoToColor, based on data item QSOs' bands or modes, if enabled,
 // otherwise returns white.
 function qsoToContrastColor(d) {
-    let qsoColours = [];
-    getQSOsMatchingFilter(d).forEach((qso) => {
-        if (bandColours) {
-            qsoColours.push(bandToContrastColor(qso.band));
-        } else if (modeColours) {
-            qsoColours.push("white");
-        } else {
-            qsoColours.push("white");
-        }
-    });
-    let allEqual = qsoColours.every( (val, i, arr) => val === arr[0] );
-    if (allEqual) {
-        return qsoColours[0];
-    } else {
-        return "black";
-    }
+    const rgb = hexToRGB(qsoToColour(d));
+    const lum = 0.2126*rgb[0] + 0.7152*rgb[1] + 0.0722*rgb[2];
+    return (lum > 128) ? "#000000" : "#ffffff";
 }
 
 // Get an icon for a data item, based on its band, using PSK Reporter colours, its program etc.
