@@ -43,6 +43,10 @@ button.accordion-button i.fa {
     margin-right: 0.5em;
 }
 
+div.indented-section {
+    margin-left: 2em;
+}
+
 input#fileSelect {
     width: 17em;
 }
