@@ -97,10 +97,6 @@ div#qsoFilterMessage {
     margin-bottom: 0.3em;
 }
 
-table.statsTable th {
-    background-color: var(--faded);
-}
-
 .leaflet-popup-content {
     min-width: 310px;
 }
@@ -146,7 +142,7 @@ span.popupBlock {
 
 /* Text/link styles */
 a, .leaflet-container a {
-    color: var(--link-color);
+    color: var(--bs-link-color);
     text-decoration: none;
 }
 
@@ -164,5 +160,4 @@ a.closeButton {
 /*noinspection CssUnusedSymbol*/
 .leaflet-container .leaflet-control-attribution {
     background: none;
-    color: var(--text);
 }

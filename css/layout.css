@@ -39,6 +39,10 @@ img.icon {
     width: 2em;
 }
 
+button.accordion-button i.fa {
+    margin-right: 0.5em;
+}
+
 input#fileSelect {
     width: 17em;
 }
