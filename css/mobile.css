@@ -4,8 +4,4 @@
     .leaflet-container .leaflet-control-attribution {
         display: none;
     }
-
-    div.dialog {
-        width: 90%;
-    }
 }

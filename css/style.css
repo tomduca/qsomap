@@ -1,6 +1,40 @@
-h1.panelTitle {
-    margin: 0 0 1em 0;
-    font-size: 1.3em;
+.sidebar-button {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color-translucent);
+}
+
+/* Sidebar */
+#sidebar {
+    /* offcanvas-end normally takes up the whole vertical height so only has a left border, here we add the bottom
+    border because we have reduced the height of the element. */
+    border-bottom: var(--bs-offcanvas-border-width) solid var(--bs-offcanvas-border-color);
+}
+.offcanvas-backdrop {
+    opacity: 0 !important;
+}
+
+/* Toggleable areas within the sidebar */
+.btn-toggle {
+    padding: .25rem .5rem;
+    font-weight: 600;
+    color: var(--bs-emphasis-color);
+    background-color: transparent;
+}
+.btn-toggle::before {
+    width: 1.25em;
+    line-height: 0;
+    content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
+    transition: transform .35s ease;
+    transform-origin: .5em 50%;
+}
+[data-bs-theme="dark"] .btn-toggle::before {
+    content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%28255,255,255,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
+}
+.btn-toggle[aria-expanded="true"] {
+    color: rgba(var(--bs-emphasis-color-rgb), .85);
+}
+.btn-toggle[aria-expanded="true"]::before {
+    transform: rotate(90deg);
 }
 
 h1#stats-callsign {
@@ -15,28 +49,28 @@ p.stats-qth {
     text-align: center;
 }
 
-div.panel {
-    background-color: var(--background);
-    border: 1px solid var(--text);
-    border-radius: 5px;
-    color: var(--text);
+/* Map */
+#map {
+    background-color: var(--bs-body-bg);
+}
+[data-bs-theme=dark] .leaflet-layer:not(.basemap-no-invert),
+[data-bs-theme=dark] .leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
-div.menuButton {
-    background-color: var(--background);
-    border: 1px solid var(--text);
-    border-radius: 5px;
+/* Marker and popup styles */
+.leaflet-popup {
+    font-size: 14px;
 }
-div.menuButton a {
-    color: var(--text);
+.leaflet-tooltip, .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
 }
-div.menuButtonActive {
-    box-shadow: 0px -3px 0px 0px var(--link-color) inset;
+.leaflet-tooltip {
+    border: 1px solid var(--bs-body-bg);
 }
-
-label.configLabel {
-    display: inline-block;
-    white-space: nowrap;
+.leaflet-tooltip-top::before {
+    border-top-color: var(--bs-body-bg);
 }
 
 input#fixedMarkerColour {
@@ -65,16 +99,6 @@ div#qsoFilterMessage {
 
 table.statsTable th {
     background-color: var(--faded);
-}
-
-div.dialog {
-    background-color: var(--background);
-    border: 1px solid var(--text);
-    border-radius: 5px;
-}
-
-.leaflet-popup {
-    font-size: 14px;
 }
 
 .leaflet-popup-content {

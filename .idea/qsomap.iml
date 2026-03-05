@@ -30,5 +30,6 @@
     <orderEntry type="library" name="L.WorkedAllBritain" level="application" />
     <orderEntry type="library" name="L.CQzones" level="application" />
     <orderEntry type="library" name="requirejs" level="application" />
+    <orderEntry type="library" name="L.WorkedAllBritainIreland" level="application" />
   </component>
 </module>

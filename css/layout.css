@@ -6,52 +6,37 @@ div#map {
     overflow: hidden;
 }
 
-div.panel {
-    position: absolute;
-    top: 3.5em;
-    left: 1em;
-    width: 19em;
-    margin: 0;
-    padding: 1em 1em 0 1em;
-    z-index: 1001;
-    max-height: 85%;
-    overflow-x: hidden;
-    overflow-y: auto;
+/* Sidebar control buttons */
+.sidebar-button {
+    position: fixed;
+    right: 1em;
+    z-index: 1044;
+    width: 2.5em;
+    height: 2.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: right 0.3s ease-in-out;
 }
-
-div#displayPanel, div#statsPanel, div#aboutPanel {
-    display: none;
-}
-
-div#menuButtonRow {
-    position: absolute;
+#sidebar-button-menu {
     top: 1em;
-    left: 1em;
-    margin: 0;
-    z-index: 1200;
 }
 
-div.menuButton {
-    display: inline-block;
-    padding: 0.2em 0.5em;
-    text-align: center;
+/* Sidebar */
+.offcanvas {
+    overflow-y: scroll;
+    bottom: initial;
+    max-height: 100vh;
 }
 
-h4.menu-heading {
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
-}
-
-h4.menu-heading span.arrow {
-    font-size: 0.8em;
-    margin-left: 0.2em;
+img.icon {
     position: relative;
-    top: -0.15em;
-}
-
-div.menu-content {
-    display: none;
-    margin: 0.5em 0 1em 0.5em;
+    top: -2px;
+    margin-right: 0.3em;
+    height: 2em;
+    width: 2em;
 }
 
 input#fileSelect {

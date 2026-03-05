@@ -156,56 +156,6 @@ $(".textControl").on("input", function() {
     updateModelFromUI();
 });
 
-// Open/close panels
-function toggleData() {
-    hidePanel("displayPanel", "displayMenuButton");
-    hidePanel("aboutPanel", "aboutMenuButton");
-    hidePanel("statsPanel", "statsMenuButton");
-    togglePanel("dataPanel", "dataMenuButton");
-}
-function toggleDisplay() {
-    hidePanel("dataPanel", "dataMenuButton");
-    hidePanel("aboutPanel", "aboutMenuButton");
-    hidePanel("statsPanel", "statsMenuButton");
-    togglePanel("displayPanel", "displayMenuButton");
-}
-function toggleStats() {
-    hidePanel("displayPanel", "displayMenuButton");
-    hidePanel("aboutPanel", "aboutMenuButton");
-    hidePanel("dataPanel", "dataMenuButton");
-    togglePanel("statsPanel", "statsMenuButton");
-}
-function toggleAbout() {
-    hidePanel("displayPanel", "displayMenuButton");
-    hidePanel("dataPanel", "dataMenuButton");
-    hidePanel("statsPanel", "statsMenuButton");
-    togglePanel("aboutPanel", "aboutMenuButton");
-}
-function hidePanel(panelID, buttonID) {
-    $("#" + panelID).hide(0);
-    $("#" + buttonID).removeClass("menuButtonActive");
-}
-function togglePanel(panelID, buttonID) {
-    if ($("#" + panelID).is(":visible")) {
-        $("#" + buttonID).removeClass("menuButtonActive");
-    } else {
-        $("#" + buttonID).addClass("menuButtonActive");
-    }
-    $("#" + panelID).toggle(0);
-}
-
-// Open/close menu sections
-$(".menu-heading").click(function () {
-    let contentDiv = $(this).next();
-    if (contentDiv.is(":visible")) {
-        contentDiv.hide(100);
-        $(this).find(".arrow").html("&#9654;");
-    } else {
-        contentDiv.show(100);
-        $(this).find(".arrow").html("&#9660;");
-    }
-});
-
 // Populate the filter controls based on the years, bands and modes in the data we have loaded
 function populateFilterControls(years, bands, modes) {
     $("#filter-year").empty();
