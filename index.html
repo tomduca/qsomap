@@ -55,12 +55,12 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772751952"></script>
-    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772751952"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772751952"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772751952"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772751952"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772751952"></script>
+    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772752564"></script>
+    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772752564"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772752564"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772752564"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772752564"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772752564"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -94,7 +94,7 @@
                     </button>
                 </h2>
                 <div id="collapse-data" class="accordion-collapse collapse show" data-bs-parent="#accordion">
-                    <div class="accordion-body p-0">
+                    <div class="accordion-body py-0 ps-0">
                         <div class="pt-3 px-3">
                             <p>To begin, click the <b>Browse</b> button and select a log file. ADIF,
                                 Cabrillo and SOTA CSV files are supported.</p>
@@ -115,19 +115,28 @@
                                     File Loading Behaviour
                                 </button>
                                 <div class="collapse indented-section" id="data-file-loading-behaviour-collapse">
-                                    <label for="replaceOnLoad" class="configLabel form-check-label">
-                                        <input type="radio" id="replaceOnLoad"
-                                               class="loadBehaviourControl form-check-input"
-                                               name="loadBehaviour"
-                                               checked="checked">&nbsp;Replace existing QSOs</label><br/>
-                                    <label for="appendOnLoad" class="configLabel form-check-label">
-                                        <input type="radio" id="appendOnLoad"
-                                               class="loadBehaviourControl form-check-input"
-                                               name="loadBehaviour">&nbsp;Add
-                                        to existing QSOs</label><br/>
-                                    <button type="button" id="clearQSOs" name="clearQSOs" class="indentControl"
-                                            style="margin-top: 0.2em;">Clear existing QSOs
-                                    </button>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="replaceOnLoad" class="configLabel form-check-label">
+                                                <input type="radio" id="replaceOnLoad"
+                                                       class="loadBehaviourControl form-check-input"
+                                                       name="loadBehaviour"
+                                                       checked="checked">&nbsp;Replace existing QSOs</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="appendOnLoad" class="configLabel form-check-label">
+                                                <input type="radio" id="appendOnLoad"
+                                                       class="loadBehaviourControl form-check-input"
+                                                       name="loadBehaviour">&nbsp;Add to existing QSOs</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <button type="button" id="clearQSOs" name="clearQSOs" class="indentControl">Clear existing QSOs</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -136,14 +145,22 @@
                                     Online Lookup
                                 </button>
                                 <div class="collapse indented-section" id="data-online-lookup-collapse">
-                                    <label for="userLookupEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="userLookupEnabled" class="control form-check-input"
-                                               name="userLookupEnabled"
-                                               checked="checked">&nbsp;Enable user lookup</label><br/>
-                                    <label for="refLookupEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="refLookupEnabled" class="control form-check-input"
-                                               name="refLookupEnabled"
-                                               checked="checked">&nbsp;Enable xOTA ref lookup</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="userLookupEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="userLookupEnabled" class="control form-check-input"
+                                                       name="userLookupEnabled"
+                                                       checked="checked">&nbsp;Enable user lookup</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="refLookupEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="refLookupEnabled" class="control form-check-input"
+                                                       name="refLookupEnabled"
+                                                       checked="checked">&nbsp;Enable xOTA ref lookup</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -152,22 +169,14 @@
                                     My Callsign & QTH
                                 </button>
                                 <div class="collapse indented-section" id="data-my-callsign-collapse">
-                                    <table>
-                                        <tr>
-                                            <td><label for="myCall" class="configLabel form-label">My callsign:</label>
-                                            </td>
-                                            <td><input type="text" id="myCall" class="textControl textBox form-control"
-                                                       name="myCall"
-                                                       placeholder="N0CALL" size="8"></td>
-                                        </tr>
-                                        <tr>
-                                            <td><label for="qthGrid" class="configLabel form-label">My QTH grid:</label>
-                                            </td>
-                                            <td><input type="text" id="qthGrid" class="textControl textBox form-control"
-                                                       name="qthGrid"
-                                                       placeholder="AA00aa" size="8"></td>
-                                        </tr>
-                                    </table>
+                                    <div class="row">
+                                        <div class="col-5"><label for="myCall" class="configLabel form-label">My callsign:</label></div>
+                                        <div class="col-7"><input type="text" id="myCall" class="textControl textBox form-control" name="myCall" placeholder="N0CALL" size="8"></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-5"><label for="qthGrid" class="configLabel form-label">My QTH grid:</label></div>
+                                        <div class="col-7"><input type="text" id="qthGrid" class="textControl textBox form-control" name="qthGrid" placeholder="AA00aa" size="8"></div>
+                                    </div>
                                 </div>
                             </li>
                         </ul>
@@ -183,7 +192,7 @@
                     </button>
                 </h2>
                 <div id="collapse-display" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                    <div class="accordion-body p-0">
+                    <div class="accordion-body py-0 ps-0">
                         <ul class="list-unstyled mt-3 ps-0">
                             <li class="mb-1">
                                 <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed"
@@ -192,31 +201,27 @@
                                     Basemaps
                                 </button>
                                 <div class="collapse indented-section" id="display-basemaps-collapse">
-                                    <table>
-                                        <tr>
-                                            <td><label for="basemap" class="form-label">Basemap:</label></td>
-                                            <td><select id="basemap" class="control configSelect form-select">
-                                                <option value="Esri.NatGeoWorldMap" selected="selected">ESRI NatGeo
-                                                    World Map
-                                                </option>
-                                                <option value="Esri.WorldTopoMap">ESRI World Topo Map</option>
-                                                <option value="Esri.WorldShadedRelief">ESRI World Shaded Relief</option>
-                                                <option value="Esri.WorldImagery">ESRI World Imagery</option>
-                                                <option value="OpenStreetMap.Mapnik">OpenStreetMap Mapnik</option>
-                                                <option value="CartoDB.Voyager">CartoDB Voyager</option>
-                                                <option value="CartoDB.DarkMatter">CartoDB DarkMatter</option>
-                                            </select></td>
-                                        </tr>
-                                        <tr>
-                                            <td><label for="basemapOpacity" class="form-label">Opacity:</label></td>
-                                            <td><select id="basemapOpacity" class="control configSelect form-select">
-                                                <option value="1">100%</option>
-                                                <option value="0.75">75%</option>
-                                                <option value="0.5" selected="selected">50%</option>
-                                                <option value="0.25">25%</option>
-                                            </select></td>
-                                        </tr>
-                                    </table>
+                                    <div class="row">
+                                        <div class="col-5"><label for="basemap" class="form-label">Basemap:</label></div>
+                                        <div class="col-7"><select id="basemap" class="control configSelect form-select">
+                                            <option value="Esri.NatGeoWorldMap" selected="selected">ESRI NatGeo World Map</option>
+                                            <option value="Esri.WorldTopoMap">ESRI World Topo Map</option>
+                                            <option value="Esri.WorldShadedRelief">ESRI World Shaded Relief</option>
+                                            <option value="Esri.WorldImagery">ESRI World Imagery</option>
+                                            <option value="OpenStreetMap.Mapnik">OpenStreetMap Mapnik</option>
+                                            <option value="CartoDB.Voyager">CartoDB Voyager</option>
+                                            <option value="CartoDB.DarkMatter">CartoDB DarkMatter</option>
+                                        </select></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-5"><label for="basemapOpacity" class="form-label">Opacity:</label></div>
+                                        <div class="col-7"><select id="basemapOpacity" class="control configSelect form-select">
+                                            <option value="1">100%</option>
+                                            <option value="0.75">75%</option>
+                                            <option value="0.5" selected="selected">50%</option>
+                                            <option value="0.25">25%</option>
+                                        </select></div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -226,67 +231,109 @@
                                     Markers
                                 </button>
                                 <div class="collapse indented-section" id="display-markers-collapse">
-                                    <label for="markersEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="markersEnabled" class="control form-check-input"
-                                               name="markersEnabled"
-                                               checked="checked">&nbsp;Draw QSO markers</label><br/>
-                                    <label for="qthMarker" class="configLabel form-check-label"
-                                           style="margin-bottom: 0.5em;">
-                                        <input type="checkbox" id="qthMarker" class="control form-check-input"
-                                               name="qthMarker"
-                                               checked="checked">&nbsp;Draw QTH marker</label><br/>
-                                    <label for="markerSize" class="form-label"
-                                           style="margin-top: 1em; margin-left: 1.7em; position: relative; top: -1px;">Marker
-                                        Size</label>
-                                    <input type="range" id="markerSize" name="markerSize" class="control form-range"
-                                           min="0.125" max="1.5"
-                                           value="1.0" step="0.125"
-                                           style="margin: 0 0 0 1em; position: relative; top: 4px; width: 10em;"/><br/>
-                                    <label for="fixedColour" class="configLabel form-check-label">
-                                        <input type="radio" id="fixedColour" class="control form-check-input"
-                                               name="markerColours"
-                                               style="margin-top: 1em;">&nbsp;Fixed colour:</label> <input type="color"
-                                                                                                           id="fixedMarkerColour"
-                                                                                                           class="control form-control form-control-color"
-                                                                                                           name="fixedMarkerColour"
-                                                                                                           value="#1e90ff"/><br/>
-                                    <label for="bandColours" class="configLabel form-check-label">
-                                        <input type="radio" id="bandColours" class="control form-check-input"
-                                               name="markerColours"
-                                               checked="checked">&nbsp;Colour according to band</label><span
-                                        class="dialog-open-link"><a href="#"
-                                                                    onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
-                                    <label for="modeColours" class="configLabel form-check-label">
-                                        <input type="radio" id="modeColours" class="control form-check-input"
-                                               name="markerColours">&nbsp;Colour
-                                        according to mode</label><span class="dialog-open-link"><a href="#"
-                                                                                                   onClick="openDialog('mode-colors-key-dialog');">Key</a></span><br/>
-                                    <label for="bandColorScheme" class="configLabel form-label"
-                                           style="margin-top: 0.5em; margin-left: 1.7em">Band color
-                                        scheme: </label><br/>
-                                    <select id="bandColorScheme" class="control configSelect form-select"
-                                            style="margin-left: 2em"></select><br/>
-                                    <label for="circleMarkers" class="configLabel form-check-label">
-                                        <input type="checkbox" id="circleMarkers" class="control form-check-input"
-                                               name="circleMarkers"
-                                               style="margin-top: 1em;">&nbsp;Simple dot markers</label><br/>
-                                    <label for="outdoorSymbols" class="configLabel form-check-label">
-                                        <input type="checkbox" id="outdoorSymbols" class="control form-check-input"
-                                               name="outdoorSymbols">&nbsp;xOTA
-                                        activity symbols</label><span class="dialog-open-link"><a href="#"
-                                                                                                  onClick="openDialog('xota-icons-key-dialog');">Key</a></span><br/>
-                                    <label for="hybridMarkerSize" class="configLabel form-check-label">
-                                        <input type="checkbox" id="hybridMarkerSize" class="control form-check-input"
-                                               name="hybridMarkerSize">&nbsp;Smaller
-                                        hunter markers</label><br/>
-                                    <label for="outlineMarkers" class="configLabel form-check-label">
-                                        <input type="checkbox" id="outlineMarkers" class="control form-check-input"
-                                               name="outlineMarkers"
-                                               checked="checked">&nbsp;Draw outlines</label><br/>
-                                    <label for="showMarkerShadows" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showMarkerShadows" class="control form-check-input"
-                                               name="showMarkerShadows"
-                                               checked="checked">&nbsp;Draw shadows</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="markersEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="markersEnabled" class="control form-check-input"
+                                                       name="markersEnabled"
+                                                       checked="checked">&nbsp;Draw QSO markers</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="qthMarker" class="configLabel form-check-label">
+                                                <input type="checkbox" id="qthMarker" class="control form-check-input"
+                                                       name="qthMarker"
+                                                       checked="checked">&nbsp;Draw QTH marker</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <label for="markerSize" class="form-label">Marker Size</label>
+                                        </div>
+                                        <div class="col-7">
+                                            <input type="range" id="markerSize" name="markerSize" class="control form-range"
+                                                   min="0.125" max="1.5" value="1.0" step="0.125"/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-9">
+                                            <label for="fixedColour" class="configLabel form-check-label">
+                                                <input type="radio" id="fixedColour" class="control form-check-input"
+                                                       name="markerColours">&nbsp;Fixed colour:</label>
+                                        </div>
+                                        <div class="col-3">
+                                            <input type="color" id="fixedMarkerColour"
+                                                   class="control form-control form-control-color"
+                                                   name="fixedMarkerColour" value="#1e90ff"/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="bandColours" class="configLabel form-check-label">
+                                                <input type="radio" id="bandColours" class="control form-check-input"
+                                                       name="markerColours"
+                                                       checked="checked">&nbsp;Colour according to band</label><span
+                                                class="dialog-open-link"><a href="#"
+                                                                            onClick="openDialog('band-colors-key-dialog');">Key</a></span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="modeColours" class="configLabel form-check-label">
+                                                <input type="radio" id="modeColours" class="control form-check-input"
+                                                       name="markerColours">&nbsp;Colour according to mode</label><span
+                                                class="dialog-open-link"><a href="#"
+                                                                            onClick="openDialog('mode-colors-key-dialog');">Key</a></span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <label for="bandColorScheme" class="configLabel form-label">Band color scheme:</label>
+                                        </div>
+                                        <div class="col-7">
+                                            <select id="bandColorScheme" class="control configSelect form-select"></select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="circleMarkers" class="configLabel form-check-label">
+                                                <input type="checkbox" id="circleMarkers" class="control form-check-input"
+                                                       name="circleMarkers">&nbsp;Simple dot markers</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="outdoorSymbols" class="configLabel form-check-label">
+                                                <input type="checkbox" id="outdoorSymbols" class="control form-check-input"
+                                                       name="outdoorSymbols">&nbsp;xOTA activity symbols</label><span
+                                                class="dialog-open-link"><a href="#"
+                                                                            onClick="openDialog('xota-icons-key-dialog');">Key</a></span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="hybridMarkerSize" class="configLabel form-check-label">
+                                                <input type="checkbox" id="hybridMarkerSize" class="control form-check-input"
+                                                       name="hybridMarkerSize">&nbsp;Smaller hunter markers</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="outlineMarkers" class="configLabel form-check-label">
+                                                <input type="checkbox" id="outlineMarkers" class="control form-check-input"
+                                                       name="outlineMarkers"
+                                                       checked="checked">&nbsp;Draw outlines</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showMarkerShadows" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showMarkerShadows" class="control form-check-input"
+                                                       name="showMarkerShadows"
+                                                       checked="checked">&nbsp;Draw shadows</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -296,21 +343,33 @@
                                     Marker Labels
                                 </button>
                                 <div class="collapse indented-section" id="display-marker-labels-collapse">
-                                    <label for="showCallsignLabels" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showCallsignLabels" class="control form-check-input"
-                                               name="showCallsignLabels">&nbsp;Callsign labels</label><br/>
-                                    <label for="showGridSquareLabels" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showGridSquareLabels"
-                                               class="control form-check-input"
-                                               name="showGridSquareLabels">&nbsp;Grid square labels</label><br/>
-                                    <label for="showDistanceLabels" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showDistanceLabels" class="control form-check-input"
-                                               name="showDistanceLabels">&nbsp;Distance labels in </label>
-                                    <select id="distanceUnit" class="control configSelect form-select">
-                                        <option value="km" selected="selected">kilometers</option>
-                                        <option value="mi">miles</option>
-                                    </select>
-                                    <br/>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showCallsignLabels" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showCallsignLabels" class="control form-check-input"
+                                                       name="showCallsignLabels">&nbsp;Callsign labels</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showGridSquareLabels" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showGridSquareLabels" class="control form-check-input"
+                                                       name="showGridSquareLabels">&nbsp;Grid square labels</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-7">
+                                            <label for="showDistanceLabels" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showDistanceLabels" class="control form-check-input"
+                                                       name="showDistanceLabels">&nbsp;Distance labels in</label>
+                                        </div>
+                                        <div class="col-5">
+                                            <select id="distanceUnit" class="control configSelect form-select">
+                                                <option value="km" selected="selected">kilometers</option>
+                                                <option value="mi">miles</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -320,18 +379,30 @@
                                     Lines
                                 </button>
                                 <div class="collapse indented-section" id="display-lines-collapse">
-                                    <label for="linesEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="linesEnabled" class="control form-check-input"
-                                               name="linesEnabled"
-                                               checked="checked">&nbsp;Draw geodesic lines</label><br/>
-                                    <label for="colourLines" class="configLabel form-check-label">
-                                        <input type="checkbox" id="colourLines" class="control form-check-input"
-                                               name="colourLines"
-                                               checked="checked">&nbsp;Coloured lines</label><br/>
-                                    <label for="thickLines" class="configLabel form-check-label">
-                                        <input type="checkbox" id="thickLines" class="control form-check-input"
-                                               name="thickLines"
-                                               checked="checked">&nbsp;Thick lines</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="linesEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="linesEnabled" class="control form-check-input"
+                                                       name="linesEnabled"
+                                                       checked="checked">&nbsp;Draw geodesic lines</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="colourLines" class="configLabel form-check-label">
+                                                <input type="checkbox" id="colourLines" class="control form-check-input"
+                                                       name="colourLines"
+                                                       checked="checked">&nbsp;Coloured lines</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="thickLines" class="configLabel form-check-label">
+                                                <input type="checkbox" id="thickLines" class="control form-check-input"
+                                                       name="thickLines"
+                                                       checked="checked">&nbsp;Thick lines</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -341,16 +412,22 @@
                                     Heatmaps
                                 </button>
                                 <div class="collapse indented-section" id="display-heatmaps-collapse">
-                                    <label for="heatmapEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="heatmapEnabled" class="control form-check-input"
-                                               name="heatmapEnabled">&nbsp;Draw
-                                        heatmap</label><br/>
-                                    <label for="perBandHeatmapEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="perBandHeatmapEnabled"
-                                               class="control form-check-input"
-                                               name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label><span
-                                        class="dialog-open-link"><a href="#"
-                                                                    onClick="openDialog('band-colors-key-dialog');">Key</a></span><br/>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="heatmapEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="heatmapEnabled" class="control form-check-input"
+                                                       name="heatmapEnabled">&nbsp;Draw heatmap</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="perBandHeatmapEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="perBandHeatmapEnabled" class="control form-check-input"
+                                                       name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label><span
+                                                class="dialog-open-link"><a href="#"
+                                                                            onClick="openDialog('band-colors-key-dialog');">Key</a></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -360,28 +437,48 @@
                                     Grid &amp; Zone Overlays
                                 </button>
                                 <div class="collapse indented-section" id="display-grid-zone-overlays-collapse">
-                                    <label for="showMaidenheadGrid" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showMaidenheadGrid" class="control form-check-input"
-                                               name="showMaidenheadGrid">&nbsp;Maidenhead grid layer</label><br/>
-                                    <label for="gridSquaresEnabled" class="configLabel form-check-label">
-                                        <input type="checkbox" id="gridSquaresEnabled" class="control form-check-input"
-                                               name="gridSquaresEnabled">&nbsp;Draw worked Maidenhead grids</label><br/>
-                                    <label for="labelGridSquaresWorked" class="configLabel form-check-label">
-                                        <input type="checkbox" id="labelGridSquaresWorked"
-                                               class="control form-check-input"
-                                               name="labelGridSquaresWorked">&nbsp;Label worked Maidenhead grids</label><br/>
-                                    <label for="showCQZones" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showCQZones" class="control form-check-input"
-                                               name="showCQZones">&nbsp;CQ zone
-                                        layer</label><br/>
-                                    <label for="showITUZones" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showITUZones" class="control form-check-input"
-                                               name="showITUZones">&nbsp;ITU
-                                        zone layer</label><br/>
-                                    <label for="showWABWAIGrid" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showWABWAIGrid" class="control form-check-input"
-                                               name="showWABWAIGrid">&nbsp;Worked
-                                        All Britain/Ireland grid</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showMaidenheadGrid" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showMaidenheadGrid" class="control form-check-input"
+                                                       name="showMaidenheadGrid">&nbsp;Maidenhead grid layer</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="gridSquaresEnabled" class="configLabel form-check-label">
+                                                <input type="checkbox" id="gridSquaresEnabled" class="control form-check-input"
+                                                       name="gridSquaresEnabled">&nbsp;Draw worked Maidenhead grids</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="labelGridSquaresWorked" class="configLabel form-check-label">
+                                                <input type="checkbox" id="labelGridSquaresWorked" class="control form-check-input"
+                                                       name="labelGridSquaresWorked">&nbsp;Label worked Maidenhead grids</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showCQZones" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showCQZones" class="control form-check-input"
+                                                       name="showCQZones">&nbsp;CQ zone layer</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showITUZones" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showITUZones" class="control form-check-input"
+                                                       name="showITUZones">&nbsp;ITU zone layer</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showWABWAIGrid" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showWABWAIGrid" class="control form-check-input"
+                                                       name="showWABWAIGrid">&nbsp;Worked All Britain/Ireland grid</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -391,17 +488,21 @@
                                     Comments
                                 </button>
                                 <div class="collapse indented-section" id="display-comments-collapse">
-                                    <label for="showComments" class="configLabel form-check-label">
-                                        <input type="checkbox" id="showComments" class="control form-check-input"
-                                               name="showComments">&nbsp;Show
-                                        comments in popups</label><br/>
-                                    <label for="inferOutdoorActivitiesFromComments"
-                                           class="configLabel form-check-label">
-                                        <input type="checkbox" id="inferOutdoorActivitiesFromComments"
-                                               class="control form-check-input"
-                                               name="inferOutdoorActivitiesFromComments">&nbsp;Infer outdoor activity
-                                        from
-                                        comment</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="showComments" class="configLabel form-check-label">
+                                                <input type="checkbox" id="showComments" class="control form-check-input"
+                                                       name="showComments">&nbsp;Show comments in popups</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="inferOutdoorActivitiesFromComments" class="configLabel form-check-label">
+                                                <input type="checkbox" id="inferOutdoorActivitiesFromComments"
+                                                       class="control form-check-input"
+                                                       name="inferOutdoorActivitiesFromComments">&nbsp;Infer outdoor activity from comment</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -411,27 +512,21 @@
                                     QSO Filters
                                 </button>
                                 <div class="collapse indented-section" id="display-qso-filters-collapse">
-                                    <div id="qsoFilterMessage"><i class='fa-solid fa-triangle-exclamation'></i> Please
-                                        load a
-                                        file before applying filters.
+                                    <div id="qsoFilterMessage"><i class='fa-solid fa-triangle-exclamation'></i> Please load a file before applying filters.</div>
+                                    <div id="qsoFiltersTable">
+                                        <div class="row">
+                                            <div class="col-5"><label for="filter-year" class="form-label">Year:</label></div>
+                                            <div class="col-7"><select id="filter-year" class="control configSelect form-select"></select></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-5"><label for="filter-mode" class="form-label">Mode:</label></div>
+                                            <div class="col-7"><select id="filter-mode" class="control configSelect form-select"></select></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-5"><label for="filter-band" class="form-label">Band:</label></div>
+                                            <div class="col-7"><select id="filter-band" class="control configSelect form-select"></select></div>
+                                        </div>
                                     </div>
-                                    <table id="qsoFiltersTable">
-                                        <tr>
-                                            <td><label for="filter-year" class="form-label">Year:</label></td>
-                                            <td><select id="filter-year" class="control configSelect form-select">
-                                            </select></td>
-                                        </tr>
-                                        <tr>
-                                            <td><label for="filter-mode" class="form-label">Mode:</label></td>
-                                            <td><select id="filter-mode" class="control configSelect form-select">
-                                            </select></td>
-                                        </tr>
-                                        <tr>
-                                            <td><label for="filter-band" class="form-label">Band:</label></td>
-                                            <td><select id="filter-band" class="control configSelect form-select">
-                                            </select></td>
-                                        </tr>
-                                    </table>
                                 </div>
                             </li>
                             <li class="mb-1">
@@ -441,10 +536,13 @@
                                     User Interface
                                 </button>
                                 <div class="collapse indented-section" id="display-user-interface-collapse">
-                                    <label for="fineZoomControl" class="configLabel form-check-label">
-                                        <input type="checkbox" id="fineZoomControl" class="control form-check-input"
-                                               name="fineZoomControl">&nbsp;Fine
-                                        zoom control</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label for="fineZoomControl" class="configLabel form-check-label">
+                                                <input type="checkbox" id="fineZoomControl" class="control form-check-input"
+                                                       name="fineZoomControl">&nbsp;Fine zoom control</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                         </ul>
@@ -601,7 +699,7 @@
 </div>
 
 <div id="band-colors-key-dialog" class="dialog">
-    <p><b>Band Colours</b><br/>
+    <p><b>Band Colours</b><br/></p>
     <table style="border-spacing: 1em;">
         <tr>
             <td style="vertical-align: top;">
@@ -638,7 +736,6 @@
             </td>
         </tr>
     </table>
-    </p>
     <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('band-colors-key-dialog');"><i
             class="fa-solid fa-xmark"></i> Close</a></p>
 </div>
@@ -691,16 +788,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1772751952"></script>
-<script src="js/globals.js?v=1772751952"></script>
-<script src="js/data-funcs.js?v=1772751952"></script>
-<script src="js/file-funcs.js?v=1772751952"></script>
-<script src="js/lookup-funcs.js?v=1772751952"></script>
-<script src="js/display-funcs.js?v=1772751952"></script>
-<script src="js/utility-funcs.js?v=1772751952"></script>
-<script src="js/local-storage-funcs.js?v=1772751952"></script>
-<script src="js/map-setup-funcs.js?v=1772751952"></script>
-<script src="js/ui-funcs.js?v=1772751952"></script>
-<script src="js/startup.js?v=1772751952"></script>
+<script src="data/dxcc.js?v=1772752564"></script>
+<script src="js/globals.js?v=1772752564"></script>
+<script src="js/data-funcs.js?v=1772752564"></script>
+<script src="js/file-funcs.js?v=1772752564"></script>
+<script src="js/lookup-funcs.js?v=1772752564"></script>
+<script src="js/display-funcs.js?v=1772752564"></script>
+<script src="js/utility-funcs.js?v=1772752564"></script>
+<script src="js/local-storage-funcs.js?v=1772752564"></script>
+<script src="js/map-setup-funcs.js?v=1772752564"></script>
+<script src="js/ui-funcs.js?v=1772752564"></script>
+<script src="js/startup.js?v=1772752564"></script>
 </body>
 </html>
