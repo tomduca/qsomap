@@ -621,14 +621,14 @@ function recalculateStats() {
     dxccTable.html("");
     dxccTable.append("<thead><tr><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th></tr></thead>");
     dxccTable.append("<tbody>");
-    // Faff making the table because we need three sets of columns to use the space neatly
-    let rowCount = Math.ceil(allDXCCs.length / 3.0) * 3;
+    // Faff making the table because we need two sets of columns to use the space neatly
+    let rowCount = Math.ceil(allDXCCs.length / 2.0) * 2;
     for (let row = 0; row < rowCount; row++) {
         let tr2 = $(`<tr></tr>`);
-        for (let col = 0; col < 3; col++) {
-            if (allDXCCs.length > (row * 3) + col) {
+        for (let col = 0; col < 2; col++) {
+            if (allDXCCs.length > (row * 2) + col) {
                 // Create cells for DXCC flag/name and QSO count
-                let dxcc = allDXCCs[(row * 3) + col];
+                let dxcc = allDXCCs[(row * 2) + col];
                 let qsosInDXCC = [...new Set(allQSOs.filter(q => q.dxcc === dxcc))];
                 tr2.append(`<td><img src="img/flags/${dxcc}.png" class="flag" width="24" alt="${DXCC_DATA[dxcc].name} flag"/>&nbsp;${DXCC_DATA[dxcc].name}</td>`);
                 tr2.append(`<td>${qsosInDXCC.length}</td>`);

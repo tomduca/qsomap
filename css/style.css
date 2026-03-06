@@ -70,19 +70,14 @@ input#fixedMarkerColour {
     height: 1.5em;
     width: 2em;
     position: relative;
-    top: 3px;
+    left: -0.25em;
 }
 
 /* Style for small info indicators */
 div#qsoFilterMessage {
     margin-top: 0.1em;
-    margin-bottom: 0;
-    font-size: 0.8em;
-}
-
-/* Style for small info indicators */
-div#qsoFilterMessage {
     margin-bottom: 0.3em;
+    font-size: 0.8em;
 }
 
 .leaflet-popup-content {

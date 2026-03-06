@@ -53,25 +53,13 @@ div#loadingStatus {
     display: none;
 }
 
-table.statsTable {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid;
-    margin-bottom: 1em;
-}
-
-table.statsTable th, table.statsTable td {
-    border: 1px solid;
-    padding: 0.2em 0.5em;
-}
-
 .dialog-open-link {
     font-size: 0.8em;
     margin-top: 4px;
 }
 
 /* Stats rows that are hidden by default */
-tr.statsTimeOnOffRow {
+div.statsTimeOnOffRow {
     display: none;
 }
 
