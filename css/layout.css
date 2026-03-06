@@ -6,47 +6,35 @@ div#map {
     overflow: hidden;
 }
 
-/* Sidebar control buttons */
-.sidebar-button {
+/* Panel button strip */
+#panel-buttons {
     position: fixed;
-    right: 1em;
-    z-index: 1044;
-    width: 2.5em;
-    height: 2.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    cursor: pointer;
-    transition: right 0.3s ease-in-out;
-}
-#sidebar-button-menu {
-    top: 1em;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
 }
 
-/* Sidebar */
-.offcanvas {
-    overflow-y: scroll;
-    bottom: initial;
-    max-height: 100vh;
-    --bs-offcanvas-width: 350px;
+/* Floating panel cards */
+.panel-card {
+    position: fixed;
+    top: 4rem;
+    left: 1rem;
+    width: 350px;
+    max-height: 85vh;
+    z-index: 1000;
+    display: none;
 }
 
-img.icon {
-    position: relative;
-    top: -2px;
-    margin-right: 0.3em;
-    height: 2em;
-    width: 2em;
-}
-
-button.accordion-button i.fa {
-    margin-right: 0.5em;
+.panel-card-body {
+    overflow-y: auto;
+    max-height: calc(85vh - 3.5rem);
 }
 
 div.indented-section {
-    margin-left: 2em;
+    padding-left: 2em;
+    padding-right: 1em;
     margin-top: 0.5em;
+    margin-bottom: 1em;
 }
 
 div#loadingStatus {

@@ -15,11 +15,6 @@ $("#fileSelect").val("");
 // to remove some issues with the ExtraMarkers library having an asynchronous load.
 setTimeout(function () {
     loadLocalStorage();
-
-    // If we're starting from scratch, show the intro dialog.
-    if ($("#myCall").val() === '') {
-        bootstrap.Modal.getOrCreateInstance('#introModal').show();
-    }
 }, 1000);
 
 // Add the timed thread to process the queue. This is done as a setTimeout which is then re-called at the end of
@@ -29,8 +24,5 @@ setTimeout(function () { processQSOFromQueue(); }, 1000);
 // Add the timed thread to update the status indicator.
 setInterval(function () { updateStatus(); }, 500);
 
-// If on mobile, configure the sidebar to have a "backdrop", i.e. that if the user touches off the sidebar on the map area,
-// it will collapse the sidebar. On desktop we skip this, because there is enough screen space to keep it open.
-const isMobile = window.matchMedia('(max-width: 800px)').matches;
-const sidebar = bootstrap.Offcanvas.getOrCreateInstance('#sidebar', { backdrop: isMobile });
-
+// Open the data panel by default
+$('#card-data').show();

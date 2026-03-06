@@ -55,12 +55,12 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772833093"></script>
-    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772833093"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772833093"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772833093"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772833093"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772833093"></script>
+    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772836466"></script>
+    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772836466"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772836466"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772836466"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772836466"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772836466"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -71,629 +71,577 @@
     <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<button id="sidebar-button-menu" class="btn btn-outline-secondary sidebar-button" data-bs-toggle="offcanvas"
-        data-bs-target="#sidebar">
-    <i class="fa-solid fa-bars"></i>
-</button>
-
-<div class="sidebar offcanvas offcanvas-end h-auto show" id="sidebar" tabindex="-1" data-bs-scroll="true">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="siteHeader">
-            <img src="img/favicon-192.png" class="icon" alt="Icon"> QSO Map Tool</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-
-    <form id="main-form" onsubmit="event.preventDefault(); return false;">
-        <div class="accordion accordion-flush" id="accordion">
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-data">
-                        <i class="fa fa-solid fa-database"></i> Data
-                    </button>
-                </h2>
-                <div id="collapse-data" class="accordion-collapse collapse show" data-bs-parent="#accordion">
-                    <div class="accordion-body py-0 ps-0">
-                        <div class="pt-3 ps-3">
-                            <div>
-                                <label for="fileSelect" class="configLabel form-label"><input type="file" id="fileSelect" class="form-control" accept=".adi,.adif,.csv,.cbr,.log,.txt"/></label>
-                            </div>
-
-                            <div id="loadingStatus"></div>
-                        </div>
-
-                        <ul class="list-unstyled mt-3 ps-0">
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse"
-                                        data-bs-target="#data-file-loading-behaviour-collapse">
-                                    File Loading Behaviour
-                                </button>
-                                <div class="collapse indented-section" id="data-file-loading-behaviour-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="replaceOnLoad" class="configLabel form-check-label">
-                                                <input type="radio" id="replaceOnLoad"
-                                                       class="loadBehaviourControl form-check-input" name="loadBehaviour" value="replace" checked="checked">&nbsp;Replace existing QSOs</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="appendOnLoad" class="configLabel form-check-label">
-                                                <input type="radio" id="appendOnLoad" class="loadBehaviourControl form-check-input" name="loadBehaviour" value="append">&nbsp;Add to existing QSOs</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <button type="button" id="clearQSOs" class="btn btn-danger">Clear existing QSOs</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-online-lookup-collapse">
-                                    Online Lookup
-                                </button>
-                                <div class="collapse indented-section" id="data-online-lookup-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="userLookupEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="userLookupEnabled" class="control form-check-input" name="userLookupEnabled" checked="checked">&nbsp;Enable user
-                                                lookup</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="refLookupEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="refLookupEnabled" class="control form-check-input" name="refLookupEnabled" checked="checked">&nbsp;Enable xOTA ref
-                                                lookup</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-my-callsign-collapse">
-                                    My Callsign & QTH
-                                </button>
-                                <div class="collapse indented-section" id="data-my-callsign-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-5">
-                                            <label for="myCall" class="configLabel form-label mt-2">My callsign:</label>
-                                        </div>
-                                        <div class="col-7">
-                                            <input type="text" id="myCall" class="textControl textBox form-control" name="myCall" placeholder="N0CALL" size="8">
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-5">
-                                            <label for="qthGrid" class="configLabel form-label mt-2">My QTH grid:</label>
-                                        </div>
-                                        <div class="col-7">
-                                            <input type="text" id="qthGrid" class="textControl textBox form-control" name="qthGrid" placeholder="AA00aa" size="8">
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-qso-filters-collapse">
-                                    QSO Filters
-                                </button>
-                                <div class="collapse indented-section" id="data-qso-filters-collapse">
-                                    <div id="qsoFilterMessage">
-                                        <i class='fa-solid fa-triangle-exclamation'></i> Please load a file before applying filters.
-                                    </div>
-                                    <div id="qsoFiltersTable">
-                                        <div class="row mb-2">
-                                            <div class="col-4">
-                                                <label for="filter-year" class="form-label mt-2">Year:</label></div>
-                                            <div class="col-8">
-                                                <select id="filter-year" class="control configSelect form-select"></select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-2">
-                                            <div class="col-4">
-                                                <label for="filter-mode" class="form-label mt-2">Mode:</label></div>
-                                            <div class="col-8">
-                                                <select id="filter-mode" class="control configSelect form-select"></select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-2">
-                                            <div class="col-4">
-                                                <label for="filter-band" class="form-label mt-2">Band:</label></div>
-                                            <div class="col-8">
-                                                <select id="filter-band" class="control configSelect form-select"></select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-display">
-                        <i class="fa fa-solid fa-palette"></i> Display
-                    </button>
-                </h2>
-                <div id="collapse-display" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                    <div class="accordion-body py-0 ps-0">
-                        <ul class="list-unstyled mt-3 ps-0">
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-ui-collapse">
-                                    User Interface
-                                </button>
-                                <div class="collapse indented-section" id="display-ui-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-4">
-                                            <label for="theme" class="form-label mt-2">Theme</label>
-                                        </div>
-                                        <div class="col-8">
-                                            <select id="theme" class="form-select" name="theme">
-                                                <option value="auto" selected="selected">Automatic</option>
-                                                <option value="light">Light</option>
-                                                <option value="dark">Dark</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="fineZoomControl" class="configLabel form-check-label">
-                                                <input type="checkbox" id="fineZoomControl" class="control form-check-input" name="fineZoomControl">&nbsp;Fine zoom control</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-basemaps-collapse">
-                                    Basemaps
-                                </button>
-                                <div class="collapse indented-section" id="display-basemaps-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-4"><label for="basemap" class="form-label mt-2">Basemap:</label>
-                                        </div>
-                                        <div class="col-8">
-                                            <select id="basemap" name="basemap" class="control configSelect form-select">
-                                                <option value="Esri.NatGeoWorldMap" selected="selected">ESRI NatGeo World Map</option>
-                                                <option value="Esri.WorldTopoMap">ESRI World Topo Map</option>
-                                                <option value="Esri.WorldShadedRelief">ESRI World Shaded Relief</option>
-                                                <option value="Esri.WorldImagery">ESRI World Imagery</option>
-                                                <option value="OpenStreetMap.Mapnik">OpenStreetMap Mapnik</option>
-                                                <option value="CartoDB.Voyager">CartoDB Voyager</option>
-                                                <option value="CartoDB.DarkMatter">CartoDB DarkMatter</option>
-                                            </select></div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-4">
-                                            <label for="basemapOpacity" class="form-label mt-2">Opacity:</label></div>
-                                        <div class="col-8">
-                                            <select id="basemapOpacity" name="basemapOpacity" class="control configSelect form-select">
-                                                <option value="1">100%</option>
-                                                <option value="0.75">75%</option>
-                                                <option value="0.5" selected="selected">50%</option>
-                                                <option value="0.25">25%</option>
-                                            </select></div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-markers-collapse">
-                                    Markers
-                                </button>
-                                <div class="collapse indented-section" id="display-markers-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="markersEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="markersEnabled" class="control form-check-input" name="markersEnabled" checked="checked">&nbsp;Draw QSO markers</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="qthMarker" class="configLabel form-check-label">
-                                                <input type="checkbox" id="qthMarker" class="control form-check-input" name="qthMarker" checked="checked">&nbsp;Draw QTH marker</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-size-collapse">
-                                    Marker Size
-                                </button>
-                                <div class="collapse indented-section" id="display-marker-size-collapse">
-                                    <div class="row mb-2 mt-2">
-                                        <div class="col-5">
-                                            <label for="markerSize" class="form-label">Marker Size</label>
-                                        </div>
-                                        <div class="col-7">
-                                            <input type="range" id="markerSize" name="markerSize" class="control form-range" min="0.125" max="1.5" value="1.0" step="0.125"/>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="circleMarkers" class="configLabel form-check-label">
-                                                <input type="checkbox" id="circleMarkers" class="control form-check-input"
-                                                       name="circleMarkers">&nbsp;Simple dot markers</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="hybridMarkerSize" class="configLabel form-check-label">
-                                                <input type="checkbox" id="hybridMarkerSize" class="control form-check-input" name="hybridMarkerSize">&nbsp;Smaller hunter markers</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-colours-collapse">
-                                    Marker Colours
-                                </button>
-                                <div class="collapse indented-section" id="display-marker-colours-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-10">
-                                            <label for="fixedColour" class="configLabel form-check-label">
-                                                <input type="radio" id="fixedColour" class="control form-check-input" name="markerColours" value="fixed">&nbsp;Fixed
-                                                colour:</label>
-                                        </div>
-                                        <div class="col-2">
-                                            <input type="color" id="fixedMarkerColour" class="control form-control form-control-color" name="fixedMarkerColour" value="#1e90ff"/>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-10">
-                                            <label for="bandColours" class="configLabel form-check-label">
-                                                <input type="radio" id="bandColours" class="control form-check-input" name="markerColours" value="band" checked="checked">&nbsp;Colour according to band</label>
-                                        </div>
-                                        <div class="col-2">
-                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#band-colors-key-dialog">Key</a>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-10">
-                                            <label for="modeColours" class="configLabel form-check-label">
-                                                <input type="radio" id="modeColours" class="control form-check-input" name="markerColours" value="mode">&nbsp;Colour according to mode</label>
-                                        </div>
-                                        <div class="col-2">
-                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#mode-colors-key-dialog">Key</a>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-5">
-                                            <label for="bandColorScheme" class="configLabel form-label mt-2">Band colors:</label>
-                                        </div>
-                                        <div class="col-7">
-                                            <select id="bandColorScheme" name="bandColorScheme" class="control configSelect form-select"></select>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="outlineMarkers" class="configLabel form-check-label">
-                                                <input type="checkbox" id="outlineMarkers" class="control form-check-input" name="outlineMarkers" checked="checked">&nbsp;Draw outlines</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showMarkerShadows" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showMarkerShadows" class="control form-check-input" name="showMarkerShadows" checked="checked">&nbsp;Draw shadows</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-icons-collapse">
-                                    Marker Icons
-                                </button>
-                                <div class="collapse indented-section" id="display-marker-icons-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-10">
-                                            <label for="outdoorSymbols" class="configLabel form-check-label">
-                                                <input type="checkbox" id="outdoorSymbols" class="control form-check-input"
-                                                       name="outdoorSymbols">&nbsp;xOTA activity symbols</label>
-                                        </div>
-                                        <div class="col-2">
-                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#xota-icons-key-dialog">Key</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-labels-collapse">
-                                    Marker Labels
-                                </button>
-                                <div class="collapse indented-section" id="display-marker-labels-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showCallsignLabels" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showCallsignLabels" class="control form-check-input" name="showCallsignLabels">&nbsp;Callsign labels</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showGridSquareLabels" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showGridSquareLabels" class="control form-check-input" name="showGridSquareLabels">&nbsp;Grid square labels</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-6">
-                                            <label for="showDistanceLabels" class="configLabel form-check-label mt-2">
-                                                <input type="checkbox" id="showDistanceLabels" class="control form-check-input mt-2" name="showDistanceLabels">&nbsp;Distance labels</label>
-                                        </div>
-                                        <div class="col-6">
-                                            <select id="distanceUnit" name="distanceUnit" class="control configSelect form-select">
-                                                <option value="km" selected="selected">kilometers</option>
-                                                <option value="mi">miles</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-lines-collapse">
-                                    Lines
-                                </button>
-                                <div class="collapse indented-section" id="display-lines-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="linesEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="linesEnabled" class="control form-check-input" name="linesEnabled" checked="checked">&nbsp;Draw geodesic lines</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="colourLines" class="configLabel form-check-label">
-                                                <input type="checkbox" id="colourLines" class="control form-check-input" name="colourLines" checked="checked">&nbsp;Coloured lines</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="thickLines" class="configLabel form-check-label">
-                                                <input type="checkbox" id="thickLines" class="control form-check-input" name="thickLines" checked="checked">&nbsp;Thick lines</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-heatmaps-collapse">
-                                    Heatmaps
-                                </button>
-                                <div class="collapse indented-section" id="display-heatmaps-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="heatmapEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="heatmapEnabled" class="control form-check-input" name="heatmapEnabled">&nbsp;Draw heatmap</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-10">
-                                            <label for="perBandHeatmapEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="perBandHeatmapEnabled" class="control form-check-input" name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label>
-                                        </div>
-                                        <div class="col-2">
-                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#band-colors-key-dialog">Key</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse"
-                                        data-bs-target="#display-grid-zone-overlays-collapse">
-                                    Grid &amp; Zone Overlays
-                                </button>
-                                <div class="collapse indented-section" id="display-grid-zone-overlays-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showMaidenheadGrid" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showMaidenheadGrid" class="control form-check-input" name="showMaidenheadGrid">&nbsp;Maidenhead grid layer</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="gridSquaresEnabled" class="configLabel form-check-label">
-                                                <input type="checkbox" id="gridSquaresEnabled" class="control form-check-input" name="gridSquaresEnabled">&nbsp;Draw worked Maidenhead grids</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="labelGridSquaresWorked" class="configLabel form-check-label">
-                                                <input type="checkbox" id="labelGridSquaresWorked" class="control form-check-input" name="labelGridSquaresWorked">&nbsp;Label worked Maidenhead
-                                                grids</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showCQZones" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showCQZones" class="control form-check-input" name="showCQZones">&nbsp;CQ zone layer</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showITUZones" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showITUZones" class="control form-check-input" name="showITUZones">&nbsp;ITU zone layer</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showWABWAIGrid" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showWABWAIGrid" class="control form-check-input" name="showWABWAIGrid">&nbsp;Worked All Britain/Ireland grid</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-comments-collapse">
-                                    Comments
-                                </button>
-                                <div class="collapse indented-section" id="display-comments-collapse">
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="showComments" class="configLabel form-check-label">
-                                                <input type="checkbox" id="showComments" class="control form-check-input" name="showComments">&nbsp;Show comments in popups</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="inferOutdoorActivitiesFromComments" class="configLabel form-check-label">
-                                                <input type="checkbox" id="inferOutdoorActivitiesFromComments" class="control form-check-input" name="inferOutdoorActivitiesFromComments">&nbsp;Infer
-                                                outdoor activity from comment</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-stats">
-                        <i class="fa fa-solid fa-chart-pie"></i> Statistics
-                    </button>
-                </h2>
-                <div id="collapse-stats" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                    <div class="accordion-body">
-                        <div id="stats-content-inner">
-                            <div class="row">
-                                <div class="col-4">Log start</div>
-                                <div class="col-8"><span id="stats-start-time">-</span></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-4">Log end</div>
-                                <div class="col-8"><span id="stats-end-time">-</span></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-4">Duration</div>
-                                <div class="col-8"><span id="stats-duration">-</span></div>
-                            </div>
-                            <div class="statsTimeOnOffRow">
-                                <div class="row">
-                                    <div class="col-4">Time On</div>
-                                    <div class="col-8"><span id="stats-time-on">-</span></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-4">Time Off</div>
-                                    <div class="col-8"><span id="stats-time-off">-</span></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">QSOs</div>
-                                <div class="col-6"><span id="stats-qso-count">0</span></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">Unique calls</div>
-                                <div class="col-6"><span id="stats-call-count">0</span></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">Grid squares</div>
-                                <div class="col-3"><span id="stats-gridsquare-count">0</span></div>
-                                <div class="col-3">
-                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridsquare-detail-dialog">Details</a>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">Grid fields</div>
-                                <div class="col-3"><span id="stats-gridfield-count">0</span></div>
-                                <div class="col-3">
-                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridfield-detail-dialog">Details</a>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">DXCCs</div>
-                                <div class="col-3"><span id="stats-dxcc-count">0</span></div>
-                                <div class="col-3">
-                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-dxcc-detail-dialog">Details</a>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">CQ zones</div>
-                                <div class="col-3"><span id="stats-cqz-count">0</span></div>
-                                <div class="col-3">
-                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-cqz-detail-dialog">Details</a>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">ITU zones</div>
-                                <div class="col-3"><span id="stats-ituz-count">0</span></div>
-                                <div class="col-3">
-                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-ituz-detail-dialog">Details</a>
-                                </div>
-                            </div>
-
-                            <table id="stats-band-mode-table" class="statsTable w-100 mt-3"></table>
-                        </div>
-                        <div class="mt-2 text-end">
-                            <a href="#" id="stats-popout-link"><i class="fa-solid fa-up-right-from-square"></i> Pop out</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-about">
-                        <i class="fa fa-circle-info"></i> About
-                    </button>
-                </h2>
-                <div id="collapse-about" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                    <div class="accordion-body">
-                        <p class="mt-0">The QSO Map Tool is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
-                        <p>It was was created by
-                            <a href="https://ianrenton.com" target="_blank">Ian Renton, MØTRT</a>. The
-                            <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">source
-                                code</a> is Public Domain licenced, meaning you can do anything you like with it without restriction.
-                        </p>
-                        <p>The QSO Map Tool is free to use, has no adverts, no cookies, and does not store any data outside of your own computer. Where QSOs are found with missing data, the
-                            <a href="https://spothole.app" target="_blank">Spothole</a> API can be queried to fetch the data. No personally identifying information such as your own callsign is
-                            transmitted.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapse-old">
-                        <i class="fa fa-backward"></i> Old interface?
-                    </button>
-                </h2>
-                <div id="collapse-old" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                    <div class="accordion-body">
-                        <p class="mb-0">Prefer the interface that the QSO Map Tool used to have? It's still available.
-                            <a href="./old/index.html">Just click here!</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-
-
-<div class="modal fade" id="introModal" tabindex="-1" aria-labelledby="introModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="introModalLabel">Welcome to the QSO Map Tool!</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>This is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
-                <p>To begin, click the <b>Browse</b> button and select a log file. ADIF, Cabrillo and SOTA CSV files are
-                    supported. The QSOs from the log will start to appear on the map.</p>
-                <p>The rest of the controls on the <b class="d-inline-block"><i class="fa-solid fa-database"></i>&nbsp;Data</b>
-                    tab can then be used to add more data, and adjust what data is displayed. In particular, note that
-                    querying a web-based service to look up locations for your contacts is enabled by default. If you
-                    are loading a contest log, you may want to turn that off (under "Online Lookup").
-                </p>
-                <p>You can use the many controls under the <b class="d-inline-block"><i class="fa-solid fa-palette"></i>&nbsp;Display</b>
-                    tab to customise the map, markers etc. to your liking, and view stats about your log in the
-                    <b class="d-inline-block"><i class="fa-solid fa-chart-pie"></i>&nbsp;Stats</b> tab.</p>
-                <p>Happy mapping!</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Get started</button>
-            </div>
-        </div>
+<div id="panel-buttons">
+    <div class="btn-group shadow-sm">
+        <button class="btn panel-btn" data-bs-target="#card-data">
+            <i class="fa fa-solid fa-database"></i><span class="btn-label"> Data</span></button>
+        <button class="btn panel-btn" data-bs-target="#card-display">
+            <i class="fa fa-solid fa-palette"></i><span class="btn-label"> Display</span></button>
+        <button class="btn panel-btn" data-bs-target="#card-stats">
+            <i class="fa fa-solid fa-chart-pie"></i><span class="btn-label"> Stats</span></button>
+        <button class="btn panel-btn" data-bs-target="#card-about">
+            <i class="fa fa-circle-info"></i><span class="btn-label"> About</span></button>
     </div>
 </div>
+
+<form id="main-form" onsubmit="event.preventDefault(); return false;">
+    <div id="card-data" class="card shadow panel-card">
+        <div class="card-header panel-card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-solid fa-database"></i> Data</span>
+            <button type="button" class="btn-close ms-2"></button>
+        </div>
+        <div class="card-body p-0 panel-card-body">
+            <div class="pt-3 px-3">
+                <p>To begin, click the <b>Browse</b> button and select an ADIF, Cabrillo or SOTA CSV log file.</p>
+                <div>
+                    <label for="fileSelect" class="configLabel form-label"><input type="file" id="fileSelect" class="form-control" accept=".adi,.adif,.csv,.cbr,.log,.txt"/></label>
+                </div>
+
+                <div id="loadingStatus"></div>
+            </div>
+
+            <ul class="list-unstyled mt-3 ps-0">
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse"
+                            data-bs-target="#data-file-loading-behaviour-collapse">
+                        File Loading Behaviour
+                    </button>
+                    <div class="collapse indented-section" id="data-file-loading-behaviour-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="replaceOnLoad" class="configLabel form-check-label">
+                                    <input type="radio" id="replaceOnLoad"
+                                           class="loadBehaviourControl form-check-input" name="loadBehaviour" value="replace" checked="checked">&nbsp;Replace existing QSOs</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="appendOnLoad" class="configLabel form-check-label">
+                                    <input type="radio" id="appendOnLoad" class="loadBehaviourControl form-check-input" name="loadBehaviour" value="append">&nbsp;Add to existing QSOs</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <button type="button" id="clearQSOs" class="btn btn-danger">Clear existing QSOs</button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-online-lookup-collapse">
+                        Online Lookup
+                    </button>
+                    <div class="collapse indented-section" id="data-online-lookup-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="userLookupEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="userLookupEnabled" class="control form-check-input" name="userLookupEnabled" checked="checked">&nbsp;Enable user
+                                    lookup</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="refLookupEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="refLookupEnabled" class="control form-check-input" name="refLookupEnabled" checked="checked">&nbsp;Enable xOTA ref
+                                    lookup</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-my-callsign-collapse">
+                        My Callsign & QTH
+                    </button>
+                    <div class="collapse indented-section" id="data-my-callsign-collapse">
+                        <div class="row mb-2">
+                            <div class="col-5">
+                                <label for="myCall" class="configLabel form-label mt-2">My callsign:</label>
+                            </div>
+                            <div class="col-7">
+                                <input type="text" id="myCall" class="textControl textBox form-control" name="myCall" placeholder="N0CALL" size="8">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5">
+                                <label for="qthGrid" class="configLabel form-label mt-2">My QTH grid:</label>
+                            </div>
+                            <div class="col-7">
+                                <input type="text" id="qthGrid" class="textControl textBox form-control" name="qthGrid" placeholder="AA00aa" size="8">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-qso-filters-collapse">
+                        QSO Filters
+                    </button>
+                    <div class="collapse indented-section" id="data-qso-filters-collapse">
+                        <div id="qsoFilterMessage">
+                            <i class='fa-solid fa-triangle-exclamation'></i> Please load a file before applying filters.
+                        </div>
+                        <div id="qsoFiltersTable">
+                            <div class="row mb-2">
+                                <div class="col-4">
+                                    <label for="filter-year" class="form-label mt-2">Year:</label></div>
+                                <div class="col-8">
+                                    <select id="filter-year" class="control configSelect form-select"></select>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4">
+                                    <label for="filter-mode" class="form-label mt-2">Mode:</label></div>
+                                <div class="col-8">
+                                    <select id="filter-mode" class="control configSelect form-select"></select>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4">
+                                    <label for="filter-band" class="form-label mt-2">Band:</label></div>
+                                <div class="col-8">
+                                    <select id="filter-band" class="control configSelect form-select"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="card-display" class="card shadow panel-card">
+        <div class="card-header panel-card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-solid fa-palette"></i> Display</span>
+            <button type="button" class="btn-close ms-2"></button>
+        </div>
+        <div class="card-body p-0 panel-card-body">
+            <ul class="list-unstyled mt-3 ps-0">
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-ui-collapse">
+                        User Interface
+                    </button>
+                    <div class="collapse indented-section" id="display-ui-collapse">
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label for="theme" class="form-label mt-2">Theme</label>
+                            </div>
+                            <div class="col-8">
+                                <select id="theme" class="form-select" name="theme">
+                                    <option value="auto" selected="selected">Automatic</option>
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="fineZoomControl" class="configLabel form-check-label">
+                                    <input type="checkbox" id="fineZoomControl" class="control form-check-input" name="fineZoomControl">&nbsp;Fine zoom control</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-basemaps-collapse">
+                        Basemaps
+                    </button>
+                    <div class="collapse indented-section" id="display-basemaps-collapse">
+                        <div class="row mb-2">
+                            <div class="col-4"><label for="basemap" class="form-label mt-2">Basemap:</label>
+                            </div>
+                            <div class="col-8">
+                                <select id="basemap" name="basemap" class="control configSelect form-select">
+                                    <option value="Esri.NatGeoWorldMap" selected="selected">ESRI NatGeo World Map</option>
+                                    <option value="Esri.WorldTopoMap">ESRI World Topo Map</option>
+                                    <option value="Esri.WorldShadedRelief">ESRI World Shaded Relief</option>
+                                    <option value="Esri.WorldImagery">ESRI World Imagery</option>
+                                    <option value="OpenStreetMap.Mapnik">OpenStreetMap Mapnik</option>
+                                    <option value="CartoDB.Voyager">CartoDB Voyager</option>
+                                    <option value="CartoDB.DarkMatter">CartoDB DarkMatter</option>
+                                </select></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label for="basemapOpacity" class="form-label mt-2">Opacity:</label></div>
+                            <div class="col-8">
+                                <select id="basemapOpacity" name="basemapOpacity" class="control configSelect form-select">
+                                    <option value="1">100%</option>
+                                    <option value="0.75">75%</option>
+                                    <option value="0.5" selected="selected">50%</option>
+                                    <option value="0.25">25%</option>
+                                </select></div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-markers-collapse">
+                        Markers
+                    </button>
+                    <div class="collapse indented-section" id="display-markers-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="markersEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="markersEnabled" class="control form-check-input" name="markersEnabled" checked="checked">&nbsp;Draw QSO markers</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="qthMarker" class="configLabel form-check-label">
+                                    <input type="checkbox" id="qthMarker" class="control form-check-input" name="qthMarker" checked="checked">&nbsp;Draw QTH marker</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-size-collapse">
+                        Marker Size
+                    </button>
+                    <div class="collapse indented-section" id="display-marker-size-collapse">
+                        <div class="row mb-2 mt-2">
+                            <div class="col-5">
+                                <label for="markerSize" class="form-label">Marker Size</label>
+                            </div>
+                            <div class="col-7">
+                                <input type="range" id="markerSize" name="markerSize" class="control form-range" min="0.125" max="1.5" value="1.0" step="0.125"/>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="circleMarkers" class="configLabel form-check-label">
+                                    <input type="checkbox" id="circleMarkers" class="control form-check-input"
+                                           name="circleMarkers">&nbsp;Simple dot markers</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="hybridMarkerSize" class="configLabel form-check-label">
+                                    <input type="checkbox" id="hybridMarkerSize" class="control form-check-input" name="hybridMarkerSize">&nbsp;Smaller hunter markers</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-colours-collapse">
+                        Marker Colours
+                    </button>
+                    <div class="collapse indented-section" id="display-marker-colours-collapse">
+                        <div class="row mb-2">
+                            <div class="col-10">
+                                <label for="fixedColour" class="configLabel form-check-label">
+                                    <input type="radio" id="fixedColour" class="control form-check-input" name="markerColours" value="fixed">&nbsp;Fixed
+                                    colour:</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="fixedMarkerColour" class="control form-control form-control-color" name="fixedMarkerColour" value="#1e90ff"/>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-10">
+                                <label for="bandColours" class="configLabel form-check-label">
+                                    <input type="radio" id="bandColours" class="control form-check-input" name="markerColours" value="band" checked="checked">&nbsp;Colour according to band</label>
+                            </div>
+                            <div class="col-2">
+                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#band-colors-key-dialog">Key</a>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-10">
+                                <label for="modeColours" class="configLabel form-check-label">
+                                    <input type="radio" id="modeColours" class="control form-check-input" name="markerColours" value="mode">&nbsp;Colour according to mode</label>
+                            </div>
+                            <div class="col-2">
+                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#mode-colors-key-dialog">Key</a>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5">
+                                <label for="bandColorScheme" class="configLabel form-label mt-2">Band colors:</label>
+                            </div>
+                            <div class="col-7">
+                                <select id="bandColorScheme" name="bandColorScheme" class="control configSelect form-select"></select>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="outlineMarkers" class="configLabel form-check-label">
+                                    <input type="checkbox" id="outlineMarkers" class="control form-check-input" name="outlineMarkers" checked="checked">&nbsp;Draw outlines</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showMarkerShadows" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showMarkerShadows" class="control form-check-input" name="showMarkerShadows" checked="checked">&nbsp;Draw shadows</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-icons-collapse">
+                        Marker Icons
+                    </button>
+                    <div class="collapse indented-section" id="display-marker-icons-collapse">
+                        <div class="row mb-2">
+                            <div class="col-10">
+                                <label for="outdoorSymbols" class="configLabel form-check-label">
+                                    <input type="checkbox" id="outdoorSymbols" class="control form-check-input"
+                                           name="outdoorSymbols">&nbsp;xOTA activity symbols</label>
+                            </div>
+                            <div class="col-2">
+                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#xota-icons-key-dialog">Key</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-labels-collapse">
+                        Marker Labels
+                    </button>
+                    <div class="collapse indented-section" id="display-marker-labels-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showCallsignLabels" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showCallsignLabels" class="control form-check-input" name="showCallsignLabels">&nbsp;Callsign labels</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showGridSquareLabels" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showGridSquareLabels" class="control form-check-input" name="showGridSquareLabels">&nbsp;Grid square labels</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label for="showDistanceLabels" class="configLabel form-check-label mt-2">
+                                    <input type="checkbox" id="showDistanceLabels" class="control form-check-input mt-2" name="showDistanceLabels">&nbsp;Distance labels</label>
+                            </div>
+                            <div class="col-6">
+                                <select id="distanceUnit" name="distanceUnit" class="control configSelect form-select">
+                                    <option value="km" selected="selected">kilometers</option>
+                                    <option value="mi">miles</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-lines-collapse">
+                        Lines
+                    </button>
+                    <div class="collapse indented-section" id="display-lines-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="linesEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="linesEnabled" class="control form-check-input" name="linesEnabled" checked="checked">&nbsp;Draw geodesic lines</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="colourLines" class="configLabel form-check-label">
+                                    <input type="checkbox" id="colourLines" class="control form-check-input" name="colourLines" checked="checked">&nbsp;Coloured lines</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="thickLines" class="configLabel form-check-label">
+                                    <input type="checkbox" id="thickLines" class="control form-check-input" name="thickLines" checked="checked">&nbsp;Thick lines</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-heatmaps-collapse">
+                        Heatmaps
+                    </button>
+                    <div class="collapse indented-section" id="display-heatmaps-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="heatmapEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="heatmapEnabled" class="control form-check-input" name="heatmapEnabled">&nbsp;Draw heatmap</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-10">
+                                <label for="perBandHeatmapEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="perBandHeatmapEnabled" class="control form-check-input" name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label>
+                            </div>
+                            <div class="col-2">
+                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#band-colors-key-dialog">Key</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse"
+                            data-bs-target="#display-grid-zone-overlays-collapse">
+                        Grid &amp; Zone Overlays
+                    </button>
+                    <div class="collapse indented-section" id="display-grid-zone-overlays-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showMaidenheadGrid" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showMaidenheadGrid" class="control form-check-input" name="showMaidenheadGrid">&nbsp;Maidenhead grid layer</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="gridSquaresEnabled" class="configLabel form-check-label">
+                                    <input type="checkbox" id="gridSquaresEnabled" class="control form-check-input" name="gridSquaresEnabled">&nbsp;Draw worked Maidenhead grids</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="labelGridSquaresWorked" class="configLabel form-check-label">
+                                    <input type="checkbox" id="labelGridSquaresWorked" class="control form-check-input" name="labelGridSquaresWorked">&nbsp;Label worked Maidenhead
+                                    grids</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showCQZones" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showCQZones" class="control form-check-input" name="showCQZones">&nbsp;CQ zone layer</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showITUZones" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showITUZones" class="control form-check-input" name="showITUZones">&nbsp;ITU zone layer</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showWABWAIGrid" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showWABWAIGrid" class="control form-check-input" name="showWABWAIGrid">&nbsp;Worked All Britain/Ireland grid</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-comments-collapse">
+                        Comments
+                    </button>
+                    <div class="collapse indented-section" id="display-comments-collapse">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showComments" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showComments" class="control form-check-input" name="showComments">&nbsp;Show comments in popups</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="inferOutdoorActivitiesFromComments" class="configLabel form-check-label">
+                                    <input type="checkbox" id="inferOutdoorActivitiesFromComments" class="control form-check-input" name="inferOutdoorActivitiesFromComments">&nbsp;Infer
+                                    outdoor activity from comment</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="card-stats" class="card shadow panel-card">
+        <div class="card-header panel-card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-solid fa-chart-pie"></i> Statistics</span>
+            <button type="button" class="btn-close ms-2"></button>
+        </div>
+        <div class="card-body panel-card-body">
+            <div class="row">
+                <div class="col-4">Log start</div>
+                <div class="col-8"><span id="stats-start-time">-</span></div>
+            </div>
+            <div class="row">
+                <div class="col-4">Log end</div>
+                <div class="col-8"><span id="stats-end-time">-</span></div>
+            </div>
+            <div class="row">
+                <div class="col-4">Duration</div>
+                <div class="col-8"><span id="stats-duration">-</span></div>
+            </div>
+            <div class="statsTimeOnOffRow">
+                <div class="row">
+                    <div class="col-4">Time On</div>
+                    <div class="col-8"><span id="stats-time-on">-</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-4">Time Off</div>
+                    <div class="col-8"><span id="stats-time-off">-</span></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">QSOs</div>
+                <div class="col-6"><span id="stats-qso-count">0</span></div>
+            </div>
+            <div class="row">
+                <div class="col-6">Unique calls</div>
+                <div class="col-6"><span id="stats-call-count">0</span></div>
+            </div>
+            <div class="row">
+                <div class="col-6">Grid squares</div>
+                <div class="col-3"><span id="stats-gridsquare-count">0</span></div>
+                <div class="col-3">
+                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridsquare-detail-dialog">Details</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">Grid fields</div>
+                <div class="col-3"><span id="stats-gridfield-count">0</span></div>
+                <div class="col-3">
+                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridfield-detail-dialog">Details</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">DXCCs</div>
+                <div class="col-3"><span id="stats-dxcc-count">0</span></div>
+                <div class="col-3">
+                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-dxcc-detail-dialog">Details</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">CQ zones</div>
+                <div class="col-3"><span id="stats-cqz-count">0</span></div>
+                <div class="col-3">
+                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-cqz-detail-dialog">Details</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">ITU zones</div>
+                <div class="col-3"><span id="stats-ituz-count">0</span></div>
+                <div class="col-3">
+                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-ituz-detail-dialog">Details</a>
+                </div>
+            </div>
+            <table id="stats-band-mode-table" class="statsTable w-100 mt-3"></table>
+        </div>
+    </div>
+
+    <div id="card-about" class="card shadow panel-card">
+        <div class="card-header panel-card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-circle-info"></i> About</span>
+            <button type="button" class="btn-close ms-2"></button>
+        </div>
+        <div class="card-body panel-card-body">
+            <p class="mt-0">The QSO Map Tool is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
+            <p>To begin, click the <b>Browse</b> button and select a log file. ADIF, Cabrillo and SOTA CSV files are
+                supported. The QSOs from the log will start to appear on the map.</p>
+            <p>The rest of the controls on the <b class="d-inline-block"><i class="fa-solid fa-database"></i>&nbsp;Data</b>
+                tab can then be used to add more data, and adjust what data is displayed. In particular, note that
+                querying a web-based service to look up locations for your contacts is enabled by default. If you
+                are loading a contest log, you may want to turn that off (under "Online Lookup").
+            </p>
+            <p>You can use the many controls under the <b class="d-inline-block"><i class="fa-solid fa-palette"></i>&nbsp;Display</b>
+                tab to customise the map, markers etc. to your liking, and view stats about your log in the
+                <b class="d-inline-block"><i class="fa-solid fa-chart-pie"></i>&nbsp;Stats</b> tab.</p>
+            <p>It was was created by
+                <a href="https://ianrenton.com" target="_blank">Ian Renton, MØTRT</a>. The
+                <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">source code</a> is Public Domain licenced, meaning you can do anything you like with it without restriction.
+            </p>
+            <p>The QSO Map Tool is free to use, has no adverts, no cookies, and does not store any data outside of your own computer. Where QSOs are found with missing data, the
+                <a href="https://spothole.app" target="_blank">Spothole</a> API can be queried to fetch the data. No personally identifying information such as your own callsign is transmitted.
+            </p>
+            <p class="mb-0">Prefer the interface that the QSO Map Tool used to have? It's still available.
+                <a href="./old/index.html">Just click here!</a></p>
+        </div>
+    </div>
+</form>
 
 <div class="modal fade" id="stats-gridsquare-detail-dialog" tabindex="-1" aria-labelledby="stats-gridsquare-detail-dialog-label" aria-hidden="true">
     <div class="modal-dialog">
@@ -878,26 +826,18 @@
 </div>
 
 
-<div id="stats-float" class="card shadow" style="display:none; position:fixed; top:1rem; left:1rem; z-index:1000; min-width:280px;">
-    <div class="card-header d-flex justify-content-between align-items-center" style="cursor:move;">
-        <span><strong id="stats-float-call"></strong>&nbsp;<small id="stats-float-qth" class="text-muted"></small></span>
-        <button id="stats-float-close" type="button" class="btn-close ms-2"></button>
-    </div>
-    <div id="stats-float-body" class="card-body p-2"></div>
-</div>
-
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1772833093"></script>
-<script src="js/globals.js?v=1772833093"></script>
-<script src="js/data-funcs.js?v=1772833093"></script>
-<script src="js/file-funcs.js?v=1772833093"></script>
-<script src="js/lookup-funcs.js?v=1772833093"></script>
-<script src="js/display-funcs.js?v=1772833093"></script>
-<script src="js/utility-funcs.js?v=1772833093"></script>
-<script src="js/local-storage-funcs.js?v=1772833093"></script>
-<script src="js/map-setup-funcs.js?v=1772833093"></script>
-<script src="js/ui-funcs.js?v=1772833093"></script>
-<script src="js/startup.js?v=1772833093"></script>
+<script src="data/dxcc.js?v=1772836466"></script>
+<script src="js/globals.js?v=1772836466"></script>
+<script src="js/data-funcs.js?v=1772836466"></script>
+<script src="js/file-funcs.js?v=1772836466"></script>
+<script src="js/lookup-funcs.js?v=1772836466"></script>
+<script src="js/display-funcs.js?v=1772836466"></script>
+<script src="js/utility-funcs.js?v=1772836466"></script>
+<script src="js/local-storage-funcs.js?v=1772836466"></script>
+<script src="js/map-setup-funcs.js?v=1772836466"></script>
+<script src="js/ui-funcs.js?v=1772836466"></script>
+<script src="js/startup.js?v=1772836466"></script>
 </body>
 </html>

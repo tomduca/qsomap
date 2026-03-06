@@ -1,19 +1,15 @@
-.sidebar-button {
+/* Panel buttons */
+.panel-btn {
     background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
     border-color: var(--bs-border-color-translucent);
 }
-
-/* Sidebar */
-#sidebar {
-    /* offcanvas-end normally takes up the whole vertical height so only has a left border, here we add the bottom
-    border because we have reduced the height of the element. */
-    border-bottom: var(--bs-offcanvas-border-width) solid var(--bs-offcanvas-border-color);
-}
-.offcanvas-backdrop {
-    opacity: 0 !important;
+.panel-btn:hover, .btn.panel-btn:active {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
 }
 
-/* Toggleable areas within the sidebar */
+/* Toggleable areas within the panels */
 .btn-toggle {
     padding: .25rem .5rem;
     font-weight: 600;
