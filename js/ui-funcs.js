@@ -81,6 +81,29 @@ $('#main-form').on('change', '[name]', function() {
     }
 });
 
+// Stats pop-out panel
+$('#stats-popout-link').on('click', function(e) {
+    e.preventDefault();
+    $('#stats-float-call').text($('#myCall').val() || '');
+    $('#stats-float-qth').text($('#qthGrid').val() || '');
+    $('#stats-content-inner').detach().appendTo('#stats-float-body');
+    $('#stats-float').show();
+    bootstrap.Offcanvas.getInstance($('#sidebar')[0]).hide();
+});
+
+$('#stats-float-close').on('click', function() {
+    $('#stats-content-inner').detach().prependTo('#collapse-stats .accordion-body');
+    $('#stats-float').hide();
+});
+
+$('#stats-float .card-header').on('mousedown', function(e) {
+    if ($(e.target).closest('button,a').length) return;
+    var pos = {x: e.pageX - $('#stats-float').offset().left, y: e.pageY - $('#stats-float').offset().top};
+    $(document).on('mousemove.statsdrag', function(e) {
+        $('#stats-float').css({left: e.pageX - pos.x, top: e.pageY - pos.y});
+    }).on('mouseup.statsdrag', function() { $(document).off('.statsdrag'); });
+});
+
 // Populate the filter controls based on the years, bands and modes in the data we have loaded
 function populateFilterControls(years, bands, modes) {
     $("#filter-year").empty();

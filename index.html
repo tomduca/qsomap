@@ -55,12 +55,12 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772794726"></script>
-    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772794726"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772794726"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772794726"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772794726"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772794726"></script>
+    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772833093"></script>
+    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772833093"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772833093"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772833093"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772833093"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772833093"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -551,74 +551,78 @@
                 </h2>
                 <div id="collapse-stats" class="accordion-collapse collapse" data-bs-parent="#accordion">
                     <div class="accordion-body">
-                        <div class="row">
-                            <div class="col-4">Log start</div>
-                            <div class="col-8"><span id="stats-start-time">-</span></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4">Log end</div>
-                            <div class="col-8"><span id="stats-end-time">-</span></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4">Duration</div>
-                            <div class="col-8"><span id="stats-duration">-</span></div>
-                        </div>
-                        <div class="statsTimeOnOffRow">
+                        <div id="stats-content-inner">
                             <div class="row">
-                                <div class="col-4">Time On</div>
-                                <div class="col-8"><span id="stats-time-on">-</span></div>
+                                <div class="col-4">Log start</div>
+                                <div class="col-8"><span id="stats-start-time">-</span></div>
                             </div>
                             <div class="row">
-                                <div class="col-4">Time Off</div>
-                                <div class="col-8"><span id="stats-time-off">-</span></div>
+                                <div class="col-4">Log end</div>
+                                <div class="col-8"><span id="stats-end-time">-</span></div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">QSOs</div>
-                            <div class="col-6"><span id="stats-qso-count">0</span></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">Unique calls</div>
-                            <div class="col-6"><span id="stats-call-count">0</span></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">Grid squares</div>
-                            <div class="col-3"><span id="stats-gridsquare-count">0</span></div>
-                            <div class="col-3">
-                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridsquare-detail-dialog">Details</a>
+                            <div class="row">
+                                <div class="col-4">Duration</div>
+                                <div class="col-8"><span id="stats-duration">-</span></div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">Grid fields</div>
-                            <div class="col-3"><span id="stats-gridfield-count">0</span></div>
-                            <div class="col-3">
-                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridfield-detail-dialog">Details</a>
+                            <div class="statsTimeOnOffRow">
+                                <div class="row">
+                                    <div class="col-4">Time On</div>
+                                    <div class="col-8"><span id="stats-time-on">-</span></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">Time Off</div>
+                                    <div class="col-8"><span id="stats-time-off">-</span></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">DXCCs</div>
-                            <div class="col-3"><span id="stats-dxcc-count">0</span></div>
-                            <div class="col-3">
-                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-dxcc-detail-dialog">Details</a>
+                            <div class="row">
+                                <div class="col-6">QSOs</div>
+                                <div class="col-6"><span id="stats-qso-count">0</span></div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">CQ zones</div>
-                            <div class="col-3"><span id="stats-cqz-count">0</span></div>
-                            <div class="col-3">
-                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-cqz-detail-dialog">Details</a>
+                            <div class="row">
+                                <div class="col-6">Unique calls</div>
+                                <div class="col-6"><span id="stats-call-count">0</span></div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">ITU zones</div>
-                            <div class="col-3"><span id="stats-ituz-count">0</span></div>
-                            <div class="col-3">
-                                <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-ituz-detail-dialog">Details</a>
+                            <div class="row">
+                                <div class="col-6">Grid squares</div>
+                                <div class="col-3"><span id="stats-gridsquare-count">0</span></div>
+                                <div class="col-3">
+                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridsquare-detail-dialog">Details</a>
+                                </div>
                             </div>
-                        </div>
+                            <div class="row">
+                                <div class="col-6">Grid fields</div>
+                                <div class="col-3"><span id="stats-gridfield-count">0</span></div>
+                                <div class="col-3">
+                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridfield-detail-dialog">Details</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">DXCCs</div>
+                                <div class="col-3"><span id="stats-dxcc-count">0</span></div>
+                                <div class="col-3">
+                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-dxcc-detail-dialog">Details</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">CQ zones</div>
+                                <div class="col-3"><span id="stats-cqz-count">0</span></div>
+                                <div class="col-3">
+                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-cqz-detail-dialog">Details</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">ITU zones</div>
+                                <div class="col-3"><span id="stats-ituz-count">0</span></div>
+                                <div class="col-3">
+                                    <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-ituz-detail-dialog">Details</a>
+                                </div>
+                            </div>
 
-                        <table id="stats-band-mode-table" class="statsTable w-100 mt-3"></table>
-
+                            <table id="stats-band-mode-table" class="statsTable w-100 mt-3"></table>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <a href="#" id="stats-popout-link"><i class="fa-solid fa-up-right-from-square"></i> Pop out</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -874,18 +878,26 @@
 </div>
 
 
+<div id="stats-float" class="card shadow" style="display:none; position:fixed; top:1rem; left:1rem; z-index:1000; min-width:280px;">
+    <div class="card-header d-flex justify-content-between align-items-center" style="cursor:move;">
+        <span><strong id="stats-float-call"></strong>&nbsp;<small id="stats-float-qth" class="text-muted"></small></span>
+        <button id="stats-float-close" type="button" class="btn-close ms-2"></button>
+    </div>
+    <div id="stats-float-body" class="card-body p-2"></div>
+</div>
+
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1772794726"></script>
-<script src="js/globals.js?v=1772794726"></script>
-<script src="js/data-funcs.js?v=1772794726"></script>
-<script src="js/file-funcs.js?v=1772794726"></script>
-<script src="js/lookup-funcs.js?v=1772794726"></script>
-<script src="js/display-funcs.js?v=1772794726"></script>
-<script src="js/utility-funcs.js?v=1772794726"></script>
-<script src="js/local-storage-funcs.js?v=1772794726"></script>
-<script src="js/map-setup-funcs.js?v=1772794726"></script>
-<script src="js/ui-funcs.js?v=1772794726"></script>
-<script src="js/startup.js?v=1772794726"></script>
+<script src="data/dxcc.js?v=1772833093"></script>
+<script src="js/globals.js?v=1772833093"></script>
+<script src="js/data-funcs.js?v=1772833093"></script>
+<script src="js/file-funcs.js?v=1772833093"></script>
+<script src="js/lookup-funcs.js?v=1772833093"></script>
+<script src="js/display-funcs.js?v=1772833093"></script>
+<script src="js/utility-funcs.js?v=1772833093"></script>
+<script src="js/local-storage-funcs.js?v=1772833093"></script>
+<script src="js/map-setup-funcs.js?v=1772833093"></script>
+<script src="js/ui-funcs.js?v=1772833093"></script>
+<script src="js/startup.js?v=1772833093"></script>
 </body>
 </html>
