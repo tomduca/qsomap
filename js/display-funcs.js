@@ -619,7 +619,7 @@ function recalculateStats() {
     // be a table to improve the layout. So now we map DXCCs to QSOs and extract details, and build the table.
     let dxccTable = $("#stats-dxcc-table");
     dxccTable.html("");
-    dxccTable.append("<thead><tr><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th></tr></thead>");
+    dxccTable.append("<thead><tr><th>DXCC</th><th>QSOs</th><th>DXCC</th><th>QSOs</th></tr></thead>");
     dxccTable.append("<tbody>");
     // Faff making the table because we need two sets of columns to use the space neatly
     let rowCount = Math.ceil(allDXCCs.length / 2.0) * 2;

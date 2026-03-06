@@ -63,11 +63,6 @@ div.statsTimeOnOffRow {
     display: none;
 }
 
-img.flag {
-    position: relative;
-    top: 3px;
-}
-
 /* Popup layout */
 table.popupQSOTable {
     line-height: 1em;
