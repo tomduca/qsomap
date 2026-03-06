@@ -281,7 +281,7 @@ function loadFile(text) {
                 // Populate the filter controls
                 populateFilterControls(years, bands, modes);
                 // Remove the warning about loading a file before applying filters
-                $("#qsoFilterMessage").text("The list of available filters is based on the contents of your log.");
+                $("#qsoFilterMessage").hide();
                 $("#qsoFiltersTable").show();
             }
         } catch (e) {

@@ -71,7 +71,7 @@ table.popupQSOTable {
 }
 
 /* Hide certain elements until we have something to put in there */
-table#qsoFiltersTable {
+div#qsoFiltersTable {
     display: none;
 }
 

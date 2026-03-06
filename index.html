@@ -55,12 +55,12 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772787398"></script>
-    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772787398"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772787398"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772787398"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772787398"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772787398"></script>
+    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772788879"></script>
+    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772788879"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772788879"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772788879"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772788879"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772788879"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -94,9 +94,6 @@
                 <div id="collapse-data" class="accordion-collapse collapse show" data-bs-parent="#accordion">
                     <div class="accordion-body py-0 ps-0">
                         <div class="pt-3 ps-3">
-                            <p>To begin, click the
-                                <b>Browse</b> button and select a log file. ADIF, Cabrillo and SOTA CSV files are supported.
-                            </p>
                             <div>
                                 <label for="fileSelect" class="configLabel form-label"><input type="file" id="fileSelect" class="form-control" accept=".adi,.adif,.csv,.cbr,.log,.txt"/></label>
                             </div>
@@ -171,6 +168,39 @@
                                         </div>
                                         <div class="col-7">
                                             <input type="text" id="qthGrid" class="textControl textBox form-control" name="qthGrid" placeholder="AA00aa" size="8">
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#data-qso-filters-collapse">
+                                    QSO Filters
+                                </button>
+                                <div class="collapse indented-section" id="data-qso-filters-collapse">
+                                    <div id="qsoFilterMessage">
+                                        <i class='fa-solid fa-triangle-exclamation'></i> Please load a file before applying filters.
+                                    </div>
+                                    <div id="qsoFiltersTable">
+                                        <div class="row mb-2">
+                                            <div class="col-4">
+                                                <label for="filter-year" class="form-label mt-2">Year:</label></div>
+                                            <div class="col-8">
+                                                <select id="filter-year" class="control configSelect form-select"></select>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-4">
+                                                <label for="filter-mode" class="form-label mt-2">Mode:</label></div>
+                                            <div class="col-8">
+                                                <select id="filter-mode" class="control configSelect form-select"></select>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-4">
+                                                <label for="filter-band" class="form-label mt-2">Band:</label></div>
+                                            <div class="col-8">
+                                                <select id="filter-band" class="control configSelect form-select"></select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -508,39 +538,6 @@
                                     </div>
                                 </div>
                             </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-qso-filters-collapse">
-                                    QSO Filters
-                                </button>
-                                <div class="collapse indented-section" id="display-qso-filters-collapse">
-                                    <div id="qsoFilterMessage">
-                                        <i class='fa-solid fa-triangle-exclamation'></i> Please load a file before applying filters.
-                                    </div>
-                                    <div id="qsoFiltersTable">
-                                        <div class="row mb-2">
-                                            <div class="col-4">
-                                                <label for="filter-year" class="form-label mt-2">Year:</label></div>
-                                            <div class="col-8">
-                                                <select id="filter-year" class="control configSelect form-select"></select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-2">
-                                            <div class="col-4">
-                                                <label for="filter-mode" class="form-label mt-2">Mode:</label></div>
-                                            <div class="col-8">
-                                                <select id="filter-mode" class="control configSelect form-select"></select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-2">
-                                            <div class="col-4">
-                                                <label for="filter-band" class="form-label mt-2">Band:</label></div>
-                                            <div class="col-8">
-                                                <select id="filter-band" class="control configSelect form-select"></select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
                         </ul>
                     </div>
                 </div>
@@ -586,36 +583,36 @@
                         </div>
                         <div class="row">
                             <div class="col-6">Grid squares</div>
-                            <div class="col-4"><span id="stats-gridsquare-count">0</span></div>
-                            <div class="col-2">
+                            <div class="col-3"><span id="stats-gridsquare-count">0</span></div>
+                            <div class="col-3">
                                 <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridsquare-detail-dialog">Details</a>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6">Grid fields</div>
-                            <div class="col-4"><span id="stats-gridfield-count">0</span></div>
-                            <div class="col-2">
+                            <div class="col-3"><span id="stats-gridfield-count">0</span></div>
+                            <div class="col-3">
                                 <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-gridfield-detail-dialog">Details</a>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6">DXCCs</div>
-                            <div class="col-4"><span id="stats-dxcc-count">0</span></div>
-                            <div class="col-2">
+                            <div class="col-3"><span id="stats-dxcc-count">0</span></div>
+                            <div class="col-3">
                                 <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-dxcc-detail-dialog">Details</a>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6">CQ zones</div>
-                            <div class="col-4"><span id="stats-cqz-count">0</span></div>
-                            <div class="col-2">
+                            <div class="col-3"><span id="stats-cqz-count">0</span></div>
+                            <div class="col-3">
                                 <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-cqz-detail-dialog">Details</a>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6">ITU zones</div>
-                            <div class="col-4"><span id="stats-ituz-count">0</span></div>
-                            <div class="col-2">
+                            <div class="col-3"><span id="stats-ituz-count">0</span></div>
+                            <div class="col-3">
                                 <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#stats-ituz-detail-dialog">Details</a>
                             </div>
                         </div>
@@ -634,16 +631,8 @@
                 </h2>
                 <div id="collapse-about" class="accordion-collapse collapse" data-bs-parent="#accordion">
                     <div class="accordion-body">
-                        <p style="margin-top: 0;">This is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
-                        <p>Start by uploading a data file in ADIF, Cabrillo or SOTA CSV format on the
-                            <b style="display: inline-block;"><i class="fa-solid fa-database"></i>&nbsp;Data</b> tab.
-                            Information such as your callsign and location ("QTH") will be populated automatically, but you can override them if necessary.
-                        </p>
-                        <p>Then, progress to the <b style="display: inline-block;"><i class="fa-solid fa-palette"></i>&nbsp;Display</b> tab if you want to customise the appearance of the map, markers,
-                            lines, heatmaps, overlays etc. Lots of options are available.</p>
-                        <p>Finally, the <b style="display: inline-block;"><i class="fa-solid fa-chart-pie"></i>&nbsp;Stats</b> tab will give you some information on the data you have loaded.
-                        </p>
-                        <p>This tool was created by
+                        <p class="mt-0">The QSO Map Tool is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
+                        <p>It was was created by
                             <a href="https://ianrenton.com" target="_blank">Ian Renton, MØTRT</a>. The
                             <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">source
                                 code</a> is Public Domain licenced, meaning you can do anything you like with it without restriction.
@@ -658,6 +647,34 @@
     </form>
 </div>
 
+
+<div class="modal fade" id="introModal" tabindex="-1" aria-labelledby="introModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="introModalLabel">Welcome to the QSO Map Tool!</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>This is a utility to plot amateur radio contacts ("QSOs") on a map.</p>
+                <p>To begin, click the <b>Browse</b> button and select a log file. ADIF, Cabrillo and SOTA CSV files are
+                    supported. The QSOs from the log will start to appear on the map.</p>
+                <p>The rest of the controls on the <b class="d-inline-block"><i class="fa-solid fa-database"></i>&nbsp;Data</b>
+                    tab can then be used to add more data, and adjust what data is displayed. In particular, note that
+                    querying a web-based service to look up locations for your contacts is enabled by default. If you
+                    are loading a contest log, you may want to turn that off (under "Online Lookup").
+                </p>
+                <p>You can use the many controls under the <b class="d-inline-block"><i class="fa-solid fa-palette"></i>&nbsp;Display</b>
+                    tab to customise the map, markers etc. to your liking, and view stats about your log in the
+                    <b class="d-inline-block"><i class="fa-solid fa-chart-pie"></i>&nbsp;Stats</b> tab.</p>
+                <p>Happy mapping!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Get started</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="stats-gridsquare-detail-dialog" tabindex="-1" aria-labelledby="stats-gridsquare-detail-dialog-label" aria-hidden="true">
     <div class="modal-dialog">
@@ -739,7 +756,7 @@
             <div class="modal-body">
                 <table style="border-spacing: 1em;">
                     <tr>
-                        <td style="vertical-align: top; padding-right: 1em;">
+                        <td class="align-top pe-3">
                             <span class="colorSample bandColorSample" id="bandColorSample-2200m"></span>2200m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-600m"></span>600m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-160m"></span>160m<br/>
@@ -748,7 +765,7 @@
                             <span class="colorSample bandColorSample" id="bandColorSample-40m"></span>40m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-30m"></span>30m<br/>
                         </td>
-                        <td style="vertical-align: top; padding-right: 1em;">
+                        <td class="align-top pe-3">
                             <span class="colorSample bandColorSample" id="bandColorSample-20m"></span>20m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-17m"></span>17m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-15m"></span>15m<br/>
@@ -757,7 +774,7 @@
                             <span class="colorSample bandColorSample" id="bandColorSample-10m"></span>10m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-6m"></span>6m<br/>
                         </td>
-                        <td style="vertical-align: top; padding-right: 1em;">
+                        <td class="align-top pe-3">
                             <span class="colorSample bandColorSample" id="bandColorSample-5m"></span>5m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-4m"></span>4m<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-2m"></span>2m<br/>
@@ -766,7 +783,7 @@
                             <span class="colorSample bandColorSample" id="bandColorSample-23cm"></span>23cm<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-13cm"></span>13cm<br/>
                         </td>
-                        <td style="vertical-align: top; padding-right: 1em;">
+                        <td class="align-top pe-3">
                             <span class="colorSample bandColorSample" id="bandColorSample-5_8GHz"></span>5.8GHz<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-10GHz"></span>10GHz<br/>
                             <span class="colorSample bandColorSample" id="bandColorSample-24GHz"></span>24GHz<br/>
@@ -844,16 +861,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1772787398"></script>
-<script src="js/globals.js?v=1772787398"></script>
-<script src="js/data-funcs.js?v=1772787398"></script>
-<script src="js/file-funcs.js?v=1772787398"></script>
-<script src="js/lookup-funcs.js?v=1772787398"></script>
-<script src="js/display-funcs.js?v=1772787398"></script>
-<script src="js/utility-funcs.js?v=1772787398"></script>
-<script src="js/local-storage-funcs.js?v=1772787398"></script>
-<script src="js/map-setup-funcs.js?v=1772787398"></script>
-<script src="js/ui-funcs.js?v=1772787398"></script>
-<script src="js/startup.js?v=1772787398"></script>
+<script src="data/dxcc.js?v=1772788879"></script>
+<script src="js/globals.js?v=1772788879"></script>
+<script src="js/data-funcs.js?v=1772788879"></script>
+<script src="js/file-funcs.js?v=1772788879"></script>
+<script src="js/lookup-funcs.js?v=1772788879"></script>
+<script src="js/display-funcs.js?v=1772788879"></script>
+<script src="js/utility-funcs.js?v=1772788879"></script>
+<script src="js/local-storage-funcs.js?v=1772788879"></script>
+<script src="js/map-setup-funcs.js?v=1772788879"></script>
+<script src="js/ui-funcs.js?v=1772788879"></script>
+<script src="js/startup.js?v=1772788879"></script>
 </body>
 </html>
