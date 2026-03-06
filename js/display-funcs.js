@@ -2,6 +2,9 @@
 //  QSO DISPLAY FUNCTIONS //
 /////////////////////////////
 
+// Tracks the currently-loaded basemap provider string to avoid unnecessary tile reloads
+let loadedBasemap;
+
 // Redraw all the objects that are rendered on the map. Clear old markers and draw new ones. This is
 // called when a bulk change needs to happen, for example the first load occurs, a clear occurs,
 // or a UI change occurs e.g. changing how colours are done for all markers.
@@ -74,6 +77,16 @@ function redrawAll() {
 function redraw(key) {
     let d = data.get(key);
     const pos = getIconPosition(d);
+    const markersEnabled = $('#markersEnabled').is(':checked');
+    const circleMarkers = $('#circleMarkers').is(':checked');
+    const markerSize = parseFloat($('#markerSize').val());
+    const hybridMarkerSize = $('#hybridMarkerSize').is(':checked');
+    const outlineMarkers = $('#outlineMarkers').is(':checked');
+    const linesEnabled = $('#linesEnabled').is(':checked');
+    const colourLines = $('#colourLines').is(':checked');
+    const thickLines = $('#thickLines').is(':checked');
+    const gridSquaresEnabled = $('#gridSquaresEnabled').is(':checked');
+    const labelGridSquaresWorked = $('#labelGridSquaresWorked').is(':checked');
     if (anyQSOMatchesFilter(d) && pos != null) {
         // Add or update marker
         if (markersEnabled) {
@@ -207,7 +220,6 @@ function zoomToFit() {
 
 // Shows/hides the Maidenhead grid overlay
 function enableMaidenheadGrid(show) {
-    showMaidenheadGrid = show;
     if (maidenheadGrid) {
         if (show) {
             maidenheadGrid.addTo(map);
@@ -216,12 +228,11 @@ function enableMaidenheadGrid(show) {
             map.removeLayer(maidenheadGrid);
         }
     }
-    localStorage.setItem('showMaidenheadGrid', showMaidenheadGrid);
+    localStorage.setItem('showMaidenheadGrid', show);
 }
 
 // Shows/hides the CQ zone overlay
 function enableCQZones(show) {
-    showCQZones = show;
     if (cqZones) {
         if (show) {
             cqZones.addTo(map);
@@ -235,7 +246,6 @@ function enableCQZones(show) {
 
 // Shows/hides the ITU zone overlay
 function enableITUZones(show) {
-    showITUZones = show;
     if (ituZones) {
         if (show) {
             ituZones.addTo(map);
@@ -249,7 +259,6 @@ function enableITUZones(show) {
 
 // Shows/hides the WAB/WAI grid overlay
 function enableWABWAIGrid(show) {
-    showWABWAIGrid = show;
     if (wabwaiGrid) {
         if (show) {
             wabwaiGrid.addTo(map);
@@ -263,7 +272,6 @@ function enableWABWAIGrid(show) {
 
 // Shows/hides the Heatmap layer
 function enableHeatmap(show) {
-    heatmapEnabled = show;
     if (heatmapLayer) {
         if (show) {
             // Repopulate the display
@@ -281,7 +289,6 @@ function enableHeatmap(show) {
 
 // Shows/hides the Per-Band Heatmap layer
 function enablePerBandHeatmap(show) {
-    perBandHeatmapEnabled = show;
     if (perBandHeatmapsGroup) {
         if (show) {
             // Repopulate the display
@@ -310,8 +317,7 @@ function setFineZoomControl(enable) {
         map.options.zoomSnap = 1.0;
         map.options.wheelPxPerZoomLevel = 60;
     }
-    fineZoomControl = enable;
-    localStorage.setItem('fineZoomControl', fineZoomControl);
+    localStorage.setItem('fineZoomControl', enable);
 }
 
 // Get text for the normal click-to-appear popups. Takes a data item that may contain multiple QSOs.
@@ -348,7 +354,7 @@ function getPopupText(d) {
     text += "</span></span><table class='popupQSOTable'>"
 
     getQSOsMatchingFilter(d).forEach(qso => {
-        if (qso.freq || qso.time || (qso.comment && showComments)) {
+        if (qso.freq || qso.time || (qso.comment && $('#showComments').is(':checked'))) {
             text += "<tr><td><i class='fa-solid fa-comment markerPopupIcon'></i></td><td>";
             if (qso.freq) {
                 text += qso.freq.toFixed(3);
@@ -373,7 +379,7 @@ function getPopupText(d) {
                     text += "<tr><td></td><td colspan='2'>" + d.qth + "</td></tr>";
                 }
             }
-            if (qso.comment && showComments) {
+            if (qso.comment && $('#showComments').is(':checked')) {
                 text += "<tr><td></td><td colspan='2'>" + qso.comment + "</td></tr>";
             }
 
@@ -386,9 +392,10 @@ function getPopupText(d) {
 
 // Get text for the permanent labels underneath the markers (referred to by Leaflet as tooltips)
 function getTooltipText(d) {
-    let showCall = showCallsignLabels && d.call;
-    let showGrid = showGridSquareLabels && d.grid;
-    let showDist = showDistanceLabels && d.grid;
+    const basemapIsDark = ['CartoDB.DarkMatter', 'Esri.WorldImagery'].includes($('#basemap').val());
+    let showCall = $('#showCallsignLabels').is(':checked') && d.call;
+    let showGrid = $('#showGridSquareLabels').is(':checked') && d.grid;
+    let showDist = $('#showDistanceLabels').is(':checked') && d.grid;
     let labelText = "";
 
     if (showCall) {
@@ -416,8 +423,9 @@ function getTooltipText(d) {
 
 // Get text for the permanent labels underneath the own QTH marker (referred to by Leaflet as a tooltip).
 function getOwnQTHTooltipText() {
-    let showCall = showCallsignLabels && myCall;
-    let showGrid = showGridSquareLabels && qthGrid;
+    const basemapIsDark = ['CartoDB.DarkMatter', 'Esri.WorldImagery'].includes($('#basemap').val());
+    let showCall = $('#showCallsignLabels').is(':checked') && myCall;
+    let showGrid = $('#showGridSquareLabels').is(':checked') && qthGrid;
     let labelText = "";
 
     if (showCall) {
@@ -468,13 +476,13 @@ function getIconPosition(d) {
 // Set the basemap
 function setBasemap(basemapname) {
     // Only change if we have to, to avoid a flash of reloading content
-    if (basemap !== basemapname) {
-        basemap = basemapname;
+    if (loadedBasemap !== basemapname) {
+        loadedBasemap = basemapname;
         if (typeof basemapLayer !== 'undefined') {
             map.removeLayer(basemapLayer);
         }
         basemapLayer = L.tileLayer.provider(basemapname, {
-            opacity: basemapOpacity,
+            opacity: parseFloat($('#basemapOpacity').val()),
             edgeBufferTiles: 1
         });
         basemapLayer.addTo(map);
@@ -482,7 +490,7 @@ function setBasemap(basemapname) {
 
         // Identify dark basemaps to ensure we use white text for unselected icons
         // and change the background colour appropriately
-        basemapIsDark = basemapname === "CartoDB.DarkMatter" || basemapname === "Esri.WorldImagery";
+        const basemapIsDark = basemapname === "CartoDB.DarkMatter" || basemapname === "Esri.WorldImagery";
         $("#map").css('background-color', basemapIsDark ? "black" : "white");
 
         // Change the colour of the grid and zone overlays to match
@@ -497,37 +505,36 @@ function setBasemap(basemapname) {
             ituZones.options.color = ITU_ZONES_COLOR_LIGHT;
             wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_LIGHT;
         }
-        if (showMaidenheadGrid) {
+        if ($('#showMaidenheadGrid').is(':checked')) {
             map.removeLayer(maidenheadGrid);
             maidenheadGrid.addTo(map);
             basemapLayer.bringToBack();
         }
-        if (showCQZones) {
+        if ($('#showCQZones').is(':checked')) {
             map.removeLayer(cqZones);
             cqZones.addTo(map);
             basemapLayer.bringToBack();
         }
-        if (showITUZones) {
+        if ($('#showITUZones').is(':checked')) {
             map.removeLayer(ituZones);
             ituZones.addTo(map);
             basemapLayer.bringToBack();
         }
-        if (showWABWAIGrid) {
+        if ($('#showWABWAIGrid').is(':checked')) {
             map.removeLayer(wabwaiGrid);
             wabwaiGrid.addTo(map);
             basemapLayer.bringToBack();
         }
     }
-    localStorage.setItem('basemap', JSON.stringify(basemap));
+    localStorage.setItem('basemap', JSON.stringify(basemapname));
 }
 
 // Set the basemap opacity
 function setBasemapOpacity(opacity) {
-    basemapOpacity = opacity;
     if (typeof basemapLayer !== 'undefined') {
         basemapLayer.setOpacity(opacity);
     }
-    localStorage.setItem('basemapOpacity', basemapOpacity);
+    localStorage.setItem('basemapOpacity', opacity);
 }
 
 

@@ -37,18 +37,6 @@
     transform: rotate(90deg);
 }
 
-h1#stats-callsign {
-    margin: 0;
-    font-size: 1.3em;
-    text-align: center;
-}
-
-p.stats-qth {
-    margin-top: 0;
-    font-size: 0.8em;
-    text-align: center;
-}
-
 /* Marker and popup styles */
 .leaflet-popup {
     font-size: 14px;

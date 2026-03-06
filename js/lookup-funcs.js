@@ -72,7 +72,7 @@ async function processQSOFromQueue() {
         let qso = queue.pop();
         // We have something in the queue. First see if it has a POTA/SOTA/WWBOTA reference; we can then query the
         // API for the reference's location if we need to.
-        if (refLookupEnabled && qso.sigRefs != null && qso.sigRefs.length > 0 && (!qso.grid || !qso.qth)) {
+        if ($('#refLookupEnabled').is(':checked') && qso.sigRefs != null && qso.sigRefs.length > 0 && (!qso.grid || !qso.qth)) {
             await performSIGRefLookup(qso);
             // Just done a lookup, so add an artificial pause to slow the process down and avoid hammering the server
             await new Promise(r => setTimeout(r, 100));
@@ -106,7 +106,7 @@ async function processQSOFromQueue() {
         }
 
         // Now if we still have missing data, move on to making an actual query of the callsign
-        if (userLookupEnabled && (!qso.grid || !qso.dxcc || !qso.cqz || !qso.ituz || !qso.qth || !qso.name)) {
+        if ($('#userLookupEnabled').is(':checked') && (!qso.grid || !qso.dxcc || !qso.cqz || !qso.ituz || !qso.qth || !qso.name)) {
             await performCallsignLookup(qso);
             // Just done a lookup, so add an artificial pause to slow the process down and avoid hammering the server
             await new Promise(r => setTimeout(r, 100));

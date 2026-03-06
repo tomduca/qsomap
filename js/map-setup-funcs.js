@@ -12,8 +12,8 @@ function setUpMap() {
     });
 
     // Add basemap
-    basemapLayer = L.tileLayer.provider(basemap, {
-        opacity: basemapOpacity,
+    basemapLayer = L.tileLayer.provider($('#basemap').val(), {
+        opacity: parseFloat($('#basemapOpacity').val()),
         edgeBufferTiles: 1
     });
     basemapLayer.addTo(map);

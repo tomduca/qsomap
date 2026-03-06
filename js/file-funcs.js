@@ -154,10 +154,10 @@ function loadADIF(text) {
         // something from STATION_CALLSIGN, as that takes precedence.
         if (!setStationCallsign) {
             if (qsoData.has("STATION_CALLSIGN")) {
-                setMyCall(qsoData.get("STATION_CALLSIGN"));
+                $("#myCall").val(qsoData.get("STATION_CALLSIGN"));
                 setStationCallsign = true;
             } else if (qsoData.has("OPERATOR")) {
-                setMyCall(qsoData.get("OPERATOR"));
+                $("#myCall").val(qsoData.get("OPERATOR"));
                 setStationCallsign = true;
             }
         }
@@ -169,7 +169,7 @@ function loadCabrillo(text) {
     var lines = text.split(/\r?\n|\r|\n/g);
     lines.forEach(line => {
         if (line.startsWith("CALLSIGN:")) {
-            setMyCall(line.substring(9));
+            $("#myCall").val(line.substring(9));
         }
 
         if (line.startsWith("QSO:")) {
@@ -203,7 +203,7 @@ function loadSOTACSV(text) {
     csvData = $.csv.toArrays(text);
     csvData.forEach(row => {
         if (!setStationCallsign) {
-            setMyCall(row[1]);
+            $("#myCall").val(row[1]);
             setStationCallsign = true;
         }
 
@@ -247,7 +247,7 @@ function loadSOTACSV(text) {
 // Given the text of a supported log file, load the data and populate the map.
 function loadFile(text) {
     // Figure out if we are appending to any previously loaded data, or replacing it, in which case call clearData().
-    if (!appendOnLoad) {
+    if (!$('#appendOnLoad').is(':checked')) {
         clearData();
     }
     // Set variables to tell the UI that we are loading

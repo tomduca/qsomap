@@ -17,9 +17,8 @@ $("#fileSelect").change(function () {
     }
 });
 
-// General method called on UI change, to update the software's internal model from
-// the UI selections.
-function updateModelFromUI() {
+// Update the various displays based on new settings. Called on UI control changes.
+function updateDisplay() {
     setBasemap($("#basemap").val());
     setBasemapOpacity($("#basemapOpacity").val());
     updatePosFromGridInput();
@@ -30,67 +29,37 @@ function updateModelFromUI() {
     enableHeatmap($("#heatmapEnabled").is(':checked'));
     enablePerBandHeatmap($("#perBandHeatmapEnabled").is(':checked'));
     setFineZoomControl($("#fineZoomControl").is(':checked'));
-    markersEnabled = $("#markersEnabled").is(':checked');
-    localStorage.setItem('markersEnabled', markersEnabled);
-    userLookupEnabled = $("#userLookupEnabled").is(':checked');
-    localStorage.setItem('userLookupEnabled', userLookupEnabled);
-    refLookupEnabled = $("#refLookupEnabled").is(':checked');
-    localStorage.setItem('refLookupEnabled', refLookupEnabled);
-    myCall = $("#myCall").val();
-    $("#stats-callsign").text(myCall);
-    localStorage.setItem('myCall', JSON.stringify(myCall));
-    qthMarker = $("#qthMarker").is(':checked');
-    localStorage.setItem('qthMarker', qthMarker);
-    linesEnabled = $("#linesEnabled").is(':checked');
-    localStorage.setItem('linesEnabled', linesEnabled);
-    gridSquaresEnabled = $("#gridSquaresEnabled").is(':checked');
-    localStorage.setItem('gridSquaresEnabled', gridSquaresEnabled);
-    labelGridSquaresWorked = $("#labelGridSquaresWorked").is(':checked');
-    localStorage.setItem('labelGridSquaresWorked', labelGridSquaresWorked);
-    colourLines = $("#colourLines").is(':checked');
-    localStorage.setItem('colourLines', colourLines);
-    thickLines = $("#thickLines").is(':checked');
-    localStorage.setItem('thickLines', thickLines);
-    bandColours = $("#bandColours").is(':checked');
-    localStorage.setItem('bandColours', bandColours);
-    modeColours = $("#modeColours").is(':checked');
-    localStorage.setItem('modeColours', modeColours);
-    fixedMarkerColour = $("#fixedMarkerColour").val();
-    localStorage.setItem('fixedMarkerColour', JSON.stringify(fixedMarkerColour));
-    markerSize = $("#markerSize").val();
-    localStorage.setItem('markerSize', markerSize);
-    outlineMarkers = $("#outlineMarkers").is(':checked');
-    localStorage.setItem('outlineMarkers', outlineMarkers);
-    circleMarkers = $("#circleMarkers").is(':checked');
-    localStorage.setItem('circleMarkers', circleMarkers);
-    hybridMarkerSize = $("#hybridMarkerSize").is(':checked');
-    localStorage.setItem('hybridMarkerSize', hybridMarkerSize);
-    showMarkerShadows = $("#showMarkerShadows").is(':checked');
+}
+
+// Save UI settings to localstorage. Called on UI control changes.
+function saveLocalStorage() {
+    localStorage.setItem('markersEnabled', $("#markersEnabled").is(':checked'));
+    localStorage.setItem('userLookupEnabled', $("#userLookupEnabled").is(':checked'));
+    localStorage.setItem('refLookupEnabled', $("#refLookupEnabled").is(':checked'));
+    localStorage.setItem('myCall', JSON.stringify($("#myCall").val()));
+    localStorage.setItem('qthMarker', $("#qthMarker").is(':checked'));
+    localStorage.setItem('linesEnabled', $("#linesEnabled").is(':checked'));
+    localStorage.setItem('gridSquaresEnabled', $("#gridSquaresEnabled").is(':checked'));
+    localStorage.setItem('labelGridSquaresWorked', $("#labelGridSquaresWorked").is(':checked'));
+    localStorage.setItem('colourLines', $("#colourLines").is(':checked'));
+    localStorage.setItem('thickLines', $("#thickLines").is(':checked'));
+    localStorage.setItem('bandColours', $("#bandColours").is(':checked'));
+    localStorage.setItem('modeColours', $("#modeColours").is(':checked'));
+    localStorage.setItem('fixedMarkerColour', JSON.stringify($("#fixedMarkerColour").val()));
+    localStorage.setItem('markerSize', $("#markerSize").val());
+    localStorage.setItem('outlineMarkers', $("#outlineMarkers").is(':checked'));
+    localStorage.setItem('circleMarkers', $("#circleMarkers").is(':checked'));
+    localStorage.setItem('hybridMarkerSize', $("#hybridMarkerSize").is(':checked'));
+    const showMarkerShadows = $("#showMarkerShadows").is(':checked');
     showMarkerShadows ? $(".leaflet-shadow-pane").show() : $(".leaflet-shadow-pane").hide();
     localStorage.setItem('showMarkerShadows', showMarkerShadows);
-    outdoorSymbols = $("#outdoorSymbols").is(':checked');
-    localStorage.setItem('outdoorSymbols', outdoorSymbols);
-    showCallsignLabels = $("#showCallsignLabels").is(':checked');
-    localStorage.setItem('showCallsignLabels', showCallsignLabels);
-    showGridSquareLabels = $("#showGridSquareLabels").is(':checked');
-    localStorage.setItem('showGridSquareLabels', showGridSquareLabels);
-    showDistanceLabels = $("#showDistanceLabels").is(':checked');
-    localStorage.setItem('showDistanceLabels', showDistanceLabels);
-    distanceUnit = $("#distanceUnit").val();
-    localStorage.setItem('distanceUnit', JSON.stringify(distanceUnit));
-    showComments = $("#showComments").is(':checked');
-    localStorage.setItem('showComments', showComments);
-    inferOutdoorActivitiesFromComments = $("#inferOutdoorActivitiesFromComments").is(':checked');
-    localStorage.setItem('inferOutdoorActivitiesFromComments', inferOutdoorActivitiesFromComments);
-    if ($("#filter-year").val()) {
-        filterYear = $("#filter-year").val();
-    }
-    if ($("#filter-mode").val()) {
-        filterMode = $("#filter-mode").val();
-    }
-    if ($("#filter-band").val()) {
-        filterBand = $("#filter-band").val();
-    }
+    localStorage.setItem('outdoorSymbols', $("#outdoorSymbols").is(':checked'));
+    localStorage.setItem('showCallsignLabels', $("#showCallsignLabels").is(':checked'));
+    localStorage.setItem('showGridSquareLabels', $("#showGridSquareLabels").is(':checked'));
+    localStorage.setItem('showDistanceLabels', $("#showDistanceLabels").is(':checked'));
+    localStorage.setItem('distanceUnit', JSON.stringify($("#distanceUnit").val()));
+    localStorage.setItem('showComments', $("#showComments").is(':checked'));
+    localStorage.setItem('inferOutdoorActivitiesFromComments', $("#inferOutdoorActivitiesFromComments").is(':checked'));
     redrawAll();
 }
 
@@ -107,8 +76,7 @@ function updatePosFromGridInput() {
 
 // Handle switching between append and replace existing QSOs on load
 $(".loadBehaviourControl").change(function () {
-    appendOnLoad = $("#appendOnLoad").is(':checked');
-    localStorage.setItem('appendOnLoad', appendOnLoad);
+    localStorage.setItem('appendOnLoad', $("#appendOnLoad").is(':checked'));
 });
 
 // Handle clearing existing QSOs
@@ -119,7 +87,7 @@ $("#clearQSOs").click(function () {
 });
 
 // Listen for toggle changes where another should be toggled off when this is toggled on. These are called before the
-// generic binding to .control so that their action happens before updateModelFromUI gets called.
+// generic binding to .control so that their action happens before updateDisplay gets called.
 $("#bandColours").change(function () {
     if ($("#bandColours").is(':checked')) {
         $("#modeColours").prop('checked', false);
@@ -152,14 +120,16 @@ $('#theme').change(function() {
     setColorScheme();
 });
 
-// Listen for control changes. Most controls have this class, and therefore all perform the same updateModelFromUI()
-// function when they are changed. WARNING: The order in which jQuery bindings are done is important, some bindings
-// deliberately happen before this section, and others after.
+// Listen for control changes. Most controls have this class, and therefore all perform the same updateupdateDisplay()
+// and saveLocalStorage() functions when they are changed. WARNING: The order in which jQuery bindings are done is
+// important, some bindings deliberately happen before this section, and others after.
 $(".control").change(function() {
-    updateModelFromUI();
+    updateDisplay();
+    saveLocalStorage();
 });
 $(".textControl").on("input", function() {
-    updateModelFromUI();
+    updateDisplay();
+    saveLocalStorage();
 });
 
 // Populate the filter controls based on the years, bands and modes in the data we have loaded
@@ -185,12 +155,4 @@ function populateFilterControls(years, bands, modes) {
     Array.from(modes).filter(m => m.length > 0).sort().forEach(function (m) {
         $("#filter-mode").append($("<option></option>").attr("value", m).text(m));
     });
-}
-
-// Set my callsign and save to local storage.
-function setMyCall(call) {
-    myCall = call;
-    $("#myCall").val(myCall);
-    $("#stats-callsign").text(myCall);
-    localStorage.setItem('myCall', JSON.stringify(myCall));
 }

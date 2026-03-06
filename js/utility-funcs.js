@@ -12,6 +12,11 @@ function setQTH(newPos) {
 
 // Create and apply the own position marker
 function createOwnPosMarker(newPos) {
+    const qthMarker = $('#qthMarker').is(':checked');
+    const circleMarkers = $('#circleMarkers').is(':checked');
+    const markerSize = parseFloat($('#markerSize').val());
+    const outlineMarkers = $('#outlineMarkers').is(':checked');
+
     if (ownPosMarker != null) {
         ownPosLayer.removeLayer(ownPosMarker);
     }
@@ -70,6 +75,8 @@ function createOwnPosMarker(newPos) {
 // Returns a colour based on data item's QSOs' band or mode, if enabled, otherwise returns neutral blue.
 // If there would be multiple colours, purple is used.
 function qsoToColour(d) {
+    const bandColours = $('#bandColours').is(':checked');
+    const modeColours = $('#modeColours').is(':checked');
     let qsoColours = [];
     getQSOsMatchingFilter(d).forEach((qso) => {
         if (bandColours) {
@@ -83,7 +90,7 @@ function qsoToColour(d) {
             }
 
         } else {
-            qsoColours.push(fixedMarkerColour);
+            qsoColours.push($('#fixedMarkerColour').val());
         }
     });
     let allEqual = qsoColours.every( (val, i, arr) => val === arr[0] );
@@ -117,6 +124,8 @@ function getIcon(d, thisMarkerSize) {
 
 // Get Font Awesome icon name for the data item. If multiple icons would be used, a star is used instead.
 function getIconName(d) {
+    const outdoorSymbols = $('#outdoorSymbols').is(':checked');
+    const inferOutdoorActivitiesFromComments = $('#inferOutdoorActivitiesFromComments').is(':checked');
     let chosenIcon;
     if (outdoorSymbols) {
         // Outdoor activity symbols in use, so figure out what they are for each QSO.
@@ -240,7 +249,7 @@ function getDistanceString(d) {
     if (d.grid && qthPos) {
         let iconPos = getIconPosition(d);
         let distanceMetres = L.GeometryUtil.length([new L.LatLng(qthPos[0], qthPos[1]), new L.LatLng(iconPos[0], iconPos[1])]);
-        if (distanceUnit === "mi") {
+        if ($('#distanceUnit').val() === "mi") {
             ret = (distanceMetres / 1609.0).toFixed(0) + "&nbsp;mi";
         } else {
             ret = (distanceMetres / 1000.0).toFixed(0) + "&nbsp;km";
@@ -251,6 +260,9 @@ function getDistanceString(d) {
 
 // Return true if the QSO matches the current filter, false otherwise.
 function qsoMatchesFilter(qso) {
+    const filterYear = $('#filter-year').val() || '*';
+    const filterMode = $('#filter-mode').val() || '*';
+    const filterBand = $('#filter-band').val() || '*';
     return (filterYear === "*" ||  qso.year === parseInt(filterYear)) && (filterMode === "*" || qso.mode === filterMode)
         && (filterBand === "*" || qso.band === filterBand);
 }

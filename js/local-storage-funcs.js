@@ -15,91 +15,55 @@ function localStorageGetOrDefault(key, defaultVal) {
 
 // Load from local storage and set GUI up appropriately
 function loadLocalStorage() {
-    let tmpAppendOnLoad = localStorageGetOrDefault('appendOnLoad', appendOnLoad);
-    appendOnLoad = tmpAppendOnLoad;
-    $("#appendOnLoad").prop('checked', tmpAppendOnLoad);
-    let tmpBasemap = localStorageGetOrDefault('basemap', basemap);
-    let tmpUserLookupEnabled = localStorageGetOrDefault('userLookupEnabled', userLookupEnabled);
-    $("#userLookupEnabled").prop('checked', tmpUserLookupEnabled);
-    let tmpRefLookupEnabled = localStorageGetOrDefault('refLookupEnabled', refLookupEnabled);
-    $("#refLookupEnabled").prop('checked', tmpRefLookupEnabled);
-    $("#basemap").val(tmpBasemap);
-    let tmpBasemapOpacity = localStorageGetOrDefault('basemapOpacity', basemapOpacity);
-    $("#basemapOpacity").val(tmpBasemapOpacity);
-    let tmpMyCall = localStorageGetOrDefault('myCall', '');
-    $("#myCall").val(tmpMyCall);
-    let tmpQthGrid = localStorageGetOrDefault('qthGrid', '');
-    $("#qthGrid").val(tmpQthGrid);
-    let tmpShowMaidenheadGrid = localStorageGetOrDefault('showMaidenheadGrid', showMaidenheadGrid);
-    $("#showMaidenheadGrid").prop('checked', tmpShowMaidenheadGrid);
-    let tmpShowCQZones = localStorageGetOrDefault('showCQZones', showCQZones);
-    $("#showCQZones").prop('checked', tmpShowCQZones);
-    let tmpShowITUZones = localStorageGetOrDefault('showITUZones', showITUZones);
-    $("#showITUZones").prop('checked', tmpShowITUZones);
-    let tmpShowWABWAIGrid = localStorageGetOrDefault('showWABWAIGrid', showWABWAIGrid);
-    $("#showWABWAIGrid").prop('checked', tmpShowWABWAIGrid);
-    let tmpMarkersEnabled = localStorageGetOrDefault('markersEnabled', markersEnabled);
-    $("#markersEnabled").prop('checked', tmpMarkersEnabled);
-    let tmpQTHMarker = localStorageGetOrDefault('qthMarker', qthMarker);
-    $("#qthMarker").prop('checked', tmpQTHMarker);
-    let tmpLinesEnabled = localStorageGetOrDefault('linesEnabled', linesEnabled);
-    $("#linesEnabled").prop('checked', tmpLinesEnabled);
-    let tmpGridSquaresEnabled = localStorageGetOrDefault('gridSquaresEnabled', gridSquaresEnabled);
-    $("#gridSquaresEnabled").prop('checked', tmpGridSquaresEnabled);
-    let tmpLabelGridSquaresWorked = localStorageGetOrDefault('labelGridSquaresWorked', labelGridSquaresWorked);
-    $("#labelGridSquaresWorked").prop('checked', tmpLabelGridSquaresWorked);
-    let tmpColourLines = localStorageGetOrDefault('colourLines', colourLines);
-    $("#colourLines").prop('checked', tmpColourLines);
-    let tmpThickLines = localStorageGetOrDefault('thickLines', thickLines);
-    $("#thickLines").prop('checked', tmpThickLines);
-    let tmpHeatmapEnabled = localStorageGetOrDefault('heatmapEnabled', heatmapEnabled);
-    $("#heatmapEnabled").prop('checked', tmpHeatmapEnabled);
-    let tmpPerBandHeatmapEnabled = localStorageGetOrDefault('perBandHeatmapEnabled', perBandHeatmapEnabled);
-    $("#perBandHeatmapEnabled").prop('checked', tmpPerBandHeatmapEnabled);
-    let tmpBandColours = localStorageGetOrDefault('bandColours', bandColours);
+    $("#appendOnLoad").prop('checked', localStorageGetOrDefault('appendOnLoad', false));
+    $("#userLookupEnabled").prop('checked', localStorageGetOrDefault('userLookupEnabled', true));
+    $("#refLookupEnabled").prop('checked', localStorageGetOrDefault('refLookupEnabled', true));
+    $("#basemap").val(localStorageGetOrDefault('basemap', 'Esri.NatGeoWorldMap'));
+    $("#basemapOpacity").val(localStorageGetOrDefault('basemapOpacity', 0.5));
+    $("#myCall").val(localStorageGetOrDefault('myCall', ''));
+    $("#qthGrid").val(localStorageGetOrDefault('qthGrid', ''));
+    $("#showMaidenheadGrid").prop('checked', localStorageGetOrDefault('showMaidenheadGrid', false));
+    $("#showCQZones").prop('checked', localStorageGetOrDefault('showCQZones', false));
+    $("#showITUZones").prop('checked', localStorageGetOrDefault('showITUZones', false));
+    $("#showWABWAIGrid").prop('checked', localStorageGetOrDefault('showWABWAIGrid', false));
+    $("#markersEnabled").prop('checked', localStorageGetOrDefault('markersEnabled', true));
+    $("#qthMarker").prop('checked', localStorageGetOrDefault('qthMarker', true));
+    $("#linesEnabled").prop('checked', localStorageGetOrDefault('linesEnabled', true));
+    $("#gridSquaresEnabled").prop('checked', localStorageGetOrDefault('gridSquaresEnabled', false));
+    $("#labelGridSquaresWorked").prop('checked', localStorageGetOrDefault('labelGridSquaresWorked', false));
+    $("#colourLines").prop('checked', localStorageGetOrDefault('colourLines', true));
+    $("#thickLines").prop('checked', localStorageGetOrDefault('thickLines', true));
+    $("#heatmapEnabled").prop('checked', localStorageGetOrDefault('heatmapEnabled', false));
+    $("#perBandHeatmapEnabled").prop('checked', localStorageGetOrDefault('perBandHeatmapEnabled', false));
+    const tmpBandColours = localStorageGetOrDefault('bandColours', true);
+    const tmpModeColours = localStorageGetOrDefault('modeColours', false);
     $("#bandColours").prop('checked', tmpBandColours);
-    let tmpModeColours = localStorageGetOrDefault('modeColours', modeColours);
     $("#modeColours").prop('checked', tmpModeColours);
     $("#fixedColour").prop('checked', !tmpBandColours && !tmpModeColours);
-    let tmpFixedMarkerColour = localStorageGetOrDefault('fixedMarkerColour', fixedMarkerColour);
-    $("#fixedMarkerColour").val(tmpFixedMarkerColour);
-    let tmpMarkerSize = localStorageGetOrDefault('markerSize', markerSize);
-    $("#markerSize").val(tmpMarkerSize);
-    let tmpCircleMarkers = localStorageGetOrDefault('circleMarkers', circleMarkers);
-    $("#circleMarkers").prop('checked', tmpCircleMarkers);
-    let tmpOutlineMarkers = localStorageGetOrDefault('outlineMarkers', outlineMarkers);
-    $("#outlineMarkers").prop('checked', tmpOutlineMarkers);
-    let tmpOutdoorSymbols = localStorageGetOrDefault('outdoorSymbols', outdoorSymbols);
-    $("#outdoorSymbols").prop('checked', tmpOutdoorSymbols);
-    let tmpHybridMarkerSize = localStorageGetOrDefault('hybridMarkerSize', hybridMarkerSize);
-    $("#hybridMarkerSize").prop('checked', tmpHybridMarkerSize);
-    let tmpShowMarkerShadows = localStorageGetOrDefault('showMarkerShadows', showMarkerShadows);
-    $("#showMarkerShadows").prop('checked', tmpShowMarkerShadows);
-    let tmpShowCallsignLabels = localStorageGetOrDefault('showCallsignLabels', showCallsignLabels);
-    $("#showCallsignLabels").prop('checked', tmpShowCallsignLabels);
-    let tmpShowGridSquareLabels = localStorageGetOrDefault('showGridSquareLabels', showGridSquareLabels);
-    $("#showGridSquareLabels").prop('checked', tmpShowGridSquareLabels);
-    let tmpShowDistanceLabels = localStorageGetOrDefault('showDistanceLabels', showDistanceLabels);
-    $("#showDistanceLabels").prop('checked', tmpShowDistanceLabels);
-    let tmpDistanceUnit = localStorageGetOrDefault('distanceUnit', distanceUnit);
-    $("#distanceUnit").val(tmpDistanceUnit);
-    let tmpShowComments = localStorageGetOrDefault('showComments', showComments);
-    $("#showComments").prop('checked', tmpShowComments);
-    let tmpInferOutdoorActivitiesFromComments = localStorageGetOrDefault('inferOutdoorActivitiesFromComments', inferOutdoorActivitiesFromComments);
-    $("#inferOutdoorActivitiesFromComments").prop('checked', tmpInferOutdoorActivitiesFromComments);
-    let tmpFineZoomControl = localStorageGetOrDefault('fineZoomControl', fineZoomControl);
-    $("#fineZoomControl").prop('checked', tmpFineZoomControl);
+    $("#fixedMarkerColour").val(localStorageGetOrDefault('fixedMarkerColour', '#1e90ff'));
+    $("#markerSize").val(localStorageGetOrDefault('markerSize', 1));
+    $("#circleMarkers").prop('checked', localStorageGetOrDefault('circleMarkers', false));
+    $("#outlineMarkers").prop('checked', localStorageGetOrDefault('outlineMarkers', true));
+    $("#outdoorSymbols").prop('checked', localStorageGetOrDefault('outdoorSymbols', false));
+    $("#hybridMarkerSize").prop('checked', localStorageGetOrDefault('hybridMarkerSize', false));
+    $("#showMarkerShadows").prop('checked', localStorageGetOrDefault('showMarkerShadows', true));
+    $("#showCallsignLabels").prop('checked', localStorageGetOrDefault('showCallsignLabels', false));
+    $("#showGridSquareLabels").prop('checked', localStorageGetOrDefault('showGridSquareLabels', false));
+    $("#showDistanceLabels").prop('checked', localStorageGetOrDefault('showDistanceLabels', false));
+    $("#distanceUnit").val(localStorageGetOrDefault('distanceUnit', 'km'));
+    $("#showComments").prop('checked', localStorageGetOrDefault('showComments', true));
+    $("#inferOutdoorActivitiesFromComments").prop('checked', localStorageGetOrDefault('inferOutdoorActivitiesFromComments', false));
+    $("#fineZoomControl").prop('checked', localStorageGetOrDefault('fineZoomControl', false));
 
     // Band colour schemes
     getAvailableBandColorSchemes().forEach(sc => $("#bandColorScheme").append($('<option>', {
         value: sc,
         text: sc
     })));
-    let tmpBandColorScheme = localStorageGetOrDefault('bandColorScheme', bandColorScheme);
+    const tmpBandColorScheme = localStorageGetOrDefault('bandColorScheme', bandColorScheme);
     $("#bandColorScheme").val(tmpBandColorScheme);
     setBandColorSchemeQSOMap(tmpBandColorScheme);
-    let tmpTheme = localStorageGetOrDefault('theme', 'auto');
-    $("#theme").val(tmpTheme);
+    $("#theme").val(localStorageGetOrDefault('theme', 'auto'));
 
     // Load lookup data. This had to be converted to an object for storage, now we need it back as a map.
     const lookupDataStr = localStorage.getItem('lookupData');
@@ -107,8 +71,7 @@ function loadLocalStorage() {
         lookupData = new Map(Object.entries(JSON.parse(lookupDataStr)));
     }
 
-    // Re-apply theme now that the theme select has its stored value
+    // Re-apply theme and display settings now that the various controls have been set to their stored values
     setColorScheme();
-
-    updateModelFromUI();
+    updateDisplay();
 }
