@@ -55,12 +55,12 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772781719"></script>
-    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772781719"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772781719"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772781719"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772781719"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772781719"></script>
+    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772783719"></script>
+    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772783719"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772783719"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772783719"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772783719"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772783719"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -93,7 +93,7 @@
                 </h2>
                 <div id="collapse-data" class="accordion-collapse collapse show" data-bs-parent="#accordion">
                     <div class="accordion-body py-0 ps-0">
-                        <div class="pt-3 px-3">
+                        <div class="pt-3 ps-3">
                             <p>To begin, click the <b>Browse</b> button and select a log file. ADIF, Cabrillo and SOTA CSV files are supported.</p>
                             <div><label for="fileSelect" class="configLabel form-label"><input type="file" id="fileSelect" class="form-control" accept=".adi,.adif,.csv,.cbr,.log,.txt"/></label>
                             </div>
@@ -248,6 +248,13 @@
                                                 <input type="checkbox" id="qthMarker" class="control form-check-input" name="qthMarker" checked="checked">&nbsp;Draw QTH marker</label>
                                         </div>
                                     </div>
+                                </div>
+                            </li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-size-collapse">
+                                    Marker Size
+                                </button>
+                                <div class="collapse indented-section" id="display-marker-size-collapse">
                                     <div class="row mb-2 mt-2">
                                         <div class="col-5">
                                             <label for="markerSize" class="form-label">Marker Size</label>
@@ -257,8 +264,27 @@
                                         </div>
                                     </div>
                                     <div class="row mb-2">
+                                        <div class="col-12">
+                                            <label for="circleMarkers" class="configLabel form-check-label"> <input type="checkbox" id="circleMarkers" class="control form-check-input"
+                                                                                                                    name="circleMarkers">&nbsp;Simple dot markers</label>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-12">
+                                            <label for="hybridMarkerSize" class="configLabel form-check-label">
+                                                <input type="checkbox" id="hybridMarkerSize" class="control form-check-input" name="hybridMarkerSize">&nbsp;Smaller hunter markers</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-colours-collapse">
+                                    Marker Colours
+                                </button>
+                                <div class="collapse indented-section" id="display-marker-colours-collapse">
+                                    <div class="row mb-2">
                                         <div class="col-10">
-                                            <label for="fixedColour" class="configLabel form-check-label"> <input type="radio" id="fixedColour" class="control form-check-input" name="markerColours">&nbsp;Fixed
+                                            <label for="fixedMarkerColour" class="configLabel form-check-label"> <input type="radio" id="fixedColour" class="control form-check-input" name="markerColours">&nbsp;Fixed
                                                 colour:</label>
                                         </div>
                                         <div class="col-2">
@@ -271,7 +297,7 @@
                                                 <input type="radio" id="bandColours" class="control form-check-input" name="markerColours" checked="checked">&nbsp;Colour according to band</label>
                                         </div>
                                         <div class="col-2">
-                                            <a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a>
+                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#band-colors-key-dialog">Key</a>
                                         </div>
                                     </div>
                                     <div class="row mb-2">
@@ -280,7 +306,7 @@
                                                 <input type="radio" id="modeColours" class="control form-check-input" name="markerColours">&nbsp;Colour according to mode</label>
                                         </div>
                                         <div class="col-2">
-                                            <a href="#" onClick="openDialog('mode-colors-key-dialog');">Key</a>
+                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#mode-colors-key-dialog">Key</a>
                                         </div>
                                     </div>
                                     <div class="row mb-2">
@@ -293,27 +319,6 @@
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-12">
-                                            <label for="circleMarkers" class="configLabel form-check-label"> <input type="checkbox" id="circleMarkers" class="control form-check-input"
-                                                                                                                    name="circleMarkers">&nbsp;Simple dot markers</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-10">
-                                            <label for="outdoorSymbols" class="configLabel form-check-label"> <input type="checkbox" id="outdoorSymbols" class="control form-check-input"
-                                                                                                                     name="outdoorSymbols">&nbsp;xOTA activity symbols</label>
-                                        </div>
-                                        <div class="col-2">
-                                            <a href="#" onClick="openDialog('xota-icons-key-dialog');">Key</a>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
-                                            <label for="hybridMarkerSize" class="configLabel form-check-label">
-                                                <input type="checkbox" id="hybridMarkerSize" class="control form-check-input" name="hybridMarkerSize">&nbsp;Smaller hunter markers</label>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-12">
                                             <label for="outlineMarkers" class="configLabel form-check-label">
                                                 <input type="checkbox" id="outlineMarkers" class="control form-check-input" name="outlineMarkers" checked="checked">&nbsp;Draw outlines</label>
                                         </div>
@@ -322,6 +327,22 @@
                                         <div class="col-12">
                                             <label for="showMarkerShadows" class="configLabel form-check-label">
                                                 <input type="checkbox" id="showMarkerShadows" class="control form-check-input" name="showMarkerShadows" checked="checked">&nbsp;Draw shadows</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#display-marker-icons-collapse">
+                                    Marker Icons
+                                </button>
+                                <div class="collapse indented-section" id="display-marker-icons-collapse">
+                                    <div class="row mb-2">
+                                        <div class="col-10">
+                                            <label for="outdoorSymbols" class="configLabel form-check-label"> <input type="checkbox" id="outdoorSymbols" class="control form-check-input"
+                                                                                                                     name="outdoorSymbols">&nbsp;xOTA activity symbols</label>
+                                        </div>
+                                        <div class="col-2">
+                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#xota-icons-key-dialog">Key</a>
                                         </div>
                                     </div>
                                 </div>
@@ -399,7 +420,7 @@
                                                 <input type="checkbox" id="perBandHeatmapEnabled" class="control form-check-input" name="perBandHeatmapEnabled">&nbsp;Draw per-band heatmap</label>
                                         </div>
                                         <div class="col-2">
-                                            <a href="#" onClick="openDialog('band-colors-key-dialog');">Key</a>
+                                            <a href="#" class="dialog-open-link" data-bs-toggle="modal" data-bs-target="#band-colors-key-dialog">Key</a>
                                         </div>
                                     </div>
                                 </div>
@@ -538,27 +559,29 @@
                             </tr>
                             <tr>
                                 <th>Grid squares</th>
-                                <td><span id="stats-gridsquare-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-gridsquare-detail-dialog');">Details</a></span>
+                                <td><span id="stats-gridsquare-count">0</span><span class="dialog-open-link"><a href="#" data-bs-toggle="modal"
+                                                                                                                data-bs-target="#stats-gridsquare-detail-dialog">Details</a></span>
                                 </td>
                             </tr>
                             <tr>
                                 <th>Grid fields</th>
-                                <td><span id="stats-gridfield-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-gridfield-detail-dialog');">Details</a></span>
+                                <td><span id="stats-gridfield-count">0</span><span class="dialog-open-link"><a href="#" data-bs-toggle="modal"
+                                                                                                               data-bs-target="#stats-gridfield-detail-dialog">Details</a></span>
                                 </td>
                             </tr>
                             <tr>
                                 <th>DXCCs</th>
-                                <td><span id="stats-dxcc-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-dxcc-detail-dialog');">Details</a></span>
+                                <td><span id="stats-dxcc-count">0</span><span class="dialog-open-link"><a href="#" data-bs-toggle="modal" data-bs-target="#stats-dxcc-detail-dialog">Details</a></span>
                                 </td>
                             </tr>
                             <tr>
                                 <th>CQ zones</th>
-                                <td><span id="stats-cqz-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-cqz-detail-dialog');">Details</a></span>
+                                <td><span id="stats-cqz-count">0</span><span class="dialog-open-link"><a href="#" data-bs-toggle="modal" data-bs-target="#stats-cqz-detail-dialog">Details</a></span>
                                 </td>
                             </tr>
                             <tr>
                                 <th>ITU zones</th>
-                                <td><span id="stats-ituz-count">0</span><span class="dialog-open-link"><a href="#" onClick="openDialog('stats-ituz-detail-dialog');">Details</a></span>
+                                <td><span id="stats-ituz-count">0</span><span class="dialog-open-link"><a href="#" data-bs-toggle="modal" data-bs-target="#stats-ituz-detail-dialog">Details</a></span>
                                 </td>
                             </tr>
                         </table>
@@ -596,127 +619,197 @@
 </div>
 
 
-<div id="stats-gridsquare-detail-dialog" class="dialog">
-    <p><b>Worked grid squares</b><br/><span id="stats-gridsquare-list"></span></p>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-gridsquare-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="stats-gridsquare-detail-dialog" tabindex="-1" aria-labelledby="stats-gridsquare-detail-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stats-gridsquare-detail-dialog-label">Worked grid squares</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><span id="stats-gridsquare-list"></span></p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="stats-gridfield-detail-dialog" class="dialog">
-    <p><b>Worked grid fields</b><br/><span id="stats-gridfield-list"></span></p>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-gridfield-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="stats-gridfield-detail-dialog" tabindex="-1" aria-labelledby="stats-gridfield-detail-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stats-gridfield-detail-dialog-label">Worked grid fields</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><span id="stats-gridfield-list"></span></p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="stats-dxcc-detail-dialog" class="dialog">
-    <p><b>Worked DXCCs</b></p>
-    <table id="stats-dxcc-table" class="statsTable"></table>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-dxcc-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="stats-dxcc-detail-dialog" tabindex="-1" aria-labelledby="stats-dxcc-detail-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stats-dxcc-detail-dialog-label">Worked DXCCs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table id="stats-dxcc-table" class="statsTable"></table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="stats-cqz-detail-dialog" class="dialog">
-    <p><b>Worked CQ zones</b><br/><span id="stats-cqz-list"></span></p>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-cqz-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="stats-cqz-detail-dialog" tabindex="-1" aria-labelledby="stats-cqz-detail-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stats-cqz-detail-dialog-label">Worked CQ zones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><span id="stats-cqz-list"></span></p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="stats-ituz-detail-dialog" class="dialog">
-    <p><b>Worked ITU zones</b><br/><span id="stats-ituz-list"></span></p>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('stats-ituz-detail-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="stats-ituz-detail-dialog" tabindex="-1" aria-labelledby="stats-ituz-detail-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stats-ituz-detail-dialog-label">Worked ITU zones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><span id="stats-ituz-list"></span></p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="band-colors-key-dialog" class="dialog">
-    <p><b>Band Colours</b><br/></p>
-    <table style="border-spacing: 1em;">
-        <tr>
-            <td style="vertical-align: top;">
-                <span class="colorSample bandColorSample" id="bandColorSample-2200m"></span>2200m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-600m"></span>600m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-160m"></span>160m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-80m"></span>80m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-60m"></span>60m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-40m"></span>40m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-30m"></span>30m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-20m"></span>20m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-17m"></span>17m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-15m"></span>15m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-12m"></span>12m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-11m"></span>11m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-10m"></span>10m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-6m"></span>6m<br/>
-            </td>
-            <td style="vertical-align: top;">
-                <span class="colorSample bandColorSample" id="bandColorSample-5m"></span>5m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-4m"></span>4m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-2m"></span>2m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-1_25m"></span>1.25m<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-70cm"></span>70cm<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-23cm"></span>23cm<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-13cm"></span>13cm<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-5_8GHz"></span>5.8GHz<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-10GHz"></span>10GHz<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-24GHz"></span>24GHz<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-47GHz"></span>47GHz<br/>
-                <span class="colorSample bandColorSample" id="bandColorSample-76GHz"></span>76GHz<br/>
-                <span class="colorSample" style="background-color: white;"></span>Multiple bands<br/>
-                <span class="colorSample" style="background-color: black;"></span>Unknown band
-            </td>
-        </tr>
-    </table>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('band-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="band-colors-key-dialog" tabindex="-1" aria-labelledby="band-colors-key-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="band-colors-key-dialog-label">Band Colours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table style="border-spacing: 1em;">
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <span class="colorSample bandColorSample" id="bandColorSample-2200m"></span>2200m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-600m"></span>600m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-160m"></span>160m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-80m"></span>80m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-60m"></span>60m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-40m"></span>40m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-30m"></span>30m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-20m"></span>20m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-17m"></span>17m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-15m"></span>15m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-12m"></span>12m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-11m"></span>11m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-10m"></span>10m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-6m"></span>6m<br/>
+                        </td>
+                        <td style="vertical-align: top;">
+                            <span class="colorSample bandColorSample" id="bandColorSample-5m"></span>5m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-4m"></span>4m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-2m"></span>2m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-1_25m"></span>1.25m<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-70cm"></span>70cm<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-23cm"></span>23cm<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-13cm"></span>13cm<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-5_8GHz"></span>5.8GHz<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-10GHz"></span>10GHz<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-24GHz"></span>24GHz<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-47GHz"></span>47GHz<br/>
+                            <span class="colorSample bandColorSample" id="bandColorSample-76GHz"></span>76GHz<br/>
+                            <span class="colorSample" style="background-color: white;"></span>Multiple bands<br/>
+                            <span class="colorSample" style="background-color: black;"></span>Unknown band
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="mode-colors-key-dialog" class="dialog">
-    <p><b>Mode Colours</b><br/>
-        <span class="colorSample" style="background-color: red;"></span>CW<br/>
-        <span class="colorSample" style="background-color: green;"></span>Phone<br/>
-        <span class="colorSample" style="background-color: blue;"></span>Data<br/>
-        <span class="colorSample" style="background-color: white;"></span>Multiple modes<br/>
-        <span class="colorSample" style="background-color: black;"></span>Unknown mode
-    </p>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('mode-colors-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="mode-colors-key-dialog" tabindex="-1" aria-labelledby="mode-colors-key-dialog-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mode-colors-key-dialog-label">Mode Colours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <span class="colorSample" style="background-color: red;"></span>CW<br/>
+                    <span class="colorSample" style="background-color: green;"></span>Phone<br/>
+                    <span class="colorSample" style="background-color: blue;"></span>Data<br/>
+                    <span class="colorSample" style="background-color: white;"></span>Multiple modes<br/>
+                    <span class="colorSample" style="background-color: black;"></span>Unknown mode
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="xota-icons-key-dialog" class="dialog">
-    <p><b>xOTA/SIG Icons</b><br/>
-        <i class='fa-solid fa-tree markerPopupIcon'></i>&nbsp;Parks on the Air (POTA)<br/>
-        <i class='fa-solid fa-mountain-sun markerPopupIcon'></i>&nbsp;Summits on the Air (SOTA)<br/>
-        <i class='fa-solid fa-seedling markerPopupIcon'></i>&nbsp;Worldwide Flora & Fauna (WWFF)<br/>
-        <i class='fa-solid fa-person-hiking markerPopupIcon'></i>&nbsp;Global Mountain Activity (GMA)<br/>
-        <i class='fa-solid fa-radiation markerPopupIcon'></i>&nbsp;Bunkers on the Air (WWBOTA)<br/>
-        <i class='fa-solid fa-mound markerPopupIcon'></i>&nbsp;Humps Excluding Marilyns Award (HEMA)<br/>
-        <i class='fa-solid fa-book-atlas markerPopupIcon'></i>&nbsp;Islands on the Air (IOTA)<br/>
-        <i class='fa-solid fa-fan markerPopupIcon'></i>&nbsp;Mills on the Air (MOTA)<br/>
-        <i class='fa-solid fa-house-flood-water markerPopupIcon'></i>&nbsp;Amateur Radio Lighthouse Society (ARLHS)<br/>
-        <i class='fa-solid fa-house-flood-water markerPopupIcon'></i>&nbsp;International Lighthouse Lightship Weekend (ILLW)<br/>
-        <i class='fa-solid fa-wheat-awn markerPopupIcon'></i>&nbsp;Silos on the Air (SiOTA)<br/>
-        <i class='fa-solid fa-chess-rook markerPopupIcon'></i>&nbsp;World Castles Award (WCA)<br/>
-        <i class='fa-solid fa-kiwi-bird markerPopupIcon'></i>&nbsp;New Zealand on the Air (ZLOTA)<br/>
-        <i class='fa-solid fa-w markerPopupIcon'></i>&nbsp;Wainwrights on the Air (WOTA)<br/>
-        <i class='fa-solid fa-umbrella-beach markerPopupIcon'></i>&nbsp;Beaches on the Air (BOTA)<br/>
-        <i class='fa-solid fa-earth-oceania markerPopupIcon'></i>&nbsp;Keith Roget Memorial National Parks Award (KRMNPA)<br/>
-        <i class='fa-solid fa-water markerPopupIcon'></i>&nbsp;Lagos y Lagunas on the Air (LLOTA)<br/>
-        <i class='fa-solid fa-tower-observation markerPopupIcon'></i>&nbsp;Towers on the Air (WWTOTA)<br/>
-        <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Britain (WAB)<br/>
-        <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Ireland (WAI)<br/>
-        <i class='fa-solid fa-toilet markerPopupIcon'></i>&nbsp;Toilets on the Air (TOTA)<br/>
-        <i class='fa-solid fa-star markerPopupIcon'></i>&nbsp;(Multiple xOTA programmes)<br/>
-        <i class='fa-solid fa-question markerPopupIcon'></i>&nbsp;(Unknown xOTA programme)<br/>
-        <i class='fa-solid fa-crosshairs markerPopupIcon'></i>&nbsp;(Hunter)
-    </p>
-    <p style="text-align: right"><a class="closeButton" href="#" onClick="closeDialog('xota-icons-key-dialog');"><i class="fa-solid fa-xmark"></i> Close</a></p>
+<div class="modal fade" id="xota-icons-key-dialog" tabindex="-1" aria-labelledby="xota-icons-key-dialog-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xota-icons-key-dialog-label">xOTA/SIG Icons</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <i class='fa-solid fa-tree markerPopupIcon'></i>&nbsp;Parks on the Air (POTA)<br/>
+                    <i class='fa-solid fa-mountain-sun markerPopupIcon'></i>&nbsp;Summits on the Air (SOTA)<br/>
+                    <i class='fa-solid fa-seedling markerPopupIcon'></i>&nbsp;Worldwide Flora & Fauna (WWFF)<br/>
+                    <i class='fa-solid fa-person-hiking markerPopupIcon'></i>&nbsp;Global Mountain Activity (GMA)<br/>
+                    <i class='fa-solid fa-radiation markerPopupIcon'></i>&nbsp;Bunkers on the Air (WWBOTA)<br/>
+                    <i class='fa-solid fa-mound markerPopupIcon'></i>&nbsp;Humps Excluding Marilyns Award (HEMA)<br/>
+                    <i class='fa-solid fa-book-atlas markerPopupIcon'></i>&nbsp;Islands on the Air (IOTA)<br/>
+                    <i class='fa-solid fa-fan markerPopupIcon'></i>&nbsp;Mills on the Air (MOTA)<br/>
+                    <i class='fa-solid fa-house-flood-water markerPopupIcon'></i>&nbsp;Amateur Radio Lighthouse Society (ARLHS)<br/>
+                    <i class='fa-solid fa-house-flood-water markerPopupIcon'></i>&nbsp;International Lighthouse Lightship Weekend (ILLW)<br/>
+                    <i class='fa-solid fa-wheat-awn markerPopupIcon'></i>&nbsp;Silos on the Air (SiOTA)<br/>
+                    <i class='fa-solid fa-chess-rook markerPopupIcon'></i>&nbsp;World Castles Award (WCA)<br/>
+                    <i class='fa-solid fa-kiwi-bird markerPopupIcon'></i>&nbsp;New Zealand on the Air (ZLOTA)<br/>
+                    <i class='fa-solid fa-w markerPopupIcon'></i>&nbsp;Wainwrights on the Air (WOTA)<br/>
+                    <i class='fa-solid fa-umbrella-beach markerPopupIcon'></i>&nbsp;Beaches on the Air (BOTA)<br/>
+                    <i class='fa-solid fa-earth-oceania markerPopupIcon'></i>&nbsp;Keith Roget Memorial National Parks Award (KRMNPA)<br/>
+                    <i class='fa-solid fa-water markerPopupIcon'></i>&nbsp;Lagos y Lagunas on the Air (LLOTA)<br/>
+                    <i class='fa-solid fa-tower-observation markerPopupIcon'></i>&nbsp;Towers on the Air (WWTOTA)<br/>
+                    <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Britain (WAB)<br/>
+                    <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Ireland (WAI)<br/>
+                    <i class='fa-solid fa-toilet markerPopupIcon'></i>&nbsp;Toilets on the Air (TOTA)<br/>
+                    <i class='fa-solid fa-star markerPopupIcon'></i>&nbsp;(Multiple xOTA programmes)<br/>
+                    <i class='fa-solid fa-question markerPopupIcon'></i>&nbsp;(Unknown xOTA programme)<br/>
+                    <i class='fa-solid fa-crosshairs markerPopupIcon'></i>&nbsp;(Hunter)
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1772781719"></script>
-<script src="js/globals.js?v=1772781719"></script>
-<script src="js/data-funcs.js?v=1772781719"></script>
-<script src="js/file-funcs.js?v=1772781719"></script>
-<script src="js/lookup-funcs.js?v=1772781719"></script>
-<script src="js/display-funcs.js?v=1772781719"></script>
-<script src="js/utility-funcs.js?v=1772781719"></script>
-<script src="js/local-storage-funcs.js?v=1772781719"></script>
-<script src="js/map-setup-funcs.js?v=1772781719"></script>
-<script src="js/ui-funcs.js?v=1772781719"></script>
-<script src="js/startup.js?v=1772781719"></script>
+<script src="data/dxcc.js?v=1772783719"></script>
+<script src="js/globals.js?v=1772783719"></script>
+<script src="js/data-funcs.js?v=1772783719"></script>
+<script src="js/file-funcs.js?v=1772783719"></script>
+<script src="js/lookup-funcs.js?v=1772783719"></script>
+<script src="js/display-funcs.js?v=1772783719"></script>
+<script src="js/utility-funcs.js?v=1772783719"></script>
+<script src="js/local-storage-funcs.js?v=1772783719"></script>
+<script src="js/map-setup-funcs.js?v=1772783719"></script>
+<script src="js/ui-funcs.js?v=1772783719"></script>
+<script src="js/startup.js?v=1772783719"></script>
 </body>
 </html>

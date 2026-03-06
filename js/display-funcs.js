@@ -118,7 +118,7 @@ function redraw(key) {
             // If we are using hybrid marker size and this is a non-xOTA marker, reduce its size
             let thisMarkerSize = markerSize;
             if (hybridMarkerSize && (getIconName(d) === "fa-crosshairs" || getIconName(d) === "fa-none")) {
-                thisMarkerSize = thisMarkerSize - 0.5;
+                thisMarkerSize = thisMarkerSize - 0.25;
                 if (thisMarkerSize < 0.125) {
                     thisMarkerSize = 0.125;
                 }
@@ -535,10 +535,15 @@ function setBasemapOpacity(opacity) {
 async function updateStatus() {
     if (loadedAtLeastOnce) {
         let qsosDone = qsoCount - queue.length;
-        let status = `<progress id="file" value="${qsosDone}" max="${qsoCount}"></progress>&nbsp;${qsosDone}/${qsoCount}`;
+        let label = qsosDone + " / " + qsoCount;
+        let extraClass = "";
         if (qsosDone === qsoCount && qsoCount !== 0) {
-            status = status + " <b>Done!</b>";
+            label = "Done";
+            extraClass = " bg-success";
         }
+        let status = `<div class="progress" role="progressbar" aria-label="File loading progress" aria-valuenow="${qsosDone*100/qsoCount}" aria-valuemin="0" aria-valuemax="100" style="height: 2em">
+            <div class="progress-bar ${extraClass}" style="width: ${qsosDone*100/qsoCount}%">${label}</div>
+        </div>`;
 
         $("#loadingStatus").html(status);
         $("#loadingStatus").show();

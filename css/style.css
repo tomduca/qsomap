@@ -74,9 +74,6 @@ input#fixedMarkerColour {
 }
 
 /* Style for small info indicators */
-div#loadingStatus {
-    margin-bottom: 2em;
-}
 div#qsoFilterMessage {
     margin-top: 0.1em;
     margin-bottom: 0;
@@ -135,10 +132,6 @@ span.popupBlock {
 a, .leaflet-container a {
     color: var(--bs-link-color);
     text-decoration: none;
-}
-
-a.closeButton {
-    font-size: 0.8em;
 }
 
 /* Marker outlines */
