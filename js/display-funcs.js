@@ -228,7 +228,6 @@ function enableMaidenheadGrid(show) {
             map.removeLayer(maidenheadGrid);
         }
     }
-    localStorage.setItem('showMaidenheadGrid', show);
 }
 
 // Shows/hides the CQ zone overlay
@@ -241,7 +240,6 @@ function enableCQZones(show) {
             map.removeLayer(cqZones);
         }
     }
-    localStorage.setItem('showCQZones', show);
 }
 
 // Shows/hides the ITU zone overlay
@@ -254,7 +252,6 @@ function enableITUZones(show) {
             map.removeLayer(ituZones);
         }
     }
-    localStorage.setItem('showITUZones', show);
 }
 
 // Shows/hides the WAB/WAI grid overlay
@@ -267,7 +264,6 @@ function enableWABWAIGrid(show) {
             map.removeLayer(wabwaiGrid);
         }
     }
-    localStorage.setItem('showWABWAIGrid', show);
 }
 
 // Shows/hides the Heatmap layer
@@ -284,7 +280,6 @@ function enableHeatmap(show) {
             map.removeLayer(heatmapLayer);
         }
     }
-    localStorage.setItem('heatmapEnabled', show);
 }
 
 // Shows/hides the Per-Band Heatmap layer
@@ -303,7 +298,6 @@ function enablePerBandHeatmap(show) {
             map.removeLayer(perBandHeatmapsGroup);
         }
     }
-    localStorage.setItem('perBandHeatmapEnabled', show);
 }
 
 // Enable/disable fine control of the map zoom level
@@ -317,7 +311,6 @@ function setFineZoomControl(enable) {
         map.options.zoomSnap = 1.0;
         map.options.wheelPxPerZoomLevel = 60;
     }
-    localStorage.setItem('fineZoomControl', enable);
 }
 
 // Get text for the normal click-to-appear popups. Takes a data item that may contain multiple QSOs.
@@ -526,7 +519,6 @@ function setBasemap(basemapname) {
             basemapLayer.bringToBack();
         }
     }
-    localStorage.setItem('basemap', JSON.stringify(basemapname));
 }
 
 // Set the basemap opacity
@@ -534,7 +526,6 @@ function setBasemapOpacity(opacity) {
     if (typeof basemapLayer !== 'undefined') {
         basemapLayer.setOpacity(opacity);
     }
-    localStorage.setItem('basemapOpacity', opacity);
 }
 
 
