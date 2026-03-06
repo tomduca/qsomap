@@ -29,6 +29,7 @@ div#map {
     overflow-y: scroll;
     bottom: initial;
     max-height: 100vh;
+    --bs-offcanvas-width: 350px;
 }
 
 img.icon {
@@ -45,6 +46,7 @@ button.accordion-button i.fa {
 
 div.indented-section {
     margin-left: 2em;
+    margin-top: 0.5em;
 }
 
 input#fileSelect {
@@ -53,12 +55,6 @@ input#fileSelect {
 
 div#loadingStatus {
     display: none;
-}
-
-/* Style for things in the controls panels that are indented from the left by the width of a checkbox, to make them line
-up with a checkbox's accompanying label. */
-.indentControl {
-    margin-left: 1.8em;
 }
 
 table.statsTable {

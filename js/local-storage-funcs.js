@@ -98,12 +98,17 @@ function loadLocalStorage() {
     let tmpBandColorScheme = localStorageGetOrDefault('bandColorScheme', bandColorScheme);
     $("#bandColorScheme").val(tmpBandColorScheme);
     setBandColorSchemeQSOMap(tmpBandColorScheme);
+    let tmpTheme = localStorageGetOrDefault('theme', 'auto');
+    $("#theme").val(tmpTheme);
 
     // Load lookup data. This had to be converted to an object for storage, now we need it back as a map.
     const lookupDataStr = localStorage.getItem('lookupData');
     if (lookupDataStr !== null) {
         lookupData = new Map(Object.entries(JSON.parse(lookupDataStr)));
     }
+
+    // Re-apply theme now that the theme select has its stored value
+    setColorScheme();
 
     updateModelFromUI();
 }

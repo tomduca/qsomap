@@ -667,3 +667,31 @@ function recalculateStats() {
     });
 
 }
+
+
+// Function to set the color scheme based on the theme select, falling back to browser preference
+function setColorScheme() {
+    const themeVal = $('#theme').val() || 'auto';
+    let dark;
+    if (themeVal === 'dark') {
+        dark = true;
+    } else if (themeVal === 'light') {
+        dark = false;
+    } else {
+        dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    $("html").attr("data-bs-theme", dark ? "dark" : "light");
+    const metaThemeColor = document.querySelector("meta[name=theme-color]");
+    metaThemeColor.setAttribute("content", dark ? "black" : "white");
+    const metaAppleStatusBarStyle = document.querySelector("meta[name=apple-mobile-web-app-status-bar-style]");
+    metaAppleStatusBarStyle.setAttribute("content", dark ? "black-translucent" : "white-translucent");
+}
+
+// Sets up a listener on the OS light-dark theme change. Only applies when theme is set to Automatic.
+function listenForOSThemeChange() {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (($('#theme').val() || 'auto') === 'auto') {
+            setColorScheme();
+        }
+    });
+}

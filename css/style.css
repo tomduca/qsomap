@@ -49,15 +49,6 @@ p.stats-qth {
     text-align: center;
 }
 
-/* Map */
-#map {
-    background-color: var(--bs-body-bg);
-}
-[data-bs-theme=dark] .leaflet-layer:not(.basemap-no-invert),
-[data-bs-theme=dark] .leaflet-control-attribution {
-    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-}
-
 /* Marker and popup styles */
 .leaflet-popup {
     font-size: 14px;

@@ -2,6 +2,10 @@
 //         STARTUP         //
 /////////////////////////////
 
+// Set colour scheme
+setColorScheme();
+listenForOSThemeChange();
+
 // Set up map
 setUpMap();
 
@@ -19,3 +23,9 @@ setTimeout(function () { processQSOFromQueue(); }, 1000);
 
 // Add the timed thread to update the status indicator.
 setInterval(function () { updateStatus(); }, 500);
+
+// If on mobile, configure the sidebar to have a "backdrop", i.e. that if the user touches off the sidebar on the map area,
+// it will collapse the sidebar. On desktop we skip this, because there is enough screen space to keep it open.
+const isMobile = window.matchMedia('(max-width: 800px)').matches;
+const sidebar = bootstrap.Offcanvas.getOrCreateInstance('#sidebar', { backdrop: isMobile });
+

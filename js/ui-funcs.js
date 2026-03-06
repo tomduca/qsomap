@@ -146,6 +146,12 @@ $("#bandColorScheme").change(function () {
     localStorage.setItem('bandColorScheme', JSON.stringify($(this).val()));
 });
 
+// Listen for UI colour scheme change
+$('#theme').change(function() {
+    localStorage.setItem('theme', JSON.stringify($(this).val()));
+    setColorScheme();
+});
+
 // Listen for control changes. Most controls have this class, and therefore all perform the same updateModelFromUI()
 // function when they are changed. WARNING: The order in which jQuery bindings are done is important, some bindings
 // deliberately happen before this section, and others after.
