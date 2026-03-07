@@ -1,9 +1,5 @@
 /* Mobile */
 @media only screen and (max-width: 800px) {
-    .menu-bar-button-label {
-        display: none;
-    }
-
     /*noinspection CssUnusedSymbol*/
     .leaflet-container .leaflet-control-attribution {
         display: none;

@@ -19,7 +19,9 @@ $("#fileSelect").change(function () {
 
 // Update the various displays based on new settings. Called on UI control changes.
 function updateDisplay() {
-    myCall = $("#myCall").val();
+    myCall = $("#myCall").val().toUpperCase();
+    $("#stats-call").text(myCall);
+    $("#stats-qth").text($("#qthGrid").val());
     setBasemap($("#basemap").val());
     setBasemapOpacity($("#basemapOpacity").val());
     updatePosFromGridInput();
