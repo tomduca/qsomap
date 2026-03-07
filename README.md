@@ -2,7 +2,7 @@
 
 A utility for amateur radio operators, to show the contents of their log visually on a map. This is what I use to generate maps for my blog posts about portable radio operations.
 
-This was originally intended to be a replacement of sorts for the GMA/Adventure Radio QSO Map tool, sadly now offline. I have since added more features; it also does all the processing client-side rather than using a database and processing on the back end.
+This was originally intended to be a replacement of sorts for the GMA/Adventure Radio QSO Map tool, during the period when it was offline. I have since added more features; it also does all the processing client-side rather than using a database and processing on the back end.
 
 ![Screenshot](/img/screenshot.png)
 
@@ -25,7 +25,7 @@ For upcoming features, see the [issues backlog](https://git.ianrenton.com/ian/qs
 
 ### Privacy
 
-All the code for the QSO map runs locally in your browser, so your log file "uploads" don't leave your computer. Where QSOs are found with missing data, the [Spothole](https://spothole.app) API is queried to fetch the data. No personally identifying information such as your own callsign is transmitted.
+All the code for the QSO map runs locally in your browser, so your log file "uploads" don't leave your computer. Where QSOs are found with missing data, the [Spothole](https://spothole.app) API can be queried to fetch the data. No personally identifying information such as your own callsign is transmitted.
 
 The website itself does not use cookies, is not monetised, does not contain advertising, and does not receive or store any user data. It is open source and the code is released into the Public Domain.
 
@@ -49,4 +49,4 @@ If this software doesn't quite scratch the itch for you, you could consider:
 * The online [ADIF Processor](https://www.adif.uk/) by M0NOM which can generate KML files for viewing in Google Earth etc. This provides its own location lookup, has some nice features such as estimating HF "hops", and using Google Earth likely provides better performance once you get into hundreds of QSOs.
 * For SOTA activations, the Sotadata website itself will produce some basic maps for you; there's also [sotamaps.org](https://www.sotamaps.org/) which gives a better view and also provides various statistics about your activations.
 * The [ON6ZQ Log2Map tool](https://on6zq.be/w/index.php/Log2Map/HomePage)
-* The original [GMA/Adventure Radio QSO Map](http://qsomap.adventureradio.de/) is planned to return at some point.
+* The original [GMA/Adventure Radio QSO Map](http://qsomap.adventureradio.de/) is now back online.
