@@ -2,6 +2,31 @@
 //    UTILITY FUNCTIONS    //
 /////////////////////////////
 
+// Converts an HTML hex colour to an array of [R, G, B] where each is 0-255.
+function hexToRGB(hex) {
+    return hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i
+             ,(m, r, g, b) => '#' + r + r + g + g + b + b)
+    .substring(1).match(/.{2}/g)
+    .map(x => parseInt(x, 16));
+}
+
+// Format a duration in a user-friendly way
+function formatDurationText(duration) {
+    let durationMins = duration.as('minutes');
+    let durationHours = Math.floor(durationMins / 60.0);
+    durationMins = durationMins - (durationHours * 60.0);
+    if (durationHours === 0) {
+        return durationMins + " minute" + (durationMins === 1 ? "" : "s");
+    } else if (durationHours === 1) {
+        return durationHours + " hour " + durationMins + " min" + (durationMins === 1 ? "" : "s");
+    } else if (durationHours < 72) {
+        return durationHours + " hours " + durationMins + " min" + (durationMins === 1 ? "" : "s");
+    } else {
+        let durationDays = Math.ceil(durationHours / 24.0);
+        return durationDays + " days ";
+    }
+}
+
 // Set the QTH location to the provided grid
 function setQTH(newPos) {
     // Store position
