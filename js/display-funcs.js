@@ -542,8 +542,9 @@ async function updateStatus() {
         let status = `<div class="progress" role="progressbar" aria-label="File loading progress" aria-valuenow="${qsosDone*100/qsoCount}" aria-valuemin="0" aria-valuemax="100" style="height: 2em">
             <div class="progress-bar ${extraClass}" style="width: ${qsosDone*100/qsoCount}%">${label}</div>
         </div>`;
-
-        $("#loadingStatus").html(status);
+        if (status !== $("#loadingStatus").html()) {
+            $("#loadingStatus").html(status);
+        }
         $("#loadingStatus").show();
     }
 }

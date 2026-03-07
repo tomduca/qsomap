@@ -280,9 +280,6 @@ function loadFile(text) {
 
                 // Populate the filter controls
                 populateFilterControls(years, bands, modes);
-                // Remove the warning about loading a file before applying filters
-                $("#qsoFilterMessage").hide();
-                $("#qsoFiltersTable").show();
             }
         } catch (e) {
             console.error(e);

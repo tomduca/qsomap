@@ -55,12 +55,12 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772836466"></script>
-    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772836466"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772836466"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772836466"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772836466"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772836466"></script>
+    <script src="https://misc.ianrenton.com/jsutils/utils.js?v=1772867654"></script>
+    <script src="https://misc.ianrenton.com/jsutils/storage.js?v=1772867654"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1772867654"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui.js?v=1772867654"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1772867654"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1772867654"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -71,16 +71,16 @@
     <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<div id="panel-buttons">
+<div id="menu-bar">
     <div class="btn-group shadow-sm">
         <button class="btn panel-btn" data-bs-target="#card-data">
-            <i class="fa fa-solid fa-database"></i><span class="btn-label"> Data</span></button>
+            <i class="fa fa-solid fa-database"></i><span class="menu-bar-button-label"> Data</span></button>
         <button class="btn panel-btn" data-bs-target="#card-display">
-            <i class="fa fa-solid fa-palette"></i><span class="btn-label"> Display</span></button>
+            <i class="fa fa-solid fa-palette"></i><span class="menu-bar-button-label"> Display</span></button>
         <button class="btn panel-btn" data-bs-target="#card-stats">
-            <i class="fa fa-solid fa-chart-pie"></i><span class="btn-label"> Stats</span></button>
+            <i class="fa fa-solid fa-chart-pie"></i><span class="menu-bar-button-label"> Stats</span></button>
         <button class="btn panel-btn" data-bs-target="#card-about">
-            <i class="fa fa-circle-info"></i><span class="btn-label"> About</span></button>
+            <i class="fa fa-circle-info"></i><span class="menu-bar-button-label"> About</span></button>
     </div>
 </div>
 
@@ -176,30 +176,25 @@
                         QSO Filters
                     </button>
                     <div class="collapse indented-section" id="data-qso-filters-collapse">
-                        <div id="qsoFilterMessage">
-                            <i class='fa-solid fa-triangle-exclamation'></i> Please load a file before applying filters.
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label for="filter-year" class="form-label mt-2">Year:</label></div>
+                            <div class="col-8">
+                                <select id="filter-year" class="control configSelect form-select"></select>
+                            </div>
                         </div>
-                        <div id="qsoFiltersTable">
-                            <div class="row mb-2">
-                                <div class="col-4">
-                                    <label for="filter-year" class="form-label mt-2">Year:</label></div>
-                                <div class="col-8">
-                                    <select id="filter-year" class="control configSelect form-select"></select>
-                                </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label for="filter-mode" class="form-label mt-2">Mode:</label></div>
+                            <div class="col-8">
+                                <select id="filter-mode" class="control configSelect form-select"></select>
                             </div>
-                            <div class="row mb-2">
-                                <div class="col-4">
-                                    <label for="filter-mode" class="form-label mt-2">Mode:</label></div>
-                                <div class="col-8">
-                                    <select id="filter-mode" class="control configSelect form-select"></select>
-                                </div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-4">
-                                    <label for="filter-band" class="form-label mt-2">Band:</label></div>
-                                <div class="col-8">
-                                    <select id="filter-band" class="control configSelect form-select"></select>
-                                </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label for="filter-band" class="form-label mt-2">Band:</label></div>
+                            <div class="col-8">
+                                <select id="filter-band" class="control configSelect form-select"></select>
                             </div>
                         </div>
                     </div>
@@ -828,16 +823,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1772836466"></script>
-<script src="js/globals.js?v=1772836466"></script>
-<script src="js/data-funcs.js?v=1772836466"></script>
-<script src="js/file-funcs.js?v=1772836466"></script>
-<script src="js/lookup-funcs.js?v=1772836466"></script>
-<script src="js/display-funcs.js?v=1772836466"></script>
-<script src="js/utility-funcs.js?v=1772836466"></script>
-<script src="js/local-storage-funcs.js?v=1772836466"></script>
-<script src="js/map-setup-funcs.js?v=1772836466"></script>
-<script src="js/ui-funcs.js?v=1772836466"></script>
-<script src="js/startup.js?v=1772836466"></script>
+<script src="data/dxcc.js?v=1772867654"></script>
+<script src="js/globals.js?v=1772867654"></script>
+<script src="js/data-funcs.js?v=1772867654"></script>
+<script src="js/file-funcs.js?v=1772867654"></script>
+<script src="js/lookup-funcs.js?v=1772867654"></script>
+<script src="js/display-funcs.js?v=1772867654"></script>
+<script src="js/utility-funcs.js?v=1772867654"></script>
+<script src="js/local-storage-funcs.js?v=1772867654"></script>
+<script src="js/map-setup-funcs.js?v=1772867654"></script>
+<script src="js/ui-funcs.js?v=1772867654"></script>
+<script src="js/startup.js?v=1772867654"></script>
 </body>
 </html>

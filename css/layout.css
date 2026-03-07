@@ -7,7 +7,7 @@ div#map {
 }
 
 /* Panel button strip */
-#panel-buttons {
+#menu-bar {
     position: fixed;
     top: 1rem;
     left: 1rem;
@@ -56,11 +56,6 @@ table.popupQSOTable {
     line-height: 1em;
     position: relative;
     left: -3px;
-}
-
-/* Hide certain elements until we have something to put in there */
-div#qsoFiltersTable {
-    display: none;
 }
 
 .colorSample {

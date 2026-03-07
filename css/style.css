@@ -1,4 +1,4 @@
-/* Panel buttons */
+/* Menu bar buttons */
 .panel-btn {
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
@@ -9,7 +9,7 @@
     color: var(--bs-body-color);
 }
 
-/* Toggleable areas within the panels */
+/* Toggleable areas within the main panels */
 .btn-toggle {
     padding: .25rem .5rem;
     font-weight: 600;
@@ -34,6 +34,10 @@
 }
 
 /* Marker and popup styles */
+div#map {
+    font-family: sans-serif;
+    font-size: 16px;
+}
 .leaflet-popup {
     font-size: 14px;
 }
@@ -55,13 +59,6 @@ input#fixedMarkerColour {
     width: 2em;
     position: relative;
     left: -0.25em;
-}
-
-/* Style for small info indicators */
-div#qsoFilterMessage {
-    margin-top: 0.1em;
-    margin-bottom: 0.3em;
-    font-size: 0.8em;
 }
 
 .leaflet-popup-content {
@@ -102,9 +99,7 @@ i.markerPopupIcon {
 }
 
 span.popupBlock {
-    display: inline-block;
     white-space: normal;
-    margin-right: 1em;
 }
 
 /* Text/link styles */

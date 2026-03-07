@@ -33,4 +33,7 @@ function loadLocalStorage() {
     // Re-apply theme and display settings now that the various controls have been set to their stored values
     setColorScheme();
     updateDisplay();
+
+    // Apply efaults for filter panel
+    populateFilterControls([], [], []);
 }
