@@ -3,7 +3,7 @@
 /////////////////////////////
 
 // Tracks the currently-loaded basemap provider string to avoid unnecessary tile reloads
-let loadedBasemap;
+let loadedBasemap = "Esri.NatGeoWorldMap";
 
 // Redraw all the objects that are rendered on the map. Clear old markers and draw new ones. This is
 // called when a bulk change needs to happen, for example the first load occurs, a clear occurs,
