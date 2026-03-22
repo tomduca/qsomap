@@ -3,13 +3,16 @@
 /////////////////////////////
 
 // Loads ADIF content
-function loadADIF(text) {
+async function loadADIF(text) {
     // Reset the cursor to the start of the file
     let cursor = 0;
     // Temporary values to help us track progress
     let finishedFile = false;
     let setStationCallsign = false;
     let setStationGrid = false;
+    let setStationSIG = false;
+    let setStationSIGRef = false;
+    let setStationSigRefName = false;
 
     // Find the end of the header and the start of actual records
     while (text.substring(cursor, cursor + 5).toUpperCase() !== "<EOH>") {
@@ -144,7 +147,7 @@ function loadADIF(text) {
             qsoCount++;
         }
 
-        // Go through the data and apply the station's callsign and gridsquare if we have the data.
+        // Go through the data and apply the station's callsign, gridsquare and SIG info if we have the data.
         if (!setStationGrid && qsoData.has("MY_GRIDSQUARE")) {
             $("#qthGrid").val(formatGrid(qsoData.get("MY_GRIDSQUARE").substring(0, 6)));
             updatePosFromGridInput();
@@ -161,15 +164,68 @@ function loadADIF(text) {
                 setStationCallsign = true;
             }
         }
+        if (!setStationSIG) {
+            if (qsoData.has("MY_SIG")) {
+                $("#mySIG").val(qsoData.get("MY_SIG"));
+                setStationSIG = true;
+                if (qsoData.has("MY_SIG_INFO")) {
+                    $("#mySIGRef").val(qsoData.get("MY_SIG_INFO"));
+                    setStationSIGRef = true;
+                }
+            } else if (qsoData.has("MY_POTA_REF")) {
+                $("#mySIG").val("POTA");
+                $("#mySIGRef").val(qsoData.get("MY_POTA_REF"));
+                setStationSIG = true;
+                setStationSIGRef = true;
+            } else if (qsoData.has("MY_SOTA_REF")) {
+                $("#mySIG").val("SOTA");
+                $("#mySIGRef").val(qsoData.get("MY_SOTA_REF"));
+                setStationSIG = true;
+                setStationSIGRef = true;
+            } else if (qsoData.has("MY_WWFF_REF")) {
+                $("#mySIG").val("WWFF");
+                $("#mySIGRef").val(qsoData.get("MY_WWFF_REF"));
+                setStationSIG = true;
+                setStationSIGRef = true;
+            }
+        }
+        // If the ADIF didn't include a gridsquare for the operation, but it did contain SIG and SIG Ref, we can look up
+        // the operation's gridsquare. We can also look up the name of the reference.
+        if ($('#refLookupEnabled').is(':checked') && setStationSIG && setStationSIGRef && !setStationGrid) {
+            const result = await performSIGRefLookupInner($("#mySIG").val(), $("#mySIGRef").val());
+            if (result != null) {
+                if (result.grid) {
+                    $("#qthGrid").val(formatGrid(result.grid.substring(0, 6)));
+                    updatePosFromGridInput();
+                }
+                if (result.name) {
+                    $("#mySIGRefName").text(result.name);
+                }
+            }
+            // We set "setStationGrid" to true even if the lookup failed, because we know it's not going to succeed if
+            // we retry, so there's no point spamming loads of lookups.
+            setStationGrid = true;
+        }
+        // We can also look up the name of the reference even if we didn't have to look up the gridsquare
+        if ($('#refLookupEnabled').is(':checked') && setStationSIG && setStationSIGRef && !setStationSigRefName) {
+            fetchSIGRefName();
+            // We set "setStationSigRefName" to true even if the lookup failed, because we know it's not going to
+            // succeed if we retry, so there's no point spamming loads of lookups.
+            setStationSigRefName = true;
+        }
     }
 }
 
 // Loads Cabrillo content
-function loadCabrillo(text) {
+async function loadCabrillo(text) {
     var lines = text.split(/\r?\n|\r|\n/g);
     lines.forEach(line => {
         if (line.startsWith("CALLSIGN:")) {
-            $("#myCall").val(line.substring(9));
+            $("#myCall").val(line.substring(9).trim());
+        }
+        if (line.startsWith("GRID-LOCATOR:")) {
+            $("#qthGrid").val(formatGrid(line.substring(13).trim()));
+            updatePosFromGridInput();
         }
 
         if (line.startsWith("QSO:")) {
@@ -196,15 +252,37 @@ function loadCabrillo(text) {
 }
 
 // Loads SOTA CSV content
-function loadSOTACSV(text) {
+async function loadSOTACSV(text) {
     let setStationCallsign = false;
+    let setSIGRef = false;
 
     // Parse CSV
     csvData = $.csv.toArrays(text);
-    csvData.forEach(row => {
+    for (const row of csvData) {
         if (!setStationCallsign) {
             $("#myCall").val(row[1]);
             setStationCallsign = true;
+        }
+
+        if (!setSIGRef) {
+            $("#mySIG").val("SOTA");
+            $("#mySIGRef").val(row[2]);
+            setSIGRef = true;
+
+            // SOTA CSVs don't contain the operator's gridsquare or the name of the summit, but now we know their summit
+            // reference we can look them up
+            if ($('#refLookupEnabled').is(':checked')) {
+                const result = await performSIGRefLookupInner("SOTA", row[2]);
+                if (result != null) {
+                    if (result.grid) {
+                        $("#qthGrid").val(formatGrid(result.grid.substring(0, 6)));
+                        updatePosFromGridInput();
+                    }
+                    if (result.name) {
+                        $("#mySIGRefName").text(result.name);
+                    }
+                }
+            }
         }
 
         let qso = {call: row[7], sigRefs: []};
@@ -241,7 +319,7 @@ function loadSOTACSV(text) {
         // There are no grids in SOTA data, so we will have to add the QSO to the lookup queue.
         queue.push(qso);
         qsoCount++;
-    });
+    }
 }
 
 // Given the text of a supported log file, load the data and populate the map.
@@ -255,16 +333,16 @@ function loadFile(text) {
     loadedAtLeastOnce = true;
 
     // Run the file loading task in a new thread.
-    setTimeout(function () {
+    setTimeout(async function () {
         try {
             // Load the content, delegating to a function based on file type.
             let good = true;
             if (text.substring(0, 4) === "ADIF" || text.includes("<EOH>") || text.includes("<eoh>")) {
-                loadADIF(text);
+                await loadADIF(text);
             } else if (text.substring(0, 13) === "START-OF-LOG:") {
-                loadCabrillo(text);
+                await loadCabrillo(text);
             } else if (text.substring(0, 3) === "V2,") {
-                loadSOTACSV(text);
+                await loadSOTACSV(text);
             } else {
                 alert("Could not parse this file as a supported format (ADIF, Cabrillo or SOTA CSV).");
                 good = false;
@@ -273,8 +351,8 @@ function loadFile(text) {
             if (good) {
                 // Update the map
                 redrawAll();
-                // Zoom the map to fit the markers
-                zoomToFit();
+                // After a second, zoom the map to fit the markers that should be appearing by then
+                setTimeout(zoomToFit, 1000);
                 // Update the stats
                 recalculateStats();
 

@@ -19,9 +19,7 @@ $("#fileSelect").change(function () {
 
 // Update the various displays based on new settings. Called on UI control changes.
 function updateDisplay() {
-    myCall = $("#myCall").val().toUpperCase();
-    $("#stats-call").text(myCall);
-    $("#stats-qth").text($("#qthGrid").val());
+    updateStatsCallAndQTH();
     setBasemap($("#basemap").val());
     setBasemapOpacity($("#basemapOpacity").val());
     updatePosFromGridInput();
@@ -37,8 +35,24 @@ function updateDisplay() {
     redrawAll();
 }
 
+// Update the callsign and QTH displayed on the stats page
+async function updateStatsCallAndQTH() {
+    let text = "";
+    $("#stats-call").text($("#myCall").val());
+    if ($("#mySIGRef").val() !== "") {
+        if ($("#mySIGRefName").text() !== "") {
+            text = " at " + $("#mySIGRef").val() + " " + $("#mySIGRefName").text();
+        } else {
+            text = " at " + $("#mySIGRef").val();
+        }
+    } else if ($("#qthGrid").val() !== "") {
+        text = " in " + $("#qthGrid").val();
+    }
+    $("#stats-qth").text(text);
+}
+
 function updatePosFromGridInput() {
-    qthGrid = $("#qthGrid").val().toUpperCase();
+    let qthGrid = $("#qthGrid").val().toUpperCase();
     let pos = latLonForGridCentre(qthGrid);
     if (pos != null) {
         setQTH(pos);
@@ -51,6 +65,27 @@ $("#clearQSOs").click(function () {
     redrawAll();
     recalculateStats();
 });
+
+// Listen for changes to SIG and SIG Ref that mean we can look up the name
+$("#mySIG").change(function () {
+    fetchSIGRefName();
+});
+$("#mySIGRef").change(function () {
+    fetchSIGRefName();
+});
+async function fetchSIGRefName() {
+    if ($('#refLookupEnabled').is(':checked') && $("#mySIG").val() !== "" && $("#mySIGRef").val() !== "") {
+        const result = await performSIGRefLookupInner($("#mySIG").val(), $("#mySIGRef").val());
+        if (result != null && result.name) {
+            $("#mySIGRefName").text(result.name);
+        } else {
+            $("#mySIGRefName").text("");
+        }
+    } else {
+        $("#mySIGRefName").text("");
+    }
+    updateStatsCallAndQTH();
+}
 
 // Listen for circle marker type toggle. When circle markers are enabled, uncheck and save the
 // incompatible options that are being turned off.

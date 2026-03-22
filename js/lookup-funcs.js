@@ -43,13 +43,10 @@ async function performCallsignLookup(qso) {
     }
 }
 
-// Use a QSO's SIG reference to look up a grid via the Spothole API.
+// Use a QSO's SIG reference to look up a grid via the Spothole API, and update a QSO with the data.
 async function performSIGRefLookup(qso) {
-    try {
-        const params = new URLSearchParams({sig: qso.sigRefs[0].program, id: qso.sigRefs[0].ref});
-        const response = await fetch(SPOTHOLE_BASE_URL + "/lookup/sigref?" + params, {signal: AbortSignal.timeout(10000)});
-        const result = await response.json();
-
+    const result = await performSIGRefLookupInner(qso.sigRefs[0].program, qso.sigRefs[0].ref);
+    if (result != null) {
         if (result.grid && !qso.grid) {
             qso.grid = result.grid;
         }
@@ -58,8 +55,18 @@ async function performSIGRefLookup(qso) {
         } else {
             qso.qth = result.ref;
         }
+    }
+}
+
+// Use a SIG and SIG reference to look up a grid via the Spothole API, and return the response.
+async function performSIGRefLookupInner(sig, sigRef) {
+    try {
+        const params = new URLSearchParams({sig: sig, id: sigRef});
+        const response = await fetch(SPOTHOLE_BASE_URL + "/lookup/sigref?" + params, {signal: AbortSignal.timeout(10000)});
+        return await response.json();
     } catch (e) {
-        console.log("Error from Spothole when looking up SIG ref " + qso.sigRefs[0].ref);
+        console.log("Error from Spothole when looking up SIG ref " + sigRef);
+        return null
     }
 }
 

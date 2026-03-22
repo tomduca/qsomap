@@ -43,6 +43,14 @@ function clearData() {
     queue = [];
     qsoCount = 0;
     loadedAtLeastOnce = false;
+    // Don't reset the grid as this will get annoying for people working with Cabrillo files that don't contain
+    // that info
+    // $("#qthGrid").val("");
+    $("#myCall").val("");
+    $("#mySIG").val("");
+    $("#mySIGRef").val("");
+    $("#mySIGRefName").text("");
+    updateStatsCallAndQTH();
     years = new Set();
     bands = new Set();
     modes = new Set();

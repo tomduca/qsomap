@@ -94,6 +94,8 @@ function createOwnPosMarker(newPos) {
         if (!circleMarkers && outlineMarkers) {
             $(ownPosMarker._icon).addClass("outlinedmarker");
         }
+    } else {
+        ownPosMarker = null;
     }
 }
 

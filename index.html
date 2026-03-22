@@ -55,9 +55,9 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1774118509"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1774118509"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1774118509"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1774175657"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1774175657"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1774175657"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -165,6 +165,25 @@
                             <div class="col-7">
                                 <input type="text" id="qthGrid" class="textControl textBox form-control" name="qthGrid" placeholder="AA00aa" size="8">
                             </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5">
+                                <label for="mySIG" class="configLabel form-label mt-2">My SIG:</label>
+                            </div>
+                            <div class="col-7">
+                                <input type="text" id="mySIG" class="textControl textBox form-control" name="mySIG" placeholder="" size="8">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-5">
+                                <label for="mySIGRef" class="configLabel form-label mt-2">My SIG ref:</label>
+                            </div>
+                            <div class="col-7">
+                                <input type="text" id="mySIGRef" class="textControl textBox form-control" name="qthGrid" placeholder="" size="8">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div id="mySIGRefName" class="form-text"></div>
                         </div>
                     </div>
                 </li>
@@ -536,7 +555,7 @@
             <button type="button" class="btn-close ms-2"></button>
         </div>
         <div class="card-body panel-card-body">
-            <p><strong id="stats-call" style="font-size:1.5em">Unknown</strong>&nbsp;<small class="text-muted">in <span id="stats-qth">Unknown</span></small></p>
+            <p><strong id="stats-call" style="font-size:1.5em">No Data</strong>&nbsp;<small class="text-muted d-inline-block"><span id="stats-qth"></span></small></p>
             <div class="row">
                 <div class="col-4">Log start</div>
                 <div class="col-8"><span id="stats-start-time">-</span></div>
@@ -824,16 +843,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1774118509"></script>
-<script src="js/globals.js?v=1774118509"></script>
-<script src="js/data-funcs.js?v=1774118509"></script>
-<script src="js/file-funcs.js?v=1774118509"></script>
-<script src="js/lookup-funcs.js?v=1774118509"></script>
-<script src="js/display-funcs.js?v=1774118509"></script>
-<script src="js/utility-funcs.js?v=1774118509"></script>
-<script src="js/local-storage-funcs.js?v=1774118509"></script>
-<script src="js/map-setup-funcs.js?v=1774118509"></script>
-<script src="js/ui-funcs.js?v=1774118509"></script>
-<script src="js/startup.js?v=1774118509"></script>
+<script src="data/dxcc.js?v=1774175657"></script>
+<script src="js/globals.js?v=1774175657"></script>
+<script src="js/data-funcs.js?v=1774175657"></script>
+<script src="js/file-funcs.js?v=1774175657"></script>
+<script src="js/lookup-funcs.js?v=1774175657"></script>
+<script src="js/display-funcs.js?v=1774175657"></script>
+<script src="js/utility-funcs.js?v=1774175657"></script>
+<script src="js/local-storage-funcs.js?v=1774175657"></script>
+<script src="js/map-setup-funcs.js?v=1774175657"></script>
+<script src="js/ui-funcs.js?v=1774175657"></script>
+<script src="js/startup.js?v=1774175657"></script>
 </body>
 </html>

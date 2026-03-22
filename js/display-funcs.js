@@ -210,10 +210,14 @@ function redraw(key) {
     }
 }
 
-// Zoom the display to fit all markers, so long as we have at least three so the zoom isn't janky
+// Zoom the display to fit all markers, so long as we have at least two so the zoom isn't janky
 function zoomToFit() {
-    if (markers.size > 3) {
-        var group = new L.featureGroup([...markers.values()]);
+    var markersTemp = [...markers.values()];
+    if (ownPosMarker != null) {
+        markersTemp.push(ownPosMarker);
+    }
+    if (markersTemp.length >= 2) {
+        var group = new L.featureGroup(markersTemp);
         map.fitBounds(group.getBounds().pad(0.1));
     }
 }
@@ -417,18 +421,18 @@ function getTooltipText(d) {
 // Get text for the permanent labels underneath the own QTH marker (referred to by Leaflet as a tooltip).
 function getOwnQTHTooltipText() {
     const basemapIsDark = ['CartoDB.DarkMatter', 'Esri.WorldImagery'].includes($('#basemap').val());
-    let showCall = $('#showCallsignLabels').is(':checked') && myCall;
-    let showGrid = $('#showGridSquareLabels').is(':checked') && qthGrid;
+    let showCall = $('#showCallsignLabels').is(':checked') && $("#myCall").val() !== "";
+    let showGrid = $('#showGridSquareLabels').is(':checked') && $("#qthGrid").val() !== "";
     let labelText = "";
 
     if (showCall) {
-        labelText += myCall;
+        labelText += $("#myCall").val();
     }
     if (showGrid) {
         if (labelText) {
             labelText += "<br/>";
         }
-        labelText += formatGrid(qthGrid);
+        labelText += formatGrid($("#qthGrid").val());
     }
 
     if (labelText) {
@@ -551,6 +555,8 @@ async function updateStatus() {
 
 // Update the stats
 function recalculateStats() {
+    updateStatsCallAndQTH();
+
     // Prepare a list of all QSOs, not structured underneath callsigns, to extract data that's easier to deal with this way.
     let allQSOs = [];
     data.forEach((d) => {

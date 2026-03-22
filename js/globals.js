@@ -34,10 +34,7 @@ let qsoCount = 0;
 // Track whether we have tried to load something, and whether we are still loading. Used to control the status indicator.
 let loadedAtLeastOnce = false
 let loading = false;
-// My callsign
-let myCall;
 // Position of the grey home marker
-let qthGrid;
 let qthPos;
 // Marker, geodesic line and grid square graphic references. The graphics themselves are added to the Leaflet map but we also
 // keep them in these data maps so we can easily e.g. find them to remove them when we need to. markers & lines are indexed
