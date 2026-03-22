@@ -82,6 +82,7 @@ async function loadADIF(text) {
                 bands.add(qso.band);
             }
             if (qso.band == null && qsoData.has("BAND")) {
+                let band;
                 for (band of getKnownBands()) {
                     if (band.toUpperCase() === qsoData.get("BAND").toUpperCase().trim()) {
                         qso.band = band;
@@ -257,7 +258,7 @@ async function loadSOTACSV(text) {
     let setSIGRef = false;
 
     // Parse CSV
-    csvData = $.csv.toArrays(text);
+    let csvData = $.csv.toArrays(text);
     for (const row of csvData) {
         if (!setStationCallsign) {
             $("#myCall").val(row[1]);

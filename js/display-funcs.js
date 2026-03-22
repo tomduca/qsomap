@@ -130,7 +130,7 @@ function redraw(key) {
 
             // If we are using hybrid marker size and this is a non-xOTA marker, reduce its size
             let thisMarkerSize = markerSize;
-            if (hybridMarkerSize && (getIconName(d) === "fa-crosshairs" || getIconName(d) === "fa-none")) {
+            if (hybridMarkerSize && !circleMarkers && (getIconName(d) === "fa-crosshairs" || getIconName(d) === "fa-none")) {
                 thisMarkerSize = thisMarkerSize - 0.25;
                 if (thisMarkerSize < 0.125) {
                     thisMarkerSize = 0.125;
@@ -379,8 +379,6 @@ function getPopupText(d) {
             if (qso.comment && $('#showComments').is(':checked')) {
                 text += "<tr><td></td><td colspan='2'>" + qso.comment + "</td></tr>";
             }
-
-            text += "</tr>";
         }
     });
     text += "</table>";
@@ -451,7 +449,7 @@ function getOwnQTHTooltipText() {
 function getIconPosition(d) {
     let grid = d.grid;
     if (grid && latLonForGridCentre(grid) != null) {
-        [lat, lon] = latLonForGridCentre(grid);
+        let [lat, lon] = latLonForGridCentre(grid);
         if (lat != null && lon != null && !isNaN(lat) && !isNaN(lon) && (lat !== 0.0 || lon !== 0.0)) {
             let wrapEitherSideOfLon = 0;
             if (qthPos != null) {
@@ -573,10 +571,10 @@ function recalculateStats() {
     allQSOs.sort((a, b) => a.time < b.time ? -1 : 1);
     let totalDuration;
     if (allQSOs.length > 0) {
-        $("#stats-start-time").text(allQSOs[0].time.format('DD MMM YYYY HH:mm'));
+        $("#stats-start-time").html(allQSOs[0].time.format('HH:mm[,&nbsp;]DD[&nbsp;]MMM[&nbsp;]YYYY'));
         if (allQSOs.length > 1) {
             totalDuration = moment.duration(allQSOs[allQSOs.length - 1].time.diff(allQSOs[0].time));
-            $("#stats-end-time").text(allQSOs[allQSOs.length - 1].time.format('DD MMM YYYY HH:mm'));
+            $("#stats-end-time").html(allQSOs[allQSOs.length - 1].time.format('HH:mm[,&nbsp;]DD[&nbsp;]MMM[&nbsp;]YYYY'));
             $("#stats-duration").text(formatDurationText(totalDuration));
         } else {
             $("#stats-end-time").text("-");

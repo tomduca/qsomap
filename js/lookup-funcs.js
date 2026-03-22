@@ -9,7 +9,7 @@ async function performCallsignLookup(qso) {
         const response = await fetch(SPOTHOLE_BASE_URL + "/lookup/call?" + params, {signal: AbortSignal.timeout(10000)});
         const result = await response.json();
 
-        if (result.grid && result.grid.length > 0 && !qso.grid && result.grid !== "" && result.grid.toUpperCase() !== "AA00" && result.grid.toUpperCase() !== "AA00AA" && result.grid.toUpperCase() !== "AA00AA00") {
+        if (result.grid && result.grid.length > 0 && !qso.grid && result.grid !== "" && result.grid.toUpperCase() !== "AA00" && result.grid.toUpperCase() !== "AA00AA" && result.grid.toUpperCase() !== "AA00AA00" && result.grid.toUpperCase() !== "JJ00" && result.grid.toUpperCase() !== "JJ00AA" && result.grid.toUpperCase() !== "JJ00AA00") {
             qso.grid = result.grid;
         }
 
@@ -75,8 +75,8 @@ async function performSIGRefLookupInner(sig, sigRef) {
 // data map. The map objects will then be updated to match.
 async function processQSOFromQueue() {
     while (queue.length > 0) {
-        // Pop the next QSO out of the queue
-        let qso = queue.pop();
+        // Pop the first remaining QSO out of the queue
+        let qso = queue.shift();
         // We have something in the queue. First see if it has a POTA/SOTA/WWBOTA reference; we can then query the
         // API for the reference's location if we need to.
         if ($('#refLookupEnabled').is(':checked') && qso.sigRefs != null && qso.sigRefs.length > 0 && (!qso.grid || !qso.qth)) {
@@ -130,6 +130,7 @@ async function processQSOFromQueue() {
         if (queue.length === 0) {
             redrawAll();
             recalculateStats();
+            zoomToFit();
         }
     }
 
