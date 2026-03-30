@@ -47,6 +47,7 @@ let gridSquares = new Map();
 let gridSquareLabels = new Map();
 // Map and layers
 let map;
+let oms;
 let basemapLayer;
 let markersLayer;
 let linesLayer;

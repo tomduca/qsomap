@@ -12,6 +12,7 @@ function redrawAll() {
     // Clear existing markers, lines and heatmaps
     markers.forEach(marker => markersLayer.removeLayer(marker));
     markers = new Map();
+    oms.clearMarkers();
     lines.forEach(line => linesLayer.removeLayer(line));
     lines = new Map();
     gridSquares.forEach(square => gridSquaresWorkedLayer.removeLayer(square));
@@ -123,9 +124,10 @@ function redraw(key) {
                 m.options.stroke = outlineMarkers;
             }
 
-            // If this marker was newly created, add it to the layer
+            // If this marker was newly created, add it to the layer and register with OMS
             if (!markers.has(key)) {
                 markersLayer.addLayer(m);
+                oms.addMarker(m);
             }
 
             // If we are using hybrid marker size and this is a non-xOTA marker, reduce its size

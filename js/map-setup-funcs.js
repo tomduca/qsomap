@@ -43,6 +43,9 @@ function setUpMap() {
     markersLayer = new L.LayerGroup();
     markersLayer.addTo(map);
 
+    // Set up Overlapping Marker Spiderfier so markers at the same position fan out on click
+    oms = new OverlappingMarkerSpiderfier(map, {nearbyDistance: 20, keepSpiderfied: true});
+
     // Add lines layer
     linesLayer = new L.LayerGroup();
     linesLayer.addTo(map);
