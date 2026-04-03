@@ -24,5 +24,9 @@ setTimeout(function () { processQSOFromQueue(); }, 1000);
 // Add the timed thread to update the status indicator.
 setInterval(function () { updateStatus(); }, 500);
 
+// Populate the keys for SIG, band and mode in the modal dialogs. These are done by a lookup to ui-ham.js for
+// commonality with other tools.
+populateKeys();
+
 // Open the data panel by default
 $('#card-data').show();

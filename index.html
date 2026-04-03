@@ -56,9 +56,9 @@
     <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1775214688"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1775214688"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1775214688"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1775215655"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1775215655"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1775215655"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -737,46 +737,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <table style="border-spacing: 1em;">
-                    <tr>
-                        <td class="align-top pe-3">
-                            <span class="colorSample bandColorSample" id="bandColorSample-2200m"></span>2200m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-600m"></span>600m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-160m"></span>160m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-80m"></span>80m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-60m"></span>60m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-40m"></span>40m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-30m"></span>30m<br/>
-                        </td>
-                        <td class="align-top pe-3">
-                            <span class="colorSample bandColorSample" id="bandColorSample-20m"></span>20m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-17m"></span>17m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-15m"></span>15m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-12m"></span>12m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-11m"></span>11m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-10m"></span>10m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-6m"></span>6m<br/>
-                        </td>
-                        <td class="align-top pe-3">
-                            <span class="colorSample bandColorSample" id="bandColorSample-5m"></span>5m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-4m"></span>4m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-2m"></span>2m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-1_25m"></span>1.25m<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-70cm"></span>70cm<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-23cm"></span>23cm<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-13cm"></span>13cm<br/>
-                        </td>
-                        <td class="align-top pe-3">
-                            <span class="colorSample bandColorSample" id="bandColorSample-5_8GHz"></span>5.8GHz<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-10GHz"></span>10GHz<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-24GHz"></span>24GHz<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-47GHz"></span>47GHz<br/>
-                            <span class="colorSample bandColorSample" id="bandColorSample-76GHz"></span>76GHz<br/>
-                            <span class="colorSample" style="background-color: white;"></span>Multiple bands<br/>
-                            <span class="colorSample" style="background-color: black;"></span>Unknown band
-                        </td>
-                    </tr>
-                </table>
+                <table id="band-colors-key-table" style="border-spacing: 1em;"></table>
             </div>
         </div>
     </div>
@@ -791,9 +752,7 @@
             </div>
             <div class="modal-body">
                 <p>
-                    <span class="colorSample" style="background-color: red;"></span>CW<br/>
-                    <span class="colorSample" style="background-color: green;"></span>Phone<br/>
-                    <span class="colorSample" style="background-color: blue;"></span>Data<br/>
+                    <span id="mode-colors-key-list"></span>
                     <span class="colorSample" style="background-color: white;"></span>Multiple modes<br/>
                     <span class="colorSample" style="background-color: black;"></span>Unknown mode
                 </p>
@@ -811,27 +770,7 @@
             </div>
             <div class="modal-body">
                 <p>
-                    <i class='fa-solid fa-tree markerPopupIcon'></i>&nbsp;Parks on the Air (POTA)<br/>
-                    <i class='fa-solid fa-mountain-sun markerPopupIcon'></i>&nbsp;Summits on the Air (SOTA)<br/>
-                    <i class='fa-solid fa-seedling markerPopupIcon'></i>&nbsp;Worldwide Flora & Fauna (WWFF)<br/>
-                    <i class='fa-solid fa-person-hiking markerPopupIcon'></i>&nbsp;Global Mountain Activity (GMA)<br/>
-                    <i class='fa-solid fa-radiation markerPopupIcon'></i>&nbsp;Bunkers on the Air (WWBOTA)<br/>
-                    <i class='fa-solid fa-mound markerPopupIcon'></i>&nbsp;Humps Excluding Marilyns Award (HEMA)<br/>
-                    <i class='fa-solid fa-book-atlas markerPopupIcon'></i>&nbsp;Islands on the Air (IOTA)<br/>
-                    <i class='fa-solid fa-fan markerPopupIcon'></i>&nbsp;Mills on the Air (MOTA)<br/>
-                    <i class='fa-solid fa-house-flood-water markerPopupIcon'></i>&nbsp;Amateur Radio Lighthouse Society (ARLHS)<br/>
-                    <i class='fa-solid fa-house-flood-water markerPopupIcon'></i>&nbsp;International Lighthouse Lightship Weekend (ILLW)<br/>
-                    <i class='fa-solid fa-wheat-awn markerPopupIcon'></i>&nbsp;Silos on the Air (SiOTA)<br/>
-                    <i class='fa-solid fa-chess-rook markerPopupIcon'></i>&nbsp;World Castles Award (WCA)<br/>
-                    <i class='fa-solid fa-kiwi-bird markerPopupIcon'></i>&nbsp;New Zealand on the Air (ZLOTA)<br/>
-                    <i class='fa-solid fa-w markerPopupIcon'></i>&nbsp;Wainwrights on the Air (WOTA)<br/>
-                    <i class='fa-solid fa-umbrella-beach markerPopupIcon'></i>&nbsp;Beaches on the Air (BOTA)<br/>
-                    <i class='fa-solid fa-earth-oceania markerPopupIcon'></i>&nbsp;Keith Roget Memorial National Parks Award (KRMNPA)<br/>
-                    <i class='fa-solid fa-water markerPopupIcon'></i>&nbsp;Lagos y Lagunas on the Air (LLOTA)<br/>
-                    <i class='fa-solid fa-tower-observation markerPopupIcon'></i>&nbsp;Towers on the Air (WWTOTA)<br/>
-                    <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Britain (WAB)<br/>
-                    <i class='fa-solid fa-table-cells-large markerPopupIcon'></i>&nbsp;Worked All Ireland (WAI)<br/>
-                    <i class='fa-solid fa-toilet markerPopupIcon'></i>&nbsp;Toilets on the Air (TOTA)<br/>
+                    <span id="xota-icons-key-list"></span>
                     <i class='fa-solid fa-star markerPopupIcon'></i>&nbsp;(Multiple xOTA programmes)<br/>
                     <i class='fa-solid fa-question markerPopupIcon'></i>&nbsp;(Unknown xOTA programme)<br/>
                     <i class='fa-solid fa-crosshairs markerPopupIcon'></i>&nbsp;(Hunter)
@@ -844,16 +783,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1775214688"></script>
-<script src="js/globals.js?v=1775214688"></script>
-<script src="js/data-funcs.js?v=1775214688"></script>
-<script src="js/file-funcs.js?v=1775214688"></script>
-<script src="js/lookup-funcs.js?v=1775214688"></script>
-<script src="js/display-funcs.js?v=1775214688"></script>
-<script src="js/utility-funcs.js?v=1775214688"></script>
-<script src="js/local-storage-funcs.js?v=1775214688"></script>
-<script src="js/map-setup-funcs.js?v=1775214688"></script>
-<script src="js/ui-funcs.js?v=1775214688"></script>
-<script src="js/startup.js?v=1775214688"></script>
+<script src="data/dxcc.js?v=1775215655"></script>
+<script src="js/globals.js?v=1775215655"></script>
+<script src="js/data-funcs.js?v=1775215655"></script>
+<script src="js/file-funcs.js?v=1775215655"></script>
+<script src="js/lookup-funcs.js?v=1775215655"></script>
+<script src="js/display-funcs.js?v=1775215655"></script>
+<script src="js/utility-funcs.js?v=1775215655"></script>
+<script src="js/local-storage-funcs.js?v=1775215655"></script>
+<script src="js/map-setup-funcs.js?v=1775215655"></script>
+<script src="js/ui-funcs.js?v=1775215655"></script>
+<script src="js/startup.js?v=1775215655"></script>
 </body>
 </html>

@@ -73,6 +73,7 @@ $("#mySIG").change(function () {
 $("#mySIGRef").change(function () {
     fetchSIGRefName();
 });
+
 async function fetchSIGRefName() {
     if ($('#refLookupEnabled').is(':checked') && $("#mySIG").val() !== "" && $("#mySIGRef").val() !== "") {
         const result = await performSIGRefLookupInner($("#mySIG").val(), $("#mySIGRef").val());
@@ -103,13 +104,13 @@ $("#bandColorScheme").change(function () {
 });
 
 // Listen for UI colour scheme change (side-effect: apply colour scheme)
-$('#theme').change(function() {
+$('#theme').change(function () {
     setColorScheme();
 });
 
 // On a change of any control in the form, update the display and save the new value to localstorage. WARNING: The order
 // in which jQuery bindings are done is important; some bindings deliberately happen before this section, and others after.
-$(document).on('change', '[name]', function() {
+$(document).on('change', '[name]', function () {
     updateDisplay();
     if (this.type === 'checkbox') {
         localStorage.setItem(this.name, JSON.stringify(this.checked));
@@ -119,7 +120,7 @@ $(document).on('change', '[name]', function() {
 });
 
 // Panel toggle: show clicked panel, hide others
-$('.panel-btn').on('click', function() {
+$('.panel-btn').on('click', function () {
     var $target = $($(this).data('bs-target'));
     var isVisible = $target.is(':visible');
     $('.panel-card').hide();
@@ -127,7 +128,7 @@ $('.panel-btn').on('click', function() {
 });
 
 // Panel close buttons
-$(document).on('click', '.panel-card .btn-close', function() {
+$(document).on('click', '.panel-card .btn-close', function () {
     $(this).closest('.panel-card').hide();
 });
 
@@ -154,5 +155,42 @@ function populateFilterControls(years, bands, modes) {
     // Modes are sorted alphabetically
     Array.from(modes).filter(m => m.length > 0).sort().forEach(function (m) {
         $("#filter-mode").append($("<option></option>").attr("value", m).text(m));
+    });
+}
+
+// Populate the keys for SIG, band and mode in the modal dialogs. These are done by a lookup to ui-ham.js for
+// commonality with other tools.
+function populateKeys() {
+    // Populate the band colours key from getKnownBands()
+    const bandKeyBands = getKnownBands();
+    const bandKeyColSize = 7;
+    const bandKeyRow = $('<tr></tr>');
+    for (let col = 0; col < Math.ceil(bandKeyBands.length / bandKeyColSize); col++) {
+        const td = $('<td class="align-top pe-3"></td>');
+        bandKeyBands.slice(col * bandKeyColSize, (col + 1) * bandKeyColSize).forEach(band => {
+            const id = 'bandColorSample-' + band.replace('.', '_');
+            td.append(`<span class="colorSample bandColorSample" id="${id}"></span>${band}<br/>`);
+        });
+        bandKeyRow.append(td);
+    }
+
+    // Append the fixed "Multiple bands" and "Unknown band" entries to the last column
+    bandKeyRow.find('td:last').append('<span class="colorSample" style="background-color: white;"></span>Multiple bands<br/>');
+    bandKeyRow.find('td:last').append('<span class="colorSample" style="background-color: black;"></span>Unknown band');
+    $('#band-colors-key-table').append(bandKeyRow);
+
+    // Populate the xOTA/SIG icons key from getKnownSIGs()
+    getKnownSIGs().forEach(sig => {
+        const icon = sigToIcon(sig, null);
+        const name = sigToName(sig);
+        if (icon && name) {
+            $('#xota-icons-key-list').append(`<i class='fa-solid ${icon} markerPopupIcon'></i>&nbsp;${name} (${sig})<br/>`);
+        }
+    });
+
+    // Populate the mode colours key from MODE_TYPE_COLOR_SCHEMES
+    Object.entries(MODE_TYPE_COLOR_SCHEMES).forEach(([key, color]) => {
+        const label = key.length <= 2 ? key : key.charAt(0) + key.slice(1).toLowerCase();
+        $('#mode-colors-key-list').append(`<span class="colorSample" style="background-color: ${color};"></span>${label}<br/>`);
     });
 }
