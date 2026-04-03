@@ -149,6 +149,15 @@ function getIcon(d, thisMarkerSize) {
     });
 }
 
+// Resolve a SIG name to its canonical form for use with sigToIcon(). Any SIG matching
+// "[A-Z]{2}BOTA" (e.g. UKBOTA, DLBOTA) is treated as equivalent to WWBOTA.
+function canonicalSIGName(sig) {
+    if (sig && /^[A-Z]{2}BOTA$/i.test(sig) && sig.toUpperCase() !== "WWBOTA") {
+        return "WWBOTA";
+    }
+    return sig;
+}
+
 // Get Font Awesome icon name for the data item. If multiple icons would be used, a star is used instead.
 function getIconName(d) {
     const outdoorSymbols = $('#outdoorSymbols').is(':checked');
@@ -161,92 +170,43 @@ function getIconName(d) {
             // First, see if the QSO has any Special Interest Group (e.g. xOTA) references set.
             if (qso.sigRefs && qso.sigRefs.length > 0) {
                 qso.sigRefs.forEach(p => {
-                    if (p.program === "POTA") {
-                        qsoIcons.push("fa-tree");
-                    } else if (p.program === "SOTA") {
-                        qsoIcons.push("fa-mountain-sun");
-                    } else if (p.program === "WWFF") {
-                        qsoIcons.push("fa-seedling");
-                    } else if (p.program === "GMA") {
-                        qsoIcons.push("fa-person-hiking");
-                    } else if (p.program === "HEMA") {
-                        qsoIcons.push("fa-mound");
-                    } else if (p.program === "WWBOTA" || p.program === "UKBOTA") {
-                        qsoIcons.push("fa-radiation");
-                    } else if (p.program === "IOTA") {
-                        qsoIcons.push("fa-book-atlas");
-                    } else if (p.program === "BOTA") {
-                        qsoIcons.push("fa-umbrella-beach");
-                    } else if (p.program === "WCA") {
-                        qsoIcons.push("fa-chess-rook");
-                    } else if (p.program === "ARLHS" || p.program === "ILLW") {
-                        qsoIcons.push("fa-house-flood-water");
-                    } else if (p.program === "WWTOTA") {
-                        qsoIcons.push("fa-tower-observation");
-                    } else if (p.program === "LLOTA") {
-                        qsoIcons.push("fa-water");
-                    } else if (p.program === "MOTA") {
-                        qsoIcons.push("fa-fan");
-                    } else if (p.program === "SIOTA") {
-                        qsoIcons.push("fa-wheat-awn");
-                    } else if (p.program === "WOTA") {
-                        qsoIcons.push("fa-w");
-                    } else if (p.program === "ZLOTA") {
-                        qsoIcons.push("fa-kiwi-bird");
-                    } else if (p.program === "KRMNPA") {
-                        qsoIcons.push("fa-earth-oceania");
-                    } else if (p.program === "WAB" || p.program === "WAI") {
-                        qsoIcons.push("fa-table-cells-large");
-                    } else if (p.program === "TOTA") {
-                        qsoIcons.push("fa-toilet");
-                    } else {
-                        // A program was set but not one we recognise, so show a question mark
-                        qsoIcons.push("fa-question");
-                    }
+                    qsoIcons.push(sigToIcon(canonicalSIGName(p.program), "fa-question"));
                 });
 
             } else if (inferOutdoorActivitiesFromComments && qso.comment && qso.comment.length > 0) {
                 // Now if we are allowed to infer outdoor activities from comments, parse the comments for anything useful
                 let comment = qso.comment.toUpperCase();
-                if (comment.includes("POTA") || comment.includes("P2P") || comment.includes("PARK")) {
-                    qsoIcons.push("fa-tree");
-                } else if (comment.includes("SOTA") || comment.includes("S2S") || comment.includes("SUMMIT")) {
-                    qsoIcons.push("fa-mountain-sun");
-                } else if (comment.includes("WWFF")) {
-                    qsoIcons.push("fa-seedling");
-                } else if (comment.includes("GMA")) {
-                    qsoIcons.push("fa-person-hiking");
-                } else if (comment.includes("HEMA")) {
-                    qsoIcons.push("fa-mound");
-                } else if (comment.includes("BOTA") || comment.includes("BUNKER")) {
-                    qsoIcons.push("fa-radiation");
-                } else if (comment.includes("IOTA") || comment.includes("ISLAND")) {
-                    qsoIcons.push("fa-book-atlas");
-                } else if (comment.includes("WCA") || comment.includes("CASTLE")) {
-                    qsoIcons.push("fa-chess-rook");
-                } else if (comment.includes("ALHRS") || comment.includes("ILLW") || comment.includes("LIGHTHOUSE")) {
-                    qsoIcons.push("fa-house-flood-water");
-                } else if (comment.includes("MOTA") || comment.includes("MILL")) {
-                    qsoIcons.push("fa-fan");
-                } else if (comment.includes("SIOTA") || comment.includes("SILO")) {
-                    qsoIcons.push("fa-wheat-awn");
-                } else if (comment.includes("WOTA")) {
-                    qsoIcons.push("fa-w");
-                } else if (comment.includes("WWTOTA")) {
-                    qsoIcons.push("fa-tower-observation");
-                } else if (comment.includes("LLOTA")) {
-                    qsoIcons.push("fa-water");
-                } else if (comment.includes("ZLOTA")) {
-                    qsoIcons.push("fa-kiwi-bird");
-                } else if (comment.includes("KRMNPA")) {
-                    qsoIcons.push("fa-earth-oceania");
-                } else if (comment.includes("WAB") || comment.includes("WAI")) {
-                    qsoIcons.push("fa-table-cells-large");
-                } else if (comment.includes("TOTA")) {
-                    qsoIcons.push("fa-toilet");
-                } else {
-                    qsoIcons.push("fa-crosshairs");
+                let foundSIG = null;
+
+                // First, scan for any SIG name in the comment. Sort longer names first to avoid false positives (e.g. SIOTA before IOTA).
+                for (const sig of getKnownSIGs().slice().sort((a, b) => b.length - a.length)) {
+                    if (comment.includes(sig)) {
+                        foundSIG = sig;
+                        break;
+                    }
                 }
+
+                // If no SIG name was found, check for other things in the comment that probably imply one
+                if (!foundSIG) {
+                    const COMMENT_ALIASES = [
+                        [/P2P|PARK/, "POTA"],
+                        [/S2S|SUMMIT/, "SOTA"],
+                        [/[A-Z]{2}BOTA|BUNKER/, "WWBOTA"],
+                        [/ISLAND/, "IOTA"],
+                        [/CASTLE/, "WCA"],
+                        [/LIGHTHOUSE/, "ARLHS"],
+                        [/MILL/, "MOTA"],
+                        [/SILO/, "SIOTA"],
+                    ];
+                    for (const [pattern, sig] of COMMENT_ALIASES) {
+                        if (pattern.test(comment)) {
+                            foundSIG = sig;
+                            break;
+                        }
+                    }
+                }
+
+                qsoIcons.push(sigToIcon(foundSIG, "fa-crosshairs"));
             } else {
                 // No outdoor activity program could be inferred. Since "show activity symbols" is on, we assume we were portable, so
                 // this is a QSO with a hunter, and we don't have hybrid size on, so use crosshairs symbol.
