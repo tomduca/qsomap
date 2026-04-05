@@ -12,6 +12,18 @@ L.ITUzonesWorked = L.LayerGroup.extend({
 
     onAdd: function (map) {
         this._map = map;
+        this._zoomHandler = this._onZoom.bind(this);
+        map.on('zoomend', this._zoomHandler);
+        this.draw();
+    },
+
+    onRemove: function (map) {
+        map.off('zoomend', this._zoomHandler);
+        L.LayerGroup.prototype.onRemove.call(this, map);
+    },
+
+    _onZoom: function () {
+        this.clearLayers();
         this.draw();
     },
 
@@ -60,7 +72,28 @@ L.ITUzonesWorked = L.LayerGroup.extend({
             }
         );
 
+        var zoom = this._map.getZoom();
+        var labelFeatures = ITU_ZONES_NUMBERS.features.filter(function (f) {
+            return workedZones.includes(f.properties.name);
+        });
+        var labelLayer = L.geoJSON(
+            { type: "FeatureCollection", features: labelFeatures },
+            {
+                pointToLayer: function (feature, latlng) {
+                    var zone = parseInt(feature.properties.name);
+                    var style = { color: color, size: 56 };
+                    var img = TextImage(style).toDataURL(feature.properties.name);
+                    var x = zoom * 12;
+                    if (zone < 10) { x = x / 1.8; }
+                    return L.marker(latlng, {
+                        icon: L.icon({ iconUrl: img, iconSize: [x, x] })
+                    });
+                }
+            }
+        );
+
         this.addLayer(geoLayer);
+        this.addLayer(labelLayer);
     }
 });
 
