@@ -7,11 +7,15 @@ const HEATMAP_BAND_RENDER_ORDER = ["10m", "12m", "15m", "17m", "20m", "30m", "40
 const SPOTHOLE_BASE_URL = "https://spothole.app/api/v1";
 const MAIDENHEAD_GRID_COLOR_LIGHT = 'rgba(200, 140, 140, 1.0)';
 const CQ_ZONES_COLOR_LIGHT = 'rgba(140, 200, 140, 1.0)';
+const CQ_ZONES_WORKED_COLOR_LIGHT = 'rgba(0, 0, 255, 1.0)';
 const ITU_ZONES_COLOR_LIGHT = 'rgba(200, 200, 140, 1.0)';
+const ITU_ZONES_WORKED_COLOR_LIGHT = 'rgba(0, 0, 255, 1.0)';
 const WAB_WAI_GRID_COLOR_LIGHT = 'rgba(140, 140, 200, 1.0)';
 const MAIDENHEAD_GRID_COLOR_DARK = 'rgba(120, 60, 60, 1.0)';
 const CQ_ZONES_COLOR_DARK = 'rgba(60, 120, 60, 1.0)';
+const CQ_ZONES_WORKED_COLOR_DARK = 'rgba(0, 0, 255, 1.0)';
 const ITU_ZONES_COLOR_DARK = 'rgba(120, 120, 60, 1.0)';
+const ITU_ZONES_WORKED_COLOR_DARK = 'rgba(0, 0, 255, 1.0)';
 const WAB_WAI_GRID_COLOR_DARK = 'rgba(60, 60, 120, 1.0)';
 
 /////////////////////////////
@@ -63,7 +67,9 @@ let perBandHeatmaps = new Map();
 let maidenheadGrid;
 let wabwaiGrid;
 let cqZones;
+let cqZonesWorked;
 let ituZones;
+let ituZonesWorked;
 // Tracker for how many years, bands and modes we have in our data set.
 let years = new Set();
 let bands = new Set();

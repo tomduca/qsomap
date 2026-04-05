@@ -248,6 +248,18 @@ function enableCQZones(show) {
     }
 }
 
+// Shows/hides the worked CQ zones highlight overlay
+function enableCQZonesWorked(show) {
+    if (cqZonesWorked) {
+        if (show) {
+            cqZonesWorked.addTo(map);
+            basemapLayer.bringToBack();
+        } else {
+            map.removeLayer(cqZonesWorked);
+        }
+    }
+}
+
 // Shows/hides the ITU zone overlay
 function enableITUZones(show) {
     if (ituZones) {
@@ -256,6 +268,18 @@ function enableITUZones(show) {
             basemapLayer.bringToBack();
         } else {
             map.removeLayer(ituZones);
+        }
+    }
+}
+
+// Shows/hides the worked ITU zones highlight overlay
+function enableITUZonesWorked(show) {
+    if (ituZonesWorked) {
+        if (show) {
+            ituZonesWorked.addTo(map);
+            basemapLayer.bringToBack();
+        } else {
+            map.removeLayer(ituZonesWorked);
         }
     }
 }
@@ -494,12 +518,16 @@ function setBasemap(basemapname) {
         if (basemapIsDark) {
             maidenheadGrid.options.color = MAIDENHEAD_GRID_COLOR_DARK;
             cqZones.options.color = CQ_ZONES_COLOR_DARK;
+            cqZonesWorked.options.color = CQ_ZONES_WORKED_COLOR_DARK;
             ituZones.options.color = ITU_ZONES_COLOR_DARK;
+            ituZonesWorked.options.color = ITU_ZONES_WORKED_COLOR_DARK;
             wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_DARK;
         } else {
             maidenheadGrid.options.color = MAIDENHEAD_GRID_COLOR_LIGHT;
             cqZones.options.color = CQ_ZONES_COLOR_LIGHT;
+            cqZonesWorked.options.color = CQ_ZONES_WORKED_COLOR_LIGHT;
             ituZones.options.color = ITU_ZONES_COLOR_LIGHT;
+            ituZonesWorked.options.color = ITU_ZONES_WORKED_COLOR_LIGHT;
             wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_LIGHT;
         }
         if ($('#showMaidenheadGrid').is(':checked')) {
@@ -512,9 +540,17 @@ function setBasemap(basemapname) {
             cqZones.addTo(map);
             basemapLayer.bringToBack();
         }
+        if ($('#showCQZonesWorked').is(':checked')) {
+            cqZonesWorked.setWorkedZones(cqZonesWorked.options.workedZones);
+            basemapLayer.bringToBack();
+        }
         if ($('#showITUZones').is(':checked')) {
             map.removeLayer(ituZones);
             ituZones.addTo(map);
+            basemapLayer.bringToBack();
+        }
+        if ($('#showITUZonesWorked').is(':checked')) {
+            ituZonesWorked.setWorkedZones(ituZonesWorked.options.workedZones);
             basemapLayer.bringToBack();
         }
         if ($('#showWABWAIGrid').is(':checked')) {
@@ -646,11 +682,13 @@ function recalculateStats() {
     let allCQZs = [...new Set(allQSOs.filter(q => q.cqz != null && q.cqz !== "").map(q => q.cqz))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
     $("#stats-cqz-count").text(allCQZs.length);
     $("#stats-cqz-list").text(allCQZs.join(", "));
+    if (cqZonesWorked) { cqZonesWorked.setWorkedZones(allCQZs); }
 
     // Find all unique ITU zones
     let allITUZs = [...new Set(allQSOs.filter(q => q.ituz != null && q.ituz !== "").map(q => q.ituz))].sort((a, b) => parseInt(a) < parseInt(b) ? -1 : 1);
     $("#stats-ituz-count").text(allITUZs.length);
     $("#stats-ituz-list").text(allITUZs.join(", "));
+    if (ituZonesWorked) { ituZonesWorked.setWorkedZones(allITUZs); }
 
     // Find all combinations of band and mode, and for each mode note down how many uses there were.
     let bandsUsed = [...new Set(allQSOs.map(q => q.band))];

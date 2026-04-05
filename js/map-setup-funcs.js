@@ -29,9 +29,19 @@ function setUpMap() {
         color : CQ_ZONES_COLOR_LIGHT
     });
 
+    // Add worked CQ zones highlight layer (toggleable)
+    cqZonesWorked = L.cqzonesWorked({
+        color : CQ_ZONES_WORKED_COLOR_LIGHT
+    });
+
     // Add ITU zone layer (toggleable)
     ituZones = L.ituzones({
         color : ITU_ZONES_COLOR_LIGHT
+    });
+
+    // Add worked ITU zones highlight layer (toggleable)
+    ituZonesWorked = L.ituzonesWorked({
+        color : ITU_ZONES_WORKED_COLOR_LIGHT
     });
 
     // Add WAB/WAI grid layer (toggleable)

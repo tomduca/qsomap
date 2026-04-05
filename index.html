@@ -52,13 +52,15 @@
     <script src="https://cdn.jsdelivr.net/npm/overlapping-marker-spiderfier-leaflet@0.2.6/dist/oms.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/text-image/dist/text-image.js"></script>
     <script src="https://ianrenton.github.io/Leaflet.Maidenhead/src/L.Maidenhead.js"></script>
-    <script src="https://ha8tks.github.io/Leaflet.ITUzones/src/L.ITUzones.js"></script>
-    <script src="https://ha8tks.github.io/Leaflet.CQzones/src/L.CQzones.js"></script>
+    <script src="js/L.ITUzones.js"></script>
+    <script src="js/L.ITUzonesWorked.js"></script>
+    <script src="js/L.CQzones.js"></script>
+    <script src="js/L.CQzonesWorked.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1775215655"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1775215655"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1775215655"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1775382891"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1775382891"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1775382891"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -514,8 +516,20 @@
                         </div>
                         <div class="row mb-2">
                             <div class="col-12">
+                                <label for="showCQZonesWorked" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showCQZonesWorked" class="control form-check-input" name="showCQZonesWorked">&nbsp;Draw worked CQ zones</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
                                 <label for="showITUZones" class="configLabel form-check-label">
                                     <input type="checkbox" id="showITUZones" class="control form-check-input" name="showITUZones">&nbsp;ITU zone layer</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label for="showITUZonesWorked" class="configLabel form-check-label">
+                                    <input type="checkbox" id="showITUZonesWorked" class="control form-check-input" name="showITUZonesWorked">&nbsp;Draw worked ITU zones</label>
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -783,16 +797,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1775215655"></script>
-<script src="js/globals.js?v=1775215655"></script>
-<script src="js/data-funcs.js?v=1775215655"></script>
-<script src="js/file-funcs.js?v=1775215655"></script>
-<script src="js/lookup-funcs.js?v=1775215655"></script>
-<script src="js/display-funcs.js?v=1775215655"></script>
-<script src="js/utility-funcs.js?v=1775215655"></script>
-<script src="js/local-storage-funcs.js?v=1775215655"></script>
-<script src="js/map-setup-funcs.js?v=1775215655"></script>
-<script src="js/ui-funcs.js?v=1775215655"></script>
-<script src="js/startup.js?v=1775215655"></script>
+<script src="data/dxcc.js?v=1775382891"></script>
+<script src="js/globals.js?v=1775382891"></script>
+<script src="js/data-funcs.js?v=1775382891"></script>
+<script src="js/file-funcs.js?v=1775382891"></script>
+<script src="js/lookup-funcs.js?v=1775382891"></script>
+<script src="js/display-funcs.js?v=1775382891"></script>
+<script src="js/utility-funcs.js?v=1775382891"></script>
+<script src="js/local-storage-funcs.js?v=1775382891"></script>
+<script src="js/map-setup-funcs.js?v=1775382891"></script>
+<script src="js/ui-funcs.js?v=1775382891"></script>
+<script src="js/startup.js?v=1775382891"></script>
 </body>
 </html>

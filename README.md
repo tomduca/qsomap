@@ -33,13 +33,13 @@ The website itself does not use cookies, is not monetised, does not contain adve
 
 This project contains a self-hosted variant of `dxcc.json` from [this project](https://github.com/k0swe/dxcc-json/) by Chris K0SWE, in the `/data/` directory. This is subject to the Apache licence and is not covered by the overall licence declared in the `LICENSE` file, and used with many thanks.
 
+It also contains a self-hosted variant of the Leaflet Maidenhead, CQ Zone and ITU Zone layers by HA8TKS. These have been modified to allow fractional zoom levels in the Maidenhead grid and to expose the CQ/ITU zone GeoJSON to use it within our similar "worked" CQ and ITU zone layers. These are MIT licenced, and also used with many thanks. 
+
 It also contains a self-hosted copy of Font Awesome's free library, in the `/fa/` directory. This is subject to Font Awesome's licence. This approach was taken in preference to using their hosted kits due to the popularity of this project exceeding the page view limit for their free hosted offering.
 
 Other third party libraries, such as Leaflet and jQuery, plus many plugins for them, are included from a CDN in the head of `index.html`.
 
 This project would not have been possible without these libraries, so many thanks to their developers.
-
-Particular thanks are due to HA8TKS for the Maidenhead, CQ and ITU zone layers, which were also the basis for my own WAB/WAI grid layer.
 
 ### Alternatives
 

@@ -25,7 +25,9 @@ function updateDisplay() {
     updatePosFromGridInput();
     enableMaidenheadGrid($("#showMaidenheadGrid").is(':checked'));
     enableCQZones($("#showCQZones").is(':checked'));
+    enableCQZonesWorked($("#showCQZonesWorked").is(':checked'));
     enableITUZones($("#showITUZones").is(':checked'));
+    enableITUZonesWorked($("#showITUZonesWorked").is(':checked'));
     enableWABWAIGrid($("#showWABWAIGrid").is(':checked'));
     enableHeatmap($("#heatmapEnabled").is(':checked'));
     enablePerBandHeatmap($("#perBandHeatmapEnabled").is(':checked'));
