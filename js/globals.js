@@ -5,18 +5,6 @@
 // Heatmap band render order. From "longest" range to "shortest". This is an ugly hack.
 const HEATMAP_BAND_RENDER_ORDER = ["10m", "12m", "15m", "17m", "20m", "30m", "40m", "60m", "80m", "160m", "6m", "4m", "2m", "70cm", "23cm", "13cm"];
 const SPOTHOLE_BASE_URL = "https://spothole.app/api/v1";
-const MAIDENHEAD_GRID_COLOR_LIGHT = 'rgba(200, 140, 140, 1.0)';
-const CQ_ZONES_COLOR_LIGHT = 'rgba(140, 200, 140, 1.0)';
-const CQ_ZONES_WORKED_COLOR_LIGHT = 'rgba(0, 0, 255, 1.0)';
-const ITU_ZONES_COLOR_LIGHT = 'rgba(200, 200, 140, 1.0)';
-const ITU_ZONES_WORKED_COLOR_LIGHT = 'rgba(0, 0, 255, 1.0)';
-const WAB_WAI_GRID_COLOR_LIGHT = 'rgba(140, 140, 200, 1.0)';
-const MAIDENHEAD_GRID_COLOR_DARK = 'rgba(120, 60, 60, 1.0)';
-const CQ_ZONES_COLOR_DARK = 'rgba(60, 120, 60, 1.0)';
-const CQ_ZONES_WORKED_COLOR_DARK = 'rgba(0, 0, 255, 1.0)';
-const ITU_ZONES_COLOR_DARK = 'rgba(120, 120, 60, 1.0)';
-const ITU_ZONES_WORKED_COLOR_DARK = 'rgba(0, 0, 255, 1.0)';
-const WAB_WAI_GRID_COLOR_DARK = 'rgba(60, 60, 120, 1.0)';
 
 /////////////////////////////
 //      DATA STORAGE       //

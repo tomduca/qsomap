@@ -40,41 +40,42 @@ function setUpMap() {
 
     // Add Maidenhead grid (toggleable)
     maidenheadGrid = L.maidenhead({
-        color : MAIDENHEAD_GRID_COLOR_LIGHT,
+        color : $('#maidenheadGridColour').val(),
         pane: 'overlaysPane'
     });
 
     gridSquaresWorked = L.gridSquaresWorked({
+        color: $('#maidenheadGridWorkedColour').val(),
         pane: 'workedOverlaysPane'
     });
 
     // Add CQ zone layer (toggleable)
     cqZones = L.cqzones({
-        color : CQ_ZONES_COLOR_LIGHT,
+        color : $('#cqZonesColour').val(),
         pane: 'overlaysPane'
     });
 
     // Add worked CQ zones highlight layer (toggleable)
     cqZonesWorked = L.cqzonesWorked({
-        color : CQ_ZONES_WORKED_COLOR_LIGHT,
+        color : $('#cqZonesWorkedColour').val(),
         pane: 'workedOverlaysPane'
     });
 
     // Add ITU zone layer (toggleable)
     ituZones = L.ituzones({
-        color : ITU_ZONES_COLOR_LIGHT,
+        color : $('#ituZonesColour').val(),
         pane: 'overlaysPane'
     });
 
     // Add worked ITU zones highlight layer (toggleable)
     ituZonesWorked = L.ituzonesWorked({
-        color : ITU_ZONES_WORKED_COLOR_LIGHT,
+        color : $('#ituZonesWorkedColour').val(),
         pane: 'workedOverlaysPane'
     });
 
     // Add WAB/WAI grid layer (toggleable)
     wabwaiGrid = L.workedAllBritainIreland({
-        color : WAB_WAI_GRID_COLOR_LIGHT,
+        color : $('#wabwaiGridColour').val(),
         pane: 'overlaysPane'
     });
 

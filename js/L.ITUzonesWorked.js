@@ -35,6 +35,14 @@ L.ITUzonesWorked = L.LayerGroup.extend({
         }
     },
 
+    setColor: function (color) {
+        this.options.color = color;
+        this.clearLayers();
+        if (this._map) {
+            this.draw();
+        }
+    },
+
     draw: function () {
         if (!ITU_ZONES_POLYGONS) { return; }
 

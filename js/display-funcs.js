@@ -206,6 +206,36 @@ function zoomToFit() {
     }
 }
 
+// Updates overlay layer colours from the UI controls. For static layers (which have no setColor method),
+// this recreates the layer objects with the new colour and re-adds them if they were visible.
+function updateOverlayColours() {
+    // Static layers: recreate with new colour, preserve visibility
+    var maidenheadVisible = map.hasLayer(maidenheadGrid);
+    var cqZonesVisible = map.hasLayer(cqZones);
+    var ituZonesVisible = map.hasLayer(ituZones);
+    var wabwaiVisible = map.hasLayer(wabwaiGrid);
+
+    if (maidenheadVisible) { map.removeLayer(maidenheadGrid); }
+    if (cqZonesVisible) { map.removeLayer(cqZones); }
+    if (ituZonesVisible) { map.removeLayer(ituZones); }
+    if (wabwaiVisible) { map.removeLayer(wabwaiGrid); }
+
+    maidenheadGrid = L.maidenhead({ color: $('#maidenheadGridColour').val(), pane: 'overlaysPane' });
+    cqZones = L.cqzones({ color: $('#cqZonesColour').val(), pane: 'overlaysPane' });
+    ituZones = L.ituzones({ color: $('#ituZonesColour').val(), pane: 'overlaysPane' });
+    wabwaiGrid = L.workedAllBritainIreland({ color: $('#wabwaiGridColour').val(), pane: 'overlaysPane' });
+
+    if (maidenheadVisible) { maidenheadGrid.addTo(map); }
+    if (cqZonesVisible) { cqZones.addTo(map); }
+    if (ituZonesVisible) { ituZones.addTo(map); }
+    if (wabwaiVisible) { wabwaiGrid.addTo(map); }
+
+    // Worked layers: update colour in place and redraw
+    cqZonesWorked.setColor($('#cqZonesWorkedColour').val());
+    ituZonesWorked.setColor($('#ituZonesWorkedColour').val());
+    gridSquaresWorked.setColor($('#maidenheadGridWorkedColour').val());
+}
+
 // Shows/hides the Maidenhead grid overlay
 function enableMaidenheadGrid(show) {
     if (maidenheadGrid) {
@@ -498,22 +528,6 @@ function setBasemap(basemapname) {
         const basemapIsDark = basemapname === "CartoDB.DarkMatter" || basemapname === "Esri.WorldImagery";
         $("#map").css('background-color', basemapIsDark ? "black" : "white");
 
-        // Change the colour of the grid and zone overlays to match
-        if (basemapIsDark) {
-            maidenheadGrid.options.color = MAIDENHEAD_GRID_COLOR_DARK;
-            cqZones.options.color = CQ_ZONES_COLOR_DARK;
-            cqZonesWorked.options.color = CQ_ZONES_WORKED_COLOR_DARK;
-            ituZones.options.color = ITU_ZONES_COLOR_DARK;
-            ituZonesWorked.options.color = ITU_ZONES_WORKED_COLOR_DARK;
-            wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_DARK;
-        } else {
-            maidenheadGrid.options.color = MAIDENHEAD_GRID_COLOR_LIGHT;
-            cqZones.options.color = CQ_ZONES_COLOR_LIGHT;
-            cqZonesWorked.options.color = CQ_ZONES_WORKED_COLOR_LIGHT;
-            ituZones.options.color = ITU_ZONES_COLOR_LIGHT;
-            ituZonesWorked.options.color = ITU_ZONES_WORKED_COLOR_LIGHT;
-            wabwaiGrid.options.color = WAB_WAI_GRID_COLOR_LIGHT;
-        }
         if ($('#showMaidenheadGrid').is(':checked')) {
             map.removeLayer(maidenheadGrid);
             maidenheadGrid.addTo(map);

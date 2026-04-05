@@ -23,6 +23,7 @@ function updateDisplay() {
     setBasemap($("#basemap").val());
     setBasemapOpacity($("#basemapOpacity").val());
     updatePosFromGridInput();
+    updateOverlayColours();
     enableMaidenheadGrid($("#showMaidenheadGrid").is(':checked'));
     enableMaidenheadGridWorked($("#gridSquaresEnabled").is(':checked'));
     enableCQZones($("#showCQZones").is(':checked'));

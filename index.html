@@ -60,9 +60,9 @@
     <script src="js/L.GridSquaresWorked.js"></script>
     <script src="https://misc.ianrenton.com/Leaflet.WorkedAllBritainIreland/L.WorkedAllBritainIreland.js"></script>
 
-    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1775393311"></script>
-    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1775393311"></script>
-    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1775393311"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ham.js?v=1775423573"></script>
+    <script src="https://misc.ianrenton.com/jsutils/ui-ham.js?v=1775423573"></script>
+    <script src="https://misc.ianrenton.com/jsutils/geo.js?v=1775423573"></script>
 
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="alternate icon" type="image/png" href="img/favicon-32.png">
@@ -347,7 +347,7 @@
                                     colour:</label>
                             </div>
                             <div class="col-2">
-                                <input type="color" id="fixedMarkerColour" class="control form-control form-control-color" name="fixedMarkerColour" value="#1e90ff"/>
+                                <input type="color" id="fixedMarkerColour" class="control form-control form-control-color rightSideColorPicker" name="fixedMarkerColour" value="#1e90ff"/>
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -492,52 +492,72 @@
                     </button>
                     <div class="collapse indented-section" id="display-grid-zone-overlays-collapse">
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="showMaidenheadGrid" class="configLabel form-check-label">
-                                    <input type="checkbox" id="showMaidenheadGrid" class="control form-check-input" name="showMaidenheadGrid">&nbsp;Maidenhead grid layer</label>
+                                    <input type="checkbox" id="showMaidenheadGrid" class="control form-check-input" name="showMaidenheadGrid">&nbsp;Maidenhead grid</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="maidenheadGridColour" class="control form-control form-control-color rightSideColorPicker" name="maidenheadGridColour" value="#c88c8c"/>
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="gridSquaresEnabled" class="configLabel form-check-label">
-                                    <input type="checkbox" id="gridSquaresEnabled" class="control form-check-input" name="gridSquaresEnabled">&nbsp;Draw worked Maidenhead grids</label>
+                                    <input type="checkbox" id="gridSquaresEnabled" class="control form-check-input" name="gridSquaresEnabled">&nbsp;Worked grids</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="maidenheadGridWorkedColour" class="control form-control form-control-color rightSideColorPicker" name="maidenheadGridWorkedColour" value="#0000ff"/>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-12">
                                 <label for="labelGridSquaresWorked" class="configLabel form-check-label">
-                                    <input type="checkbox" id="labelGridSquaresWorked" class="control form-check-input" name="labelGridSquaresWorked">&nbsp;Label worked Maidenhead
-                                    grids</label>
+                                    <input type="checkbox" id="labelGridSquaresWorked" class="control form-check-input" name="labelGridSquaresWorked">&nbsp;Worked grid labels</label>
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="showCQZones" class="configLabel form-check-label">
-                                    <input type="checkbox" id="showCQZones" class="control form-check-input" name="showCQZones">&nbsp;CQ zone layer</label>
+                                    <input type="checkbox" id="showCQZones" class="control form-check-input" name="showCQZones">&nbsp;CQ zones</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="cqZonesColour" class="control form-control form-control-color rightSideColorPicker" name="cqZonesColour" value="#8cc88c"/>
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="showCQZonesWorked" class="configLabel form-check-label">
-                                    <input type="checkbox" id="showCQZonesWorked" class="control form-check-input" name="showCQZonesWorked">&nbsp;Draw worked CQ zones</label>
+                                    <input type="checkbox" id="showCQZonesWorked" class="control form-check-input" name="showCQZonesWorked">&nbsp;Worked CQ zones</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="cqZonesWorkedColour" class="control form-control form-control-color rightSideColorPicker" name="cqZonesWorkedColour" value="#0000ff"/>
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="showITUZones" class="configLabel form-check-label">
-                                    <input type="checkbox" id="showITUZones" class="control form-check-input" name="showITUZones">&nbsp;ITU zone layer</label>
+                                    <input type="checkbox" id="showITUZones" class="control form-check-input" name="showITUZones">&nbsp;ITU zones</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="ituZonesColour" class="control form-control form-control-color rightSideColorPicker" name="ituZonesColour" value="#c8c88c"/>
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="showITUZonesWorked" class="configLabel form-check-label">
-                                    <input type="checkbox" id="showITUZonesWorked" class="control form-check-input" name="showITUZonesWorked">&nbsp;Draw worked ITU zones</label>
+                                    <input type="checkbox" id="showITUZonesWorked" class="control form-check-input" name="showITUZonesWorked">&nbsp;Worked ITU zones</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="ituZonesWorkedColour" class="control form-control form-control-color rightSideColorPicker" name="ituZonesWorkedColour" value="#0000ff"/>
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-12">
+                            <div class="col-10">
                                 <label for="showWABWAIGrid" class="configLabel form-check-label">
-                                    <input type="checkbox" id="showWABWAIGrid" class="control form-check-input" name="showWABWAIGrid">&nbsp;Worked All Britain/Ireland grid</label>
+                                    <input type="checkbox" id="showWABWAIGrid" class="control form-check-input" name="showWABWAIGrid">&nbsp;WAB/WAI grid</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="color" id="wabwaiGridColour" class="control form-control form-control-color rightSideColorPicker" name="wabwaiGridColour" value="#8c8cc8"/>
                             </div>
                         </div>
                     </div>
@@ -799,16 +819,16 @@
 
 <div id="map"></div>
 
-<script src="data/dxcc.js?v=1775393311"></script>
-<script src="js/globals.js?v=1775393311"></script>
-<script src="js/data-funcs.js?v=1775393311"></script>
-<script src="js/file-funcs.js?v=1775393311"></script>
-<script src="js/lookup-funcs.js?v=1775393311"></script>
-<script src="js/display-funcs.js?v=1775393311"></script>
-<script src="js/utility-funcs.js?v=1775393311"></script>
-<script src="js/local-storage-funcs.js?v=1775393311"></script>
-<script src="js/map-setup-funcs.js?v=1775393311"></script>
-<script src="js/ui-funcs.js?v=1775393311"></script>
-<script src="js/startup.js?v=1775393311"></script>
+<script src="data/dxcc.js?v=1775423573"></script>
+<script src="js/globals.js?v=1775423573"></script>
+<script src="js/data-funcs.js?v=1775423573"></script>
+<script src="js/file-funcs.js?v=1775423573"></script>
+<script src="js/lookup-funcs.js?v=1775423573"></script>
+<script src="js/display-funcs.js?v=1775423573"></script>
+<script src="js/utility-funcs.js?v=1775423573"></script>
+<script src="js/local-storage-funcs.js?v=1775423573"></script>
+<script src="js/map-setup-funcs.js?v=1775423573"></script>
+<script src="js/ui-funcs.js?v=1775423573"></script>
+<script src="js/startup.js?v=1775423573"></script>
 </body>
 </html>

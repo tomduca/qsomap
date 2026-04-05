@@ -52,7 +52,7 @@ div#map {
     border-top-color: var(--bs-body-bg);
 }
 
-input#fixedMarkerColour {
+input.rightSideColorPicker {
     padding: 0;
     border: none;
     height: 1.5em;

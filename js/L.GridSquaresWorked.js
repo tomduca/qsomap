@@ -60,6 +60,12 @@ L.GridSquaresWorked = L.LayerGroup.extend({
         }
     },
 
+    setColor: function (color) {
+        this.options.color = color;
+        this.clearLayers();
+        this._redrawAll();
+    },
+
     // Add a single worked grid square (4-digit Maidenhead reference).
     // If showLabel is true, a text label is also drawn at the centre.
     // Has no effect if the square has already been drawn.
