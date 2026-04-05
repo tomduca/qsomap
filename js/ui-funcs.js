@@ -24,6 +24,7 @@ function updateDisplay() {
     setBasemapOpacity($("#basemapOpacity").val());
     updatePosFromGridInput();
     enableMaidenheadGrid($("#showMaidenheadGrid").is(':checked'));
+    enableMaidenheadGridWorked($("#gridSquaresEnabled").is(':checked'));
     enableCQZones($("#showCQZones").is(':checked'));
     enableCQZonesWorked($("#showCQZonesWorked").is(':checked'));
     enableITUZones($("#showITUZones").is(':checked'));

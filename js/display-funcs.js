@@ -15,10 +15,7 @@ function redrawAll() {
     oms.clearMarkers();
     lines.forEach(line => linesLayer.removeLayer(line));
     lines = new Map();
-    gridSquares.forEach(square => gridSquaresWorkedLayer.removeLayer(square));
-    gridSquares = new Map();
-    gridSquareLabels.forEach(label => gridSquaresWorkedLabelsLayer.removeLayer(label));
-    gridSquareLabels = new Map();
+    gridSquaresWorked.clearGridSquares();
     try {
         heatmapLayer.setLatLngs([]);
     } catch (e) {}
@@ -190,26 +187,9 @@ function redraw(key) {
             lines.set(key, line);
         }
 
-        // Add worked square. Must not be a dupe of one we have already added.
-        let fourDigitGrid = d.grid.substring(0, 4);
-        if (gridSquaresEnabled && !gridSquares.has(fourDigitGrid)) {
-            let swCorner = latLonForGridSWCorner(fourDigitGrid);
-            let neCorner = latLonForGridNECorner(fourDigitGrid);
-            let square = L.rectangle([swCorner, neCorner], {color: 'blue', pane: 'overlaysPane'});
-            gridSquaresWorkedLayer.addLayer(square);
-            gridSquares.set(fourDigitGrid, square);
-
-            if (labelGridSquaresWorked) {
-                let centre = latLonForGridCentre(fourDigitGrid);
-                let label = new L.marker(centre, {
-                    pane: 'overlaysPane',
-                    icon: new L.DivIcon({
-                        html: "<div class='gridSquareLabel'>" + fourDigitGrid + "</div>",
-                    })
-                });
-                gridSquaresWorkedLabelsLayer.addLayer(label);
-                gridSquareLabels.set(fourDigitGrid, label);
-            }
+        // Add worked square. The layer handles deduplication internally.
+        if (gridSquaresEnabled) {
+            gridSquaresWorked.addGridSquare(d.grid.substring(0, 4), labelGridSquaresWorked);
         }
     }
 }
@@ -233,6 +213,17 @@ function enableMaidenheadGrid(show) {
             maidenheadGrid.addTo(map);
         } else {
             map.removeLayer(maidenheadGrid);
+        }
+    }
+}
+
+// Shows/hides the Maidenhead grids worked
+function enableMaidenheadGridWorked(show) {
+    if (gridSquaresWorked) {
+        if (show) {
+            gridSquaresWorked.addTo(map);
+        } else {
+            map.removeLayer(gridSquaresWorked);
         }
     }
 }

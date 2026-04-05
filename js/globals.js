@@ -47,16 +47,13 @@ let qthPos;
 // prevent drawing multiple overlapping squares.
 let markers = new Map();
 let lines = new Map();
-let gridSquares = new Map();
-let gridSquareLabels = new Map();
 // Map and layers
 let map;
 let oms;
 let basemapLayer;
 let markersLayer;
 let linesLayer;
-let gridSquaresWorkedLayer;
-let gridSquaresWorkedLabelsLayer;
+let gridSquaresWorked;
 let ownPosLayer;
 let ownPosMarker;
 let heatmapData = [];

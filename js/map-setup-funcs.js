@@ -15,8 +15,11 @@ function setUpMap() {
     map.createPane('overlaysPane');
     map.getPane('overlaysPane').style.zIndex = 250;
     map.getPane('overlaysPane').style.pointerEvents = 'none';
+    map.createPane('workedOverlaysPane');
+    map.getPane('workedOverlaysPane').style.zIndex = 260;
+    map.getPane('workedOverlaysPane').style.pointerEvents = 'none';
     map.createPane('heatmapPane');
-    map.getPane('heatmapPane').style.zIndex = 260;
+    map.getPane('heatmapPane').style.zIndex = 270;
     map.getPane('heatmapPane').style.pointerEvents = 'none';
     map.createPane('linesPane');
     map.getPane('linesPane').style.zIndex = 280;
@@ -41,6 +44,10 @@ function setUpMap() {
         pane: 'overlaysPane'
     });
 
+    gridSquaresWorked = L.gridSquaresWorked({
+        pane: 'workedOverlaysPane'
+    });
+
     // Add CQ zone layer (toggleable)
     cqZones = L.cqzones({
         color : CQ_ZONES_COLOR_LIGHT,
@@ -50,7 +57,7 @@ function setUpMap() {
     // Add worked CQ zones highlight layer (toggleable)
     cqZonesWorked = L.cqzonesWorked({
         color : CQ_ZONES_WORKED_COLOR_LIGHT,
-        pane: 'overlaysPane'
+        pane: 'workedOverlaysPane'
     });
 
     // Add ITU zone layer (toggleable)
@@ -62,7 +69,7 @@ function setUpMap() {
     // Add worked ITU zones highlight layer (toggleable)
     ituZonesWorked = L.ituzonesWorked({
         color : ITU_ZONES_WORKED_COLOR_LIGHT,
-        pane: 'overlaysPane'
+        pane: 'workedOverlaysPane'
     });
 
     // Add WAB/WAI grid layer (toggleable)
@@ -85,12 +92,6 @@ function setUpMap() {
     // Add own position marker layer
     ownPosLayer = new L.LayerGroup();
     ownPosLayer.addTo(map);
-
-    // Add gridsquares worked layers
-    gridSquaresWorkedLayer = new L.LayerGroup();
-    gridSquaresWorkedLayer.addTo(map);
-    gridSquaresWorkedLabelsLayer = new L.LayerGroup();
-    gridSquaresWorkedLabelsLayer.addTo(map);
 
     // Add heatmap layers
     heatmapLayer = L.heatLayer([], {radius: 25, pane: 'heatmapPane'});
