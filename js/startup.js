@@ -15,6 +15,7 @@ $("#fileSelect").val("");
 // to remove some issues with the ExtraMarkers library having an asynchronous load.
 setTimeout(function () {
     loadLocalStorage();
+    showOnlineLookupWarning();
 }, 1000);
 
 // Add the timed thread to process the queue. This is done as a setTimeout which is then re-called at the end of

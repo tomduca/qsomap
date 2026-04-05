@@ -292,3 +292,39 @@ function setBandColorSchemeQSOMap(scheme) {
         $(this).css('background-color', bandToColor($(this).attr("id").replace("bandColorSample-", "").replace("_", ".")));
     });
 }
+
+// On first visit, open the Online Lookup section and show a warning popover.
+function showOnlineLookupWarning() {
+    if (!localStorage.getItem('onlineLookupPopoverDismissed')) {
+        bootstrap.Collapse.getOrCreateInstance(
+            document.getElementById('data-online-lookup-collapse')
+        ).show();
+
+        var popover = new bootstrap.Popover(
+            document.querySelector('label[for="userLookupEnabled"]'),
+            {
+                html: true,
+                sanitize: false,
+                trigger: 'manual',
+                placement: 'auto',
+                offset: function({ placement }) {
+                    if (placement && placement.startsWith('right'))  { return [0, 170]; }
+                    return [0, 0];
+                },
+                title: 'Online Lookup',
+                content: 'QSO Map can automatically look up callsigns and references using online services. This includes Maidenhead grid references, CQ & ITU zones. The data is not guaranteed to be accurate. If your log is for a contest, and you need to ensure only data that\'s in your log file is used, please disable online lookup.' +
+                    '<div class="mt-2"><button type="button" class="btn btn-sm btn-secondary" ' +
+                    'id="online-lookup-popover-dismiss">OK</button></div>'
+            }
+        );
+        popover.show();
+
+        document.addEventListener('click', function handler(e) {
+            if (e.target && e.target.id === 'online-lookup-popover-dismiss') {
+                popover.dispose();
+                localStorage.setItem('onlineLookupPopoverDismissed', 'true');
+                document.removeEventListener('click', handler);
+            }
+        });
+    }
+}
