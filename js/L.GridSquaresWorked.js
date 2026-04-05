@@ -8,51 +8,71 @@ L.GridSquaresWorked = L.LayerGroup.extend({
     initialize: function (options) {
         L.LayerGroup.prototype.initialize.call(this);
         L.Util.setOptions(this, options);
-        this._drawnGrids = new Map();
+        this._grids = new Map(); // grid → showLabel
     },
 
     onAdd: function (map) {
         this._map = map;
-        L.LayerGroup.prototype.onAdd.call(this, map);
+        this._zoomHandler = this._onZoom.bind(this);
+        map.on('zoomend', this._zoomHandler);
+        this._redrawAll();
+    },
+
+    onRemove: function (map) {
+        map.off('zoomend', this._zoomHandler);
+        L.LayerGroup.prototype.onRemove.call(this, map);
+    },
+
+    _onZoom: function () {
+        this.clearLayers();
+        this._redrawAll();
+    },
+
+    _redrawAll: function () {
+        var self = this;
+        this._grids.forEach(function (showLabel, grid) {
+            self._drawOne(grid, showLabel);
+        });
+    },
+
+    _drawOne: function (grid, showLabel) {
+        var swCorner = this._latLonForGridSWCorner(grid);
+        var neCorner = this._latLonForGridNECorner(grid);
+        if (!swCorner || !neCorner) { return; }
+
+        this.addLayer(L.rectangle([swCorner, neCorner], {
+            color: this.options.color,
+            pane: this.options.pane
+        }));
+
+        if (showLabel) {
+            var centre = this._latLonForGridCentre(grid);
+            if (centre) {
+                var zoom = this._map.getZoom();
+                var style = { color: this.options.color, size: 20 };
+                var img = TextImage(style).toDataURL(grid);
+                var x = zoom * 12;
+                this.addLayer(L.marker(centre, {
+                    pane: this.options.pane,
+                    icon: L.icon({ iconUrl: img, iconSize: [x / 2, x / 4] })
+                }));
+            }
+        }
     },
 
     // Add a single worked grid square (4-digit Maidenhead reference).
     // If showLabel is true, a text label is also drawn at the centre.
     // Has no effect if the square has already been drawn.
     addGridSquare: function (grid, showLabel) {
-        if (this._drawnGrids.has(grid)) { return; }
-
-        var swCorner = this._latLonForGridSWCorner(grid);
-        var neCorner = this._latLonForGridNECorner(grid);
-        if (!swCorner || !neCorner) { return; }
-
-        var square = L.rectangle([swCorner, neCorner], {
-            color: this.options.color,
-            pane: this.options.pane
-        });
-        this.addLayer(square);
-
-        var label = null;
-        if (showLabel) {
-            var centre = this._latLonForGridCentre(grid);
-            if (centre) {
-                label = L.marker(centre, {
-                    pane: this.options.pane,
-                    icon: L.divIcon({
-                        html: "<div class='gridSquareLabel'>" + grid + "</div>"
-                    })
-                });
-                this.addLayer(label);
-            }
-        }
-
-        this._drawnGrids.set(grid, { square: square, label: label });
+        if (this._grids.has(grid)) { return; }
+        this._grids.set(grid, showLabel);
+        this._drawOne(grid, showLabel);
     },
 
     // Remove all drawn grid squares and labels.
     clearGridSquares: function () {
         this.clearLayers();
-        this._drawnGrids = new Map();
+        this._grids = new Map();
     },
 
     // Inlined from geo.js (misc.ianrenton.com/jsutils/geo.js)
