@@ -208,6 +208,7 @@ L.ITUzones = L.LayerGroup.extend({
 	draw: function () {
 
 		var color = this.options.color;
+		var pane = this.options.pane;
 
 		var myIcon = function(properties,zoom) {
 			if (properties.point) {
@@ -235,6 +236,7 @@ L.ITUzones = L.LayerGroup.extend({
 
 		var  line_style = {
 			buffer: 600,
+			pane: pane,
 			vectorTileLayerStyles: {
 				sliced : {
 					stroke : true,
@@ -246,6 +248,7 @@ L.ITUzones = L.LayerGroup.extend({
 
 		var number_style = {
 			buffer: 600,
+			pane: pane,
 			vectorTileLayerStyles: {
 			sliced: Zones
 			}

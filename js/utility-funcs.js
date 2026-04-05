@@ -48,9 +48,10 @@ function createOwnPosMarker(newPos) {
 
     if (qthMarker && newPos != null) {
         if (circleMarkers) {
-            ownPosMarker = L.circleMarker(newPos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black", fillColor: "grey", stroke: outlineMarkers });
+            ownPosMarker = L.circleMarker(newPos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black", fillColor: "grey", stroke: outlineMarkers, pane: 'ownPosPane' });
         } else {
             ownPosMarker = L.marker(newPos, {
+                pane: 'ownPosPane',
                 icon: L.ExtraMarkers.icon({
                     icon: (markerSize >= 0.75) ? 'fa-tower-cell' : 'fa-none',
                     iconColor: 'white',

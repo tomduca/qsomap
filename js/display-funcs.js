@@ -96,9 +96,9 @@ function redraw(key) {
             if (markers.has(key)) {
                 m = markers.get(key)
             } else if (circleMarkers) {
-                m = L.circleMarker(pos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black" });
+                m = L.circleMarker(pos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, color: "black", pane: 'qsoMarkersPane' });
             } else {
-                m = L.marker(pos);
+                m = L.marker(pos, { pane: 'qsoMarkersPane' });
             }
 
             // Set the icon for the marker
@@ -181,7 +181,8 @@ function redraw(key) {
                 color: colourLines ? qsoToColour(d) : "black",
                 wrap: false,
                 steps: 5,
-                weight: thickLines ? 3 : 1
+                weight: thickLines ? 3 : 1,
+                pane: 'linesPane'
             });
             linesLayer.addLayer(line);
 
@@ -194,13 +195,14 @@ function redraw(key) {
         if (gridSquaresEnabled && !gridSquares.has(fourDigitGrid)) {
             let swCorner = latLonForGridSWCorner(fourDigitGrid);
             let neCorner = latLonForGridNECorner(fourDigitGrid);
-            let square = L.rectangle([swCorner, neCorner], {color: 'blue'});
+            let square = L.rectangle([swCorner, neCorner], {color: 'blue', pane: 'overlaysPane'});
             gridSquaresWorkedLayer.addLayer(square);
             gridSquares.set(fourDigitGrid, square);
 
             if (labelGridSquaresWorked) {
                 let centre = latLonForGridCentre(fourDigitGrid);
                 let label = new L.marker(centre, {
+                    pane: 'overlaysPane',
                     icon: new L.DivIcon({
                         html: "<div class='gridSquareLabel'>" + fourDigitGrid + "</div>",
                     })
@@ -229,7 +231,6 @@ function enableMaidenheadGrid(show) {
     if (maidenheadGrid) {
         if (show) {
             maidenheadGrid.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(maidenheadGrid);
         }
@@ -241,7 +242,6 @@ function enableCQZones(show) {
     if (cqZones) {
         if (show) {
             cqZones.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(cqZones);
         }
@@ -253,7 +253,6 @@ function enableCQZonesWorked(show) {
     if (cqZonesWorked) {
         if (show) {
             cqZonesWorked.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(cqZonesWorked);
         }
@@ -265,7 +264,6 @@ function enableITUZones(show) {
     if (ituZones) {
         if (show) {
             ituZones.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(ituZones);
         }
@@ -277,7 +275,6 @@ function enableITUZonesWorked(show) {
     if (ituZonesWorked) {
         if (show) {
             ituZonesWorked.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(ituZonesWorked);
         }
@@ -289,7 +286,6 @@ function enableWABWAIGrid(show) {
     if (wabwaiGrid) {
         if (show) {
             wabwaiGrid.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(wabwaiGrid);
         }
@@ -305,7 +301,6 @@ function enableHeatmap(show) {
                 heatmapLayer.setLatLngs(heatmapData);
             } catch (e) {}
             heatmapLayer.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(heatmapLayer);
         }
@@ -323,7 +318,6 @@ function enablePerBandHeatmap(show) {
                 } catch (e) {}
             });
             perBandHeatmapsGroup.addTo(map);
-            basemapLayer.bringToBack();
         } else {
             map.removeLayer(perBandHeatmapsGroup);
         }
@@ -507,7 +501,6 @@ function setBasemap(basemapname) {
             edgeBufferTiles: 1
         });
         basemapLayer.addTo(map);
-        basemapLayer.bringToBack();
 
         // Identify dark basemaps to ensure we use white text for unselected icons
         // and change the background colour appropriately
@@ -533,30 +526,24 @@ function setBasemap(basemapname) {
         if ($('#showMaidenheadGrid').is(':checked')) {
             map.removeLayer(maidenheadGrid);
             maidenheadGrid.addTo(map);
-            basemapLayer.bringToBack();
         }
         if ($('#showCQZones').is(':checked')) {
             map.removeLayer(cqZones);
             cqZones.addTo(map);
-            basemapLayer.bringToBack();
         }
         if ($('#showCQZonesWorked').is(':checked')) {
             cqZonesWorked.setWorkedZones(cqZonesWorked.options.workedZones);
-            basemapLayer.bringToBack();
         }
         if ($('#showITUZones').is(':checked')) {
             map.removeLayer(ituZones);
             ituZones.addTo(map);
-            basemapLayer.bringToBack();
         }
         if ($('#showITUZonesWorked').is(':checked')) {
             ituZonesWorked.setWorkedZones(ituZonesWorked.options.workedZones);
-            basemapLayer.bringToBack();
         }
         if ($('#showWABWAIGrid').is(':checked')) {
             map.removeLayer(wabwaiGrid);
             wabwaiGrid.addTo(map);
-            basemapLayer.bringToBack();
         }
     }
 }

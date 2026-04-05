@@ -59,9 +59,12 @@ L.CQzonesWorked = L.LayerGroup.extend({
 
         if (polygonFeatures.length === 0) { return; }
 
+        var pane = this.options.pane;
+
         var geoLayer = L.geoJSON(
             { type: "FeatureCollection", features: polygonFeatures },
             {
+                pane: pane,
                 style: {
                     color: color,
                     fillColor: color,
@@ -86,6 +89,7 @@ L.CQzonesWorked = L.LayerGroup.extend({
                     var x = zoom * 12;
                     if (zone < 10) { x = x / 1.8; }
                     return L.marker(latlng, {
+                        pane: pane,
                         icon: L.icon({ iconUrl: img, iconSize: [x, x] })
                     });
                 }
