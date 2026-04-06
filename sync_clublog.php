@@ -15,7 +15,7 @@ if (!$config) {
 }
 
 $email = $config['clublog']['email'];
-$password = $config['clublog']['password'];
+$apiKey = $config['clublog']['api_key'];
 $callsign = $config['clublog']['callsign'];
 
 // Paths
@@ -34,34 +34,48 @@ echo "Callsign: $callsign\n\n";
 // Using POST as per Clublog API documentation
 $url = "https://clublog.org/getadif.php";
 
-// Try with all possible parameters
+// Use API key to download full log
 $postData = http_build_query([
-    'api' => $password,
+    'api' => $apiKey,
     'email' => $email,
     'callsign' => $callsign,
     'full' => 'yes'  // Request full log
 ]);
 
-echo "API Key: " . substr($password, 0, 10) . "...\n";
+echo "API Key: " . substr($apiKey, 0, 10) . "...\n";
 echo "Email: $email\n";
 echo "Callsign: $callsign\n";
 
-$options = [
-    'http' => [
-        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-        'method'  => 'POST',
-        'content' => $postData
-    ]
-];
+echo "Downloading from Clublog (POST with cURL)...\n";
 
-$context = stream_context_create($options);
+// Use cURL for better error handling
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/x-www-form-urlencoded'
+]);
 
-echo "Downloading from Clublog (POST)...\n";
-$adifData = file_get_contents($url, false, $context);
+$adifData = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlError = curl_error($ch);
+curl_close($ch);
 
-if ($adifData === false || empty($adifData)) {
-    echo "Error details: " . (error_get_last()['message'] ?? 'Unknown error') . "\n";
-    die("Error: Failed to download from Clublog\n");
+echo "HTTP Response Code: $httpCode\n";
+
+if ($httpCode !== 200) {
+    echo "Error: HTTP $httpCode\n";
+    if ($curlError) {
+        echo "cURL Error: $curlError\n";
+    }
+    echo "Response: " . substr($adifData, 0, 500) . "\n";
+    die("Error: Failed to download from Clublog (HTTP $httpCode)\n");
+}
+
+if (empty($adifData)) {
+    die("Error: Empty response from Clublog\n");
 }
 
 echo "Response length: " . strlen($adifData) . " bytes\n";
