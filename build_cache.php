@@ -106,27 +106,37 @@ foreach ($qsos as $qso) {
         'date' => $qso['QSO_DATE'] ?? '',
         'time' => $qso['TIME_ON'] ?? '',
         'grid' => $qso['GRIDSQUARE'] ?? '',
+        'name' => $qso['NAME'] ?? '',
+        'qth' => $qso['QTH'] ?? '',
         'comment' => $qso['COMMENT'] ?? '',
         'sig' => $qso['SIG'] ?? '',
         'sig_info' => $qso['SIG_INFO'] ?? ''
     ];
     
-    // If no grid, try lookup
-    if (empty($processed['grid']) && !empty($processed['call'])) {
+    // If no grid or missing name/qth, try lookup
+    if ((empty($processed['grid']) || empty($processed['name']) || empty($processed['qth'])) && !empty($processed['call'])) {
         $stats['lookups']++;
         
         // Try HamQTH first
         if ($hamqthSession) {
-            $grid = lookupGridHamQTH($processed['call'], $hamqthSession);
-            if ($grid) {
-                $processed['grid'] = $grid;
+            $info = lookupCallsignHamQTH($processed['call'], $hamqthSession);
+            if ($info) {
+                if (!empty($info['grid'])) {
+                    $processed['grid'] = $info['grid'];
+                }
+                if (!empty($info['name'])) {
+                    $processed['name'] = $info['name'];
+                }
+                if (!empty($info['qth'])) {
+                    $processed['qth'] = $info['qth'];
+                }
                 $stats['hamqth']++;
                 echo ".";
                 usleep(20000); // 20ms delay
             }
         }
         
-        // Fallback to Spothole
+        // Fallback to Spothole for grid only
         if (empty($processed['grid'])) {
             $grid = lookupGridSpothole($processed['call']);
             if ($grid) {
@@ -190,9 +200,9 @@ function hamqthLogin($username, $password) {
 }
 
 /**
- * Lookup grid via HamQTH
+ * Lookup callsign info via HamQTH (grid, name, qth)
  */
-function lookupGridHamQTH($callsign, $sessionId) {
+function lookupCallsignHamQTH($callsign, $sessionId) {
     $url = "https://www.hamqth.com/xml.php?" . http_build_query([
         'id' => $sessionId,
         'callsign' => $callsign,
@@ -203,10 +213,30 @@ function lookupGridHamQTH($callsign, $sessionId) {
     if (!$xml) return null;
     
     $data = @simplexml_load_string($xml);
-    if (!$data) return null;
+    if (!$data || !isset($data->search)) return null;
     
-    $grid = (string)$data->search->grid ?? '';
-    return !empty($grid) ? $grid : null;
+    $info = [];
+    
+    // Grid square
+    if (isset($data->search->grid)) {
+        $info['grid'] = (string)$data->search->grid;
+    }
+    
+    // Name (try nick first, then adr_name)
+    if (isset($data->search->nick) && !empty((string)$data->search->nick)) {
+        $info['name'] = (string)$data->search->nick;
+    } elseif (isset($data->search->adr_name)) {
+        $info['name'] = (string)$data->search->adr_name;
+    }
+    
+    // QTH/City
+    if (isset($data->search->adr_city) && !empty((string)$data->search->adr_city)) {
+        $info['qth'] = (string)$data->search->adr_city;
+    } elseif (isset($data->search->qth)) {
+        $info['qth'] = (string)$data->search->qth;
+    }
+    
+    return !empty($info) ? $info : null;
 }
 
 /**
