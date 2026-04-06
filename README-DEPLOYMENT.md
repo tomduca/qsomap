@@ -3,16 +3,19 @@
 ## Sistema Implementado
 
 ### Componentes
-- **sync_lotw.php** - Sincroniza QSOs desde LOTW (incremental)
-- **build_cache.php** - Construye cache con lookups de grids (HamQTH)
+- **sync_clublog.php** - Sincroniza QSOs desde Clublog (fuente única)
+- **build_cache.php** - Construye cache con lookups de grids (HamQTH/Spothole)
 - **index-headless.html** - Mapa sin UI para embedding
 - **config.json** - Credenciales (protegido por .htaccess)
 
 ### Configuración Actual
 - **Callsign**: LU2MET
 - **Grid**: FF57oc
-- **QSOs**: 285 desde LOTW
-- **Grids**: 98 (34% cobertura vía HamQTH)
+- **Data Source:** Clublog (fuente única de QSOs)
+- **QSOs**: 265 desde Clublog
+- **Grids**: 221 (83% cobertura)
+  - 217 desde Clublog directamente
+  - 4 vía HamQTH/Spothole
 
 ## Instalación en Producción
 

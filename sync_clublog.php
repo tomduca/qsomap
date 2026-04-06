@@ -93,28 +93,22 @@ echo "✓ Downloaded ADIF data\n";
 $qsos = parseADIF($adifData);
 echo "✓ Parsed " . count($qsos) . " QSOs from Clublog\n";
 
-// Load existing JSON data for merging
-$existingData = [];
-if (file_exists($jsonFile)) {
-    $existingData = json_decode(file_get_contents($jsonFile), true);
-    if (!$existingData) {
-        $existingData = [];
-    }
-    echo "✓ Loaded " . count($existingData) . " existing QSOs from JSON\n";
-}
+// Use Clublog data as the primary source (no merging with LOTW)
+$merged = [];
+$gridCount = 0;
 
-// Merge QSOs (incremental - avoid duplicates)
-$merged = mergeQSOs($existingData, $qsos);
-echo "✓ Total QSOs after merge: " . count($merged) . "\n";
-
-// Count QSOs with grids
-$withGrid = 0;
-foreach ($merged as $qso) {
+foreach ($qsos as $qso) {
+    $key = $qso['CALL'] . '_' . $qso['QSO_DATE'] . '_' . $qso['TIME_ON'] . '_' . $qso['BAND'];
+    
     if (!empty($qso['GRIDSQUARE'])) {
-        $withGrid++;
+        $gridCount++;
     }
+    
+    $merged[$key] = $qso;
 }
-echo "✓ QSOs with grid from Clublog: $withGrid\n";
+
+echo "✓ Total QSOs from Clublog: " . count($merged) . "\n";
+echo "✓ QSOs with grid from Clublog: $gridCount\n";
 
 // Save merged JSON
 $jsonData = json_encode($merged, JSON_PRETTY_PRINT);
@@ -123,7 +117,7 @@ echo "✓ JSON saved to: $jsonFile\n";
 
 echo "\n=== Clublog Sync Complete ===\n";
 echo "Total QSOs: " . count($merged) . "\n";
-echo "QSOs with grid: $withGrid\n";
+echo "QSOs with grid: $gridCount\n";
 
 /**
  * Parse ADIF content into array of QSOs
