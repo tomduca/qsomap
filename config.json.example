@@ -1,0 +1,20 @@
+{
+  "lotw": {
+    "username": "YOUR_CALLSIGN",
+    "password": "YOUR_LOTW_PASSWORD",
+    "days_back": 3650
+  },
+  "clublog": {
+    "email": "your.email@example.com",
+    "password": "YOUR_CLUBLOG_API_PASSWORD",
+    "callsign": "YOUR_CALLSIGN"
+  },
+  "hamqth": {
+    "username": "your_hamqth_username",
+    "password": "YOUR_HAMQTH_PASSWORD"
+  },
+  "map": {
+    "my_callsign": "YOUR_CALLSIGN",
+    "my_grid": "YOUR_GRID"
+  }
+}

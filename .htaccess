@@ -1,0 +1,8 @@
+# Protect config.json from direct access
+<Files "config.json">
+    Require all denied
+</Files>
+
+# Allow iframe embedding
+Header always set X-Frame-Options "ALLOW-FROM https://www.qrz.com"
+Header always set Content-Security-Policy "frame-ancestors 'self' https://www.qrz.com"

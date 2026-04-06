@@ -1,0 +1,35 @@
+# Sensitive files - NEVER commit these
+config.json
+
+# Data files
+data/*.json
+data/*.adif
+*.log
+
+# Deployment packages
+*.tar.gz
+*.zip
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Old/backup directories
+qsomap-OLD/
+OLD/
+backup/
+
+# Test files
+test*.php
+debug*.php
