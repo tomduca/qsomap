@@ -98,7 +98,8 @@ function setUpMap() {
     heatmapLayer = L.heatLayer([], {radius: 25, pane: 'heatmapPane'});
     perBandHeatmapsGroup = new L.LayerGroup();
     HEATMAP_BAND_RENDER_ORDER.forEach(bandName => {
-        let l = L.heatLayer([], {radius: 25, gradient: {1: bandToColor(bandName)}, pane: 'heatmapPane'});
+        // Normalize band name to lowercase for color lookup
+        let l = L.heatLayer([], {radius: 25, gradient: {1: bandToColor(bandName.toLowerCase())}, pane: 'heatmapPane'});
         l.addTo(perBandHeatmapsGroup);
         perBandHeatmaps.set(bandName, l);
     });

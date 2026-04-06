@@ -108,7 +108,9 @@ function qsoToColour(d) {
     let qsoColours = [];
     getQSOsMatchingFilter(d).forEach((qso) => {
         if (bandColours) {
-            qsoColours.push(bandToColor(qso.band));
+            // Normalize band name to lowercase for case-insensitive color lookup
+            const bandName = qso.band ? qso.band.toLowerCase() : null;
+            qsoColours.push(bandToColor(bandName));
 
         } else if (modeColours) {
             if (qso.mode) {
@@ -289,7 +291,8 @@ function sigRefToHTMLLink(p) {
 function setBandColorSchemeQSOMap(scheme) {
     setBandColorScheme(scheme);
     $(".bandColorSample").each(function() {
-        $(this).css('background-color', bandToColor($(this).attr("id").replace("bandColorSample-", "").replace("_", ".")));
+        const bandName = $(this).attr("id").replace("bandColorSample-", "").replace("_", ".").toLowerCase();
+        $(this).css('background-color', bandToColor(bandName));
     });
 }
 
