@@ -93,19 +93,27 @@ function redraw(key) {
             if (markers.has(key)) {
                 m = markers.get(key)
             } else if (circleMarkers) {
-                m = L.circleMarker(pos, { radius: 5 * markerSize, fillOpacity: 1.0, opacity: 1.0, weight: 1, fill: true, pane: 'qsoMarkersPane' });
+                // Get color before creating marker so it's set from the start
+                const color = qsoToColour(d);
+                m = L.circleMarker(pos, { 
+                    radius: 5 * markerSize, 
+                    fillOpacity: 1.0, 
+                    opacity: 1.0, 
+                    weight: 1, 
+                    fill: true, 
+                    fillColor: color,
+                    color: color,
+                    pane: 'qsoMarkersPane' 
+                });
             } else {
                 m = L.marker(pos, { pane: 'qsoMarkersPane' });
             }
 
             // Set the icon for the marker
             if (circleMarkers) {
-                // Set the colour for both fill and border
-                const color = qsoToColour(d);
-                m.options.fillColor = color;
-                m.options.color = color;
-                // Force update the style if marker already exists
+                // Update the colour if marker already existed
                 if (markers.has(key)) {
+                    const color = qsoToColour(d);
                     m.setStyle({fillColor: color, color: color});
                 }
             } else {
