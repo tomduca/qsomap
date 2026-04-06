@@ -22,6 +22,7 @@ $callsign = $config['clublog']['callsign'];
 // Paths
 $dataDir = __DIR__ . '/data';
 $jsonFile = $dataDir . '/qso_data.json';
+$lastSyncFile = $dataDir . '/clublog_last_sync.txt';
 
 // Create data directory if needed
 if (!is_dir($dataDir)) {
@@ -31,21 +32,52 @@ if (!is_dir($dataDir)) {
 echo "=== Clublog Sync Started ===\n";
 echo "Callsign: $callsign\n\n";
 
+// Check for incremental sync
+$isIncrementalSync = false;
+$startDate = null;
+
+if (file_exists($lastSyncFile)) {
+    $lastSync = trim(file_get_contents($lastSyncFile));
+    if (!empty($lastSync)) {
+        // Parse last sync date (format: YYYYMMDD)
+        $lastSyncDate = DateTime::createFromFormat('Ymd', $lastSync);
+        if ($lastSyncDate) {
+            // Download QSOs from day after last sync
+            $startDate = $lastSyncDate->modify('+1 day');
+            $isIncrementalSync = true;
+            echo "Incremental sync: downloading QSOs since " . $startDate->format('Y-m-d') . "\n";
+        }
+    }
+}
+
+if (!$isIncrementalSync) {
+    echo "Full sync: downloading all historical QSOs\n";
+}
+
 // Clublog download endpoint with API password
 // Using POST as per Clublog API documentation
 $url = "https://clublog.org/getadif.php";
 
-// Try different approaches to authenticate
 echo "Email: $email\n";
 echo "Callsign: $callsign\n";
 
-// Send both API key (developer) and password (user) as per Clublog documentation
-$postData = http_build_query([
+// Build request parameters
+$params = [
     'email' => $email,
     'password' => $password,  // Application Password (user auth)
     'api' => $apiKey,         // API Key (developer/app identifier)
     'call' => $callsign       // Callsign to download
-]);
+];
+
+// Add date filter for incremental sync
+if ($isIncrementalSync && $startDate) {
+    $params['startyear'] = $startDate->format('Y');
+    $params['startmonth'] = $startDate->format('n');
+    $params['startday'] = $startDate->format('j');
+    echo "Filtering: from " . $startDate->format('Y-m-d') . "\n";
+}
+
+$postData = http_build_query($params);
 
 echo "Downloading from Clublog (API key method)...\n";
 
@@ -93,8 +125,20 @@ echo "✓ Downloaded ADIF data\n";
 $qsos = parseADIF($adifData);
 echo "✓ Parsed " . count($qsos) . " QSOs from Clublog\n";
 
-// Use Clublog data as the primary source (no merging with LOTW)
+// Load existing QSOs for incremental sync
 $merged = [];
+if ($isIncrementalSync && file_exists($jsonFile)) {
+    $existingJson = file_get_contents($jsonFile);
+    $merged = json_decode($existingJson, true);
+    if (!is_array($merged)) {
+        $merged = [];
+    }
+    echo "✓ Loaded " . count($merged) . " existing QSOs\n";
+}
+
+// Merge new QSOs
+$newCount = 0;
+$updatedCount = 0;
 $gridCount = 0;
 
 foreach ($qsos as $qso) {
@@ -104,20 +148,47 @@ foreach ($qsos as $qso) {
         $gridCount++;
     }
     
+    if (isset($merged[$key])) {
+        $updatedCount++;
+    } else {
+        $newCount++;
+    }
+    
     $merged[$key] = $qso;
 }
 
-echo "✓ Total QSOs from Clublog: " . count($merged) . "\n";
-echo "✓ QSOs with grid from Clublog: $gridCount\n";
+if ($isIncrementalSync) {
+    echo "✓ New QSOs: $newCount\n";
+    echo "✓ Updated QSOs: $updatedCount\n";
+} else {
+    echo "✓ Total QSOs from Clublog: " . count($merged) . "\n";
+}
+echo "✓ QSOs with grid in this batch: $gridCount\n";
 
 // Save merged JSON
 $jsonData = json_encode($merged, JSON_PRETTY_PRINT);
 file_put_contents($jsonFile, $jsonData);
 echo "✓ JSON saved to: $jsonFile\n";
 
+// Update last sync date (today)
+$today = date('Ymd');
+file_put_contents($lastSyncFile, $today);
+echo "✓ Last sync date updated: " . date('Y-m-d') . "\n";
+
 echo "\n=== Clublog Sync Complete ===\n";
-echo "Total QSOs: " . count($merged) . "\n";
-echo "QSOs with grid: $gridCount\n";
+echo "Total QSOs in database: " . count($merged) . "\n";
+if ($isIncrementalSync) {
+    echo "New/Updated in this sync: " . ($newCount + $updatedCount) . "\n";
+}
+
+// Count total grids in final dataset
+$totalGrids = 0;
+foreach ($merged as $qso) {
+    if (!empty($qso['GRIDSQUARE'])) {
+        $totalGrids++;
+    }
+}
+echo "Total QSOs with grid: $totalGrids\n";
 
 /**
  * Parse ADIF content into array of QSOs
