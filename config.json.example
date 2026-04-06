@@ -6,7 +6,8 @@
   },
   "clublog": {
     "email": "your.email@example.com",
-    "api_key": "YOUR_CLUBLOG_API_KEY_FROM_REQUEST_FORM",
+    "password": "YOUR_CLUBLOG_APPLICATION_PASSWORD",
+    "api_key": "YOUR_DEVELOPER_API_KEY_FROM_CLUBLOG",
     "callsign": "YOUR_CALLSIGN"
   },
   "hamqth": {

@@ -15,7 +15,8 @@ if (!$config) {
 }
 
 $email = $config['clublog']['email'];
-$apiKey = $config['clublog']['api_key'];
+$password = $config['clublog']['password'];  // Application Password
+$apiKey = $config['clublog']['api_key'];     // Developer API Key
 $callsign = $config['clublog']['callsign'];
 
 // Paths
@@ -34,19 +35,19 @@ echo "Callsign: $callsign\n\n";
 // Using POST as per Clublog API documentation
 $url = "https://clublog.org/getadif.php";
 
-// Use API key to download full log
-$postData = http_build_query([
-    'api' => $apiKey,
-    'email' => $email,
-    'callsign' => $callsign,
-    'full' => 'yes'  // Request full log
-]);
-
-echo "API Key: " . substr($apiKey, 0, 10) . "...\n";
+// Try different approaches to authenticate
 echo "Email: $email\n";
 echo "Callsign: $callsign\n";
 
-echo "Downloading from Clublog (POST with cURL)...\n";
+// Send both API key (developer) and password (user) as per Clublog documentation
+$postData = http_build_query([
+    'email' => $email,
+    'password' => $password,  // Application Password (user auth)
+    'api' => $apiKey,         // API Key (developer/app identifier)
+    'call' => $callsign       // Callsign to download
+]);
+
+echo "Downloading from Clublog (API key method)...\n";
 
 // Use cURL for better error handling
 $ch = curl_init($url);
@@ -55,7 +56,8 @@ curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/x-www-form-urlencoded'
+    'Content-Type: application/x-www-form-urlencoded',
+    'User-Agent: QSOMap/1.0'
 ]);
 
 $adifData = curl_exec($ch);
@@ -79,11 +81,10 @@ if (empty($adifData)) {
 }
 
 echo "Response length: " . strlen($adifData) . " bytes\n";
-echo "First 200 chars: " . substr($adifData, 0, 200) . "\n";
 
-// Check if we got an error message instead of ADIF
-if (strpos($adifData, '<eor>') === false) {
-    die("Error: Invalid response from Clublog: " . substr($adifData, 0, 200) . "\n");
+// Check if we got valid ADIF data (should contain ADIF markers)
+if (strpos($adifData, 'ADIF') === false && strpos($adifData, '<eoh>') === false) {
+    die("Error: Invalid response from Clublog: " . substr($adifData, 0, 500) . "\n");
 }
 
 echo "✓ Downloaded ADIF data\n";
