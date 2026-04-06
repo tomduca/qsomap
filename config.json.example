@@ -1,4 +1,9 @@
 {
+  "lotw": {
+    "username": "YOUR_CALLSIGN",
+    "password": "YOUR_LOTW_PASSWORD",
+    "days_back": 3650
+  },
   "clublog": {
     "email": "your.email@example.com",
     "password": "YOUR_CLUBLOG_APPLICATION_PASSWORD",

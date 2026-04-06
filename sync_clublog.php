@@ -14,10 +14,16 @@ if (!$config) {
     die("Error: Cannot load config.json\n");
 }
 
-$email = $config['clublog']['email'];
-$password = $config['clublog']['password'];  // Application Password
-$apiKey = $config['clublog']['api_key'];     // Developer API Key
-$callsign = $config['clublog']['callsign'];
+$email = $config['clublog']['email'] ?? '';
+$password = $config['clublog']['password'] ?? '';  // Application Password
+$apiKey = $config['clublog']['api_key'] ?? '';     // Developer API Key
+$callsign = $config['clublog']['callsign'] ?? '';
+
+// Check if Clublog is configured
+if (empty($email) || empty($password) || empty($apiKey) || empty($callsign)) {
+    echo "Warning: Clublog credentials not configured, skipping Clublog sync\n";
+    exit(0);  // Exit gracefully to allow fallback to LOTW
+}
 
 // Paths
 $dataDir = __DIR__ . '/data';
@@ -100,12 +106,12 @@ curl_close($ch);
 echo "HTTP Response Code: $httpCode\n";
 
 if ($httpCode !== 200) {
-    echo "Error: HTTP $httpCode\n";
+    echo "Warning: Clublog returned HTTP $httpCode\n";
     if ($curlError) {
         echo "cURL Error: $curlError\n";
     }
-    echo "Response: " . substr($adifData, 0, 500) . "\n";
-    die("Error: Failed to download from Clublog (HTTP $httpCode)\n");
+    echo "Clublog sync failed, will fallback to LOTW if available\n";
+    exit(1);  // Exit with error code to trigger fallback
 }
 
 if (empty($adifData)) {

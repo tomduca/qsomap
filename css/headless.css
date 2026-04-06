@@ -10,6 +10,20 @@
     display: none !important;
 }
 
+/* Hide the Online Lookup modal that appears on page load */
+#onlineLookupModal {
+    display: none !important;
+}
+
+#onlineLookupModal .modal-backdrop {
+    display: none !important;
+}
+
+/* Hide Leaflet attribution text */
+.leaflet-control-attribution {
+    display: none !important;
+}
+
 /* Hide all modals and popups */
 .modal,
 .modal-backdrop,
