@@ -106,10 +106,23 @@ foreach ($qsos as $qso) {
     // Build cache key
     $cacheKey = ($qso['CALL'] ?? '') . '|' . ($qso['QSO_DATE'] ?? '') . '|' . ($qso['TIME_ON'] ?? '');
     
-    // Only reuse cache for fields that are still missing after loading from Clublog
+    // Check if we can reuse complete cached entry (incremental cache)
     if (isset($existingCache[$cacheKey])) {
         $cached = $existingCache[$cacheKey];
-        // Fill missing fields from cache, but never overwrite Clublog data
+        
+        // Detect if Clublog has NEW data that differs from cache
+        $clublogHasNewGrid = !empty($processed['grid']) && ($processed['grid'] !== ($cached['grid'] ?? ''));
+        $clublogHasNewName = !empty($processed['name']) && ($processed['name'] !== ($cached['name'] ?? ''));
+        $clublogHasNewQth = !empty($processed['qth']) && ($processed['qth'] !== ($cached['qth'] ?? ''));
+        
+        // If Clublog has no new data and cache is complete, reuse it (INCREMENTAL - FAST PATH)
+        if (!$clublogHasNewGrid && !$clublogHasNewName && !$clublogHasNewQth && !empty($cached['grid'])) {
+            $processedQSOs[] = $cached;
+            $stats['with_grid']++;
+            continue;
+        }
+        
+        // Otherwise, fill missing fields from cache but don't overwrite Clublog data
         if (empty($processed['grid']) && !empty($cached['grid'])) {
             $processed['grid'] = $cached['grid'];
         }
@@ -121,7 +134,7 @@ foreach ($qsos as $qso) {
         }
     }
     
-    // Only lookup missing fields, never overwrite existing data from Clublog
+    // Only lookup if we still have missing fields
     if ((empty($processed['grid']) || empty($processed['name']) || empty($processed['qth'])) && !empty($processed['call'])) {
         $stats['lookups']++;
         
