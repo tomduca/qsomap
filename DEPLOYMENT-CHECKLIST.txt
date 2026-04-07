@@ -1,0 +1,209 @@
+========================================
+CHECKLIST DE DEPLOYMENT - QSO MAP
+========================================
+
+PASO 1: LIMPIAR TODO EN EL HOSTING
+========================================
+
+En File Manager de cPanel:
+1. Entrá a public_html/qsomap/
+2. BORRÁ TODO (carpeta completa)
+3. Creá carpeta nueva: qsomap/
+
+========================================
+PASO 2: SUBIR ARCHIVOS LIMPIOS
+========================================
+
+1. Descomprimí qsomap-clean-deploy.tar.gz en tu PC
+2. Subí TODOS los archivos a public_html/qsomap/
+3. Verificá que estos archivos estén presentes:
+   ✓ config.json
+   ✓ setup_initial.sh
+   ✓ sync_daily.sh
+   ✓ sync_clublog.php
+   ✓ build_cache.php
+   ✓ index-headless.html
+   ✓ carpeta data/ (VACÍA)
+
+========================================
+PASO 3: CONFIGURAR PERMISOS
+========================================
+
+En File Manager, click derecho → Change Permissions:
+- Carpeta data/: 755
+- setup_initial.sh: 755
+- sync_daily.sh: 755
+
+========================================
+PASO 4: VERIFICAR CONFIG.JSON
+========================================
+
+Abrí config.json y verificá:
+{
+  "clublog": {
+    "email": "lu2met@outlook.com",
+    "password": "TU_CLUBLOG_APP_PASSWORD",
+    "api_key": "TU_CLUBLOG_API_KEY",
+    "callsign": "LU2MET"
+  },
+  "hamqth": {
+    "username": "lu2met",
+    "password": "bubryj-sukViq-3pyrgo"
+  },
+  "qth": {
+    "callsign": "LU2MET",
+    "grid": "FF57oc",
+    "lat": -34.xxxx,
+    "lon": -58.xxxx
+  }
+}
+
+========================================
+PASO 5: CRON DE INICIALIZACIÓN
+========================================
+
+cPanel → Cron Jobs → Add New Cron Job
+
+IMPORTANTE: Necesitás saber tu USUARIO de cPanel
+Para encontrarlo: cPanel → arriba a la derecha, dice "Logged in as: USUARIO"
+
+Configuración del cron:
+- Common Settings: Once Per Minute (para testing)
+- Command:
+  cd /home/USUARIO/public_html/qsomap && /bin/bash setup_initial.sh > /home/USUARIO/qsomap_init.log 2>&1
+
+Reemplazá USUARIO con tu usuario real de cPanel.
+
+Ejemplo si tu usuario es "lu2met":
+cd /home/lu2met/public_html/qsomap && /bin/bash setup_initial.sh > /home/lu2met/qsomap_init.log 2>&1
+
+Guardá y esperá 1-2 minutos.
+
+========================================
+PASO 6: VERIFICAR LOG DE INICIALIZACIÓN
+========================================
+
+En File Manager:
+1. Andá a tu carpeta HOME (no public_html, sino un nivel arriba)
+2. Buscá el archivo: qsomap_init.log
+3. Click derecho → View
+4. Deberías ver:
+   "========================================="
+   "QSO Map - Initial Setup"
+   "========================================="
+   ...
+   "Initial Setup Complete!"
+
+Si NO ves el archivo:
+- El cron no corrió (verificá el path)
+- El usuario está mal (verificá tu usuario de cPanel)
+
+Si ves errores en el log:
+- "Cannot load config.json" → verificá credenciales
+- "Permission denied" → verificá permisos (755)
+- "Clublog sync failed" → verificá API key y password
+
+========================================
+PASO 7: VERIFICAR QUE FUNCIONÓ
+========================================
+
+1. En File Manager, andá a: public_html/qsomap/data/
+2. Deberías ver estos archivos NUEVOS:
+   - qso_data.json (60-100 KB)
+   - qso_cache.json (80-100 KB)
+   - clublog_last_sync.txt (8 bytes)
+
+3. Abrí en navegador (INCOGNITO):
+   https://lu2met.ar/qsomap/index-headless.html
+
+4. Hacé HARD REFRESH: Ctrl+Shift+R (Windows) o Cmd+Shift+R (Mac)
+
+5. Deberías ver:
+   ✓ Tu QTH en el centro
+   ✓ TODOS tus QSOs en el mapa
+   ✓ Marcadores en COLORES por banda
+   ✓ Easter Island (CE0Y/DJ4EL) en el Pacífico
+
+========================================
+PASO 8: BORRAR CRON DE INICIALIZACIÓN
+========================================
+
+Si todo funcionó:
+1. cPanel → Cron Jobs
+2. BORRÁ el cron de setup_initial.sh
+3. Ya no lo necesitás más
+
+========================================
+PASO 9: CONFIGURAR CRON DIARIO
+========================================
+
+cPanel → Cron Jobs → Add New Cron Job
+
+Configuración:
+- Minute: 0
+- Hour: 2 (2 AM)
+- Day: *
+- Month: *
+- Weekday: *
+- Command:
+  cd /home/USUARIO/public_html/qsomap && /bin/bash sync_daily.sh >> /home/USUARIO/qsomap_daily.log 2>&1
+
+Guardá. Esto va a sincronizar automáticamente cada día a las 2 AM.
+
+========================================
+TROUBLESHOOTING
+========================================
+
+PROBLEMA: Map muestra QSOs viejos
+SOLUCIÓN:
+1. Abrí en modo INCOGNITO
+2. Hacé HARD REFRESH (Ctrl+Shift+R)
+3. Verificá que qso_cache.json tiene fecha/hora reciente
+
+PROBLEMA: No veo el log qsomap_init.log
+SOLUCIÓN:
+1. Verificá tu usuario de cPanel (arriba a la derecha)
+2. El log está en /home/USUARIO/ (NO en public_html)
+3. Usá File Manager → Go to Home Directory
+4. Buscá qsomap_init.log ahí
+
+PROBLEMA: Log dice "Permission denied"
+SOLUCIÓN:
+1. Verificá permisos de setup_initial.sh (debe ser 755)
+2. Verificá permisos de carpeta data/ (debe ser 755)
+
+PROBLEMA: Log dice "Cannot load config.json"
+SOLUCIÓN:
+1. Verificá que config.json existe en qsomap/
+2. Verificá que tiene tus credenciales correctas
+3. Verificá que NO tiene errores de sintaxis JSON
+
+PROBLEMA: Log dice "Clublog sync failed"
+SOLUCIÓN:
+1. Verificá tu Clublog API key
+2. Verificá tu Clublog application password
+3. Probá loguearte en clublog.org con esas credenciales
+
+PROBLEMA: Cron no corre
+SOLUCIÓN:
+1. Verificá que el path es ABSOLUTO (/home/USUARIO/...)
+2. NO uses ~ en el path del cron
+3. Verificá que el usuario es correcto
+4. Esperá 2-3 minutos después de crear el cron
+
+========================================
+RESUMEN RÁPIDO
+========================================
+
+1. Borrá todo en hosting
+2. Subí archivos limpios
+3. Permisos: data/ y *.sh = 755
+4. Verificá config.json
+5. Cron init con path absoluto: /home/USUARIO/...
+6. Esperá 2 minutos
+7. Revisá log en /home/USUARIO/qsomap_init.log
+8. Verificá map en incognito con hard refresh
+9. Borrá cron init
+10. Agregá cron diario
+
+========================================
