@@ -48,10 +48,10 @@ if (file_exists($lastSyncFile)) {
         // Parse last sync date (format: YYYYMMDD)
         $lastSyncDate = DateTime::createFromFormat('Ymd', $lastSync);
         if ($lastSyncDate) {
-            // Download QSOs from day after last sync
-            $startDate = $lastSyncDate->modify('+1 day');
+            // Download QSOs from 2 days before last sync (safety margin to avoid missing QSOs)
+            $startDate = $lastSyncDate->modify('-2 days');
             $isIncrementalSync = true;
-            echo "Incremental sync: downloading QSOs since " . $startDate->format('Y-m-d') . "\n";
+            echo "Incremental sync: downloading QSOs since " . $startDate->format('Y-m-d') . " (2-day overlap for safety)\n";
         }
     }
 }
