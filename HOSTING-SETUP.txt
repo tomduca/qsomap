@@ -1,0 +1,143 @@
+========================================
+GUÍA DE INSTALACIÓN EN HOSTING
+========================================
+
+IMPORTANTE: Esta guía es para hostings SIN acceso SSH.
+Si tenés SSH, podés ejecutar los scripts directamente.
+
+========================================
+PASO 1: SUBIR ARCHIVOS
+========================================
+
+1. Descomprimí qsomap-deploy-final.tar.gz en tu computadora
+2. Subí todos los archivos a tu hosting vía FTP/File Manager
+   Destino: public_html/qsomap/ (o el directorio que prefieras)
+3. Verificá que config.json tenga tus credenciales correctas
+
+========================================
+PASO 2: CONFIGURAR PERMISOS
+========================================
+
+En File Manager de cPanel:
+1. Click derecho en carpeta "data/" → Permissions
+2. Configurá: 755 (rwxr-xr-x)
+3. Click derecho en "setup_initial.sh" → Permissions
+4. Configurá: 755 (rwxr-xr-x)
+5. Click derecho en "sync_daily.sh" → Permissions
+6. Configurá: 755 (rwxr-xr-x)
+
+========================================
+PASO 3: INICIALIZACIÓN (UNA SOLA VEZ)
+========================================
+
+Opción A - Usando Cron Jobs (RECOMENDADO):
+-------------------------------------------
+1. cPanel → Cron Jobs
+2. Agregá un cron job TEMPORAL:
+   
+   Common Settings: Once Per Day
+   Command: cd /home/TU_USUARIO/public_html/qsomap && /bin/bash setup_initial.sh >> ~/qsomap_setup.log 2>&1
+   
+   (Reemplazá TU_USUARIO con tu usuario de cPanel)
+
+3. Guardá y esperá 24 horas (o cambiá la hora para que corra pronto)
+4. Después de que corra, revisá el log:
+   File Manager → buscar qsomap_setup.log en tu home
+5. Si dice "Initial Setup Complete!", BORRÁ este cron job temporal
+
+Opción B - Usando Terminal de cPanel (si está disponible):
+-----------------------------------------------------------
+1. cPanel → Terminal
+2. Ejecutá:
+   cd ~/public_html/qsomap
+   bash setup_initial.sh
+
+========================================
+PASO 4: VERIFICAR QUE FUNCIONA
+========================================
+
+1. Abrí en tu navegador:
+   https://tu-dominio.com/qsomap/index-headless.html
+
+2. Deberías ver:
+   - Tu posición QTH
+   - Todos tus QSOs en el mapa
+   - Marcadores en colores por banda
+
+3. Si no ves QSOs:
+   - Revisá qsomap_setup.log para ver errores
+   - Verificá que data/qso_cache.json existe y tiene contenido
+
+========================================
+PASO 5: CONFIGURAR SYNC DIARIO
+========================================
+
+1. cPanel → Cron Jobs
+2. Agregá un cron job PERMANENTE:
+
+   Minute:  0
+   Hour:    2     (2 AM - horario de baja actividad)
+   Day:     *
+   Month:   *
+   Weekday: *
+   
+   Command:
+   cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh >> ~/qsomap_cron.log 2>&1
+
+3. Guardá
+
+Esto va a:
+- Sincronizar con Clublog cada día (solo QSOs nuevos)
+- Actualizar el cache automáticamente
+- Tomar ~10 segundos por día
+
+========================================
+PASO 6: LIMPIEZA (OPCIONAL)
+========================================
+
+Podés borrar estos archivos que ya no necesitás:
+- setup_initial.sh (ya corrió)
+- HOSTING-SETUP.txt (esta guía)
+- CRON-SETUP.txt
+- QRZ-EMBEDDING-GUIDE.txt
+
+NO BORRES:
+- sync_daily.sh (lo usa el cron)
+- sync_clublog.php
+- build_cache.php
+- config.json
+- Todo lo demás
+
+========================================
+TROUBLESHOOTING
+========================================
+
+Problema: "Permission denied" al correr scripts
+Solución: Verificá permisos (755) en setup_initial.sh y sync_daily.sh
+
+Problema: No se crean archivos en data/
+Solución: Verificá permisos (755) en carpeta data/
+
+Problema: "Cannot load config.json"
+Solución: Verificá que config.json existe y tiene tus credenciales
+
+Problema: Cron no corre
+Solución: 
+- Verificá la ruta completa en el comando
+- Reemplazá TU_USUARIO con tu usuario real de cPanel
+- Revisá ~/qsomap_cron.log para ver errores
+
+Problema: Map muestra solo QTH, no QSOs
+Solución:
+- Verificá que data/qso_cache.json existe
+- Abrí el archivo y verificá que tiene QSOs
+- Hacé hard refresh (Ctrl+Shift+R) en el navegador
+
+========================================
+SOPORTE
+========================================
+
+Si tenés problemas:
+1. Revisá los logs: qsomap_setup.log y qsomap_cron.log
+2. Verificá que config.json tiene credenciales correctas
+3. Probá correr los scripts manualmente desde Terminal de cPanel
