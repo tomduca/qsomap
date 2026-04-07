@@ -113,7 +113,7 @@ foreach ($qsos as $qso) {
         'sig_info' => $qso['SIG_INFO'] ?? ''
     ];
     
-    // If no grid or missing name/qth, try lookup
+    // Only lookup missing fields, never overwrite existing data from Clublog
     if ((empty($processed['grid']) || empty($processed['name']) || empty($processed['qth'])) && !empty($processed['call'])) {
         $stats['lookups']++;
         
@@ -121,13 +121,14 @@ foreach ($qsos as $qso) {
         if ($hamqthSession) {
             $info = lookupCallsignHamQTH($processed['call'], $hamqthSession);
             if ($info) {
-                if (!empty($info['grid'])) {
+                // Only fill missing fields, never overwrite existing ones
+                if (empty($processed['grid']) && !empty($info['grid'])) {
                     $processed['grid'] = $info['grid'];
                 }
-                if (!empty($info['name'])) {
+                if (empty($processed['name']) && !empty($info['name'])) {
                     $processed['name'] = $info['name'];
                 }
-                if (!empty($info['qth'])) {
+                if (empty($processed['qth']) && !empty($info['qth'])) {
                     $processed['qth'] = $info['qth'];
                 }
                 $stats['hamqth']++;
@@ -136,7 +137,7 @@ foreach ($qsos as $qso) {
             }
         }
         
-        // Fallback to Spothole for grid only
+        // Fallback to Spothole for grid only if still missing
         if (empty($processed['grid'])) {
             $grid = lookupGridSpothole($processed['call']);
             if ($grid) {
