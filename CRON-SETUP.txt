@@ -1,0 +1,73 @@
+========================================
+CONFIGURACIÓN DE CRON JOB EN CPANEL
+========================================
+
+1. ACCEDER A CRON JOBS EN CPANEL
+   - Ingresá a tu cPanel
+   - Buscá "Cron Jobs" o "Tareas Cron"
+   - Click en el ícono
+
+2. CONFIGURAR NUEVA TAREA CRON
+   
+   Opción A - Configuración Simple (recomendada):
+   ------------------------------------------------
+   Common Settings: "Once Per Day (0 0 * * *)"
+   
+   Command:
+   cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
+   
+   
+   Opción B - Configuración Manual:
+   ------------------------------------------------
+   Minute:  0
+   Hour:    2     (2 AM - horario de baja actividad)
+   Day:     *
+   Month:   *
+   Weekday: *
+   
+   Command:
+   cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
+
+
+3. REEMPLAZOS NECESARIOS
+   - TU_USUARIO: reemplazá con tu usuario de cPanel
+   - /public_html/qsomap: ajustá la ruta si instalaste en otro directorio
+
+4. VERIFICAR QUE FUNCIONE
+   Después de que corra el cron, revisá el log:
+   public_html/qsomap/sync_daily.log
+   
+   O ejecutá manualmente desde cPanel Terminal:
+   cd ~/public_html/qsomap
+   bash sync_daily.sh
+
+5. QUÉ HACE EL CRON
+   - Sincroniza con Clublog (últimos 2 días + QSOs editados recientemente)
+   - Si Clublog falla, usa LOTW como fallback
+   - Reconstruye el cache (solo QSOs nuevos/modificados - incremental)
+   - Actualiza data/qso_cache.json automáticamente
+   - Loguea en sync_daily.log (mismo directorio)
+
+6. PERMISOS NECESARIOS
+   Asegurate que el directorio data/ tenga permisos de escritura:
+   chmod 755 data/
+
+========================================
+TROUBLESHOOTING
+========================================
+
+Si el cron no funciona:
+1. Verificá el log: public_html/qsomap/sync_daily.log
+2. Verificá permisos: sync_daily.sh debe ser 755
+3. Verificá que el path es absoluto: /home/USUARIO/...
+4. NO uses ~ en el comando del cron
+5. Probá manualmente: cd ~/public_html/qsomap && bash sync_daily.sh
+
+Si necesitás forzar sync completo (ej: después de editar grids viejos):
+cd ~/public_html/qsomap
+rm -f data/clublog_last_sync.txt
+bash sync_daily.sh
+
+Logs importantes:
+- sync_daily.log (sync diario, en qsomap/)
+- qsomap_init.log (inicialización, en home)

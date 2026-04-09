@@ -146,9 +146,12 @@ Configuración:
 - Month: *
 - Weekday: *
 - Command:
-  cd /home/USUARIO/public_html/qsomap && /bin/bash sync_daily.sh >> /home/USUARIO/qsomap_daily.log 2>&1
+  cd /home/USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
 
 Guardá. Esto va a sincronizar automáticamente cada día a las 2 AM.
+
+NOTA: El script loguea automáticamente en:
+public_html/qsomap/sync_daily.log
 
 ========================================
 TROUBLESHOOTING
@@ -166,6 +169,12 @@ SOLUCIÓN:
 2. El log está en /home/USUARIO/ (NO en public_html)
 3. Usá File Manager → Go to Home Directory
 4. Buscá qsomap_init.log ahí
+
+PROBLEMA: El sync diario no funciona
+SOLUCIÓN:
+1. Revisá el log: public_html/qsomap/sync_daily.log
+2. Verificá que sync_daily.sh tiene permisos 755
+3. Probá manualmente: cd ~/public_html/qsomap && bash sync_daily.sh
 
 PROBLEMA: Log dice "Permission denied"
 SOLUCIÓN:

@@ -82,14 +82,15 @@ PASO 5: CONFIGURAR SYNC DIARIO
    Weekday: *
    
    Command:
-   cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh >> ~/qsomap_cron.log 2>&1
+   cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
 
 3. Guardá
 
 Esto va a:
-- Sincronizar con Clublog cada día (solo QSOs nuevos)
-- Actualizar el cache automáticamente
+- Sincronizar con Clublog cada día (últimos 2 días + QSOs editados)
+- Actualizar el cache automáticamente (solo QSOs nuevos/modificados)
 - Tomar ~10 segundos por día
+- Log automático en: public_html/qsomap/sync_daily.log
 
 ========================================
 PASO 6: LIMPIEZA (OPCIONAL)
@@ -138,6 +139,10 @@ SOPORTE
 ========================================
 
 Si tenés problemas:
-1. Revisá los logs: qsomap_setup.log y qsomap_cron.log
+1. Revisá los logs:
+   - qsomap_setup.log (en home, inicialización)
+   - sync_daily.log (en qsomap/, sync diario)
 2. Verificá que config.json tiene credenciales correctas
-3. Probá correr los scripts manualmente desde Terminal de cPanel
+3. Probá correr los scripts manualmente desde Terminal de cPanel:
+   cd ~/public_html/qsomap
+   bash sync_daily.sh
