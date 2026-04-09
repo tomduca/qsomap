@@ -1,0 +1,119 @@
+========================================
+GUÍA PARA EMBEBER MAPA EN QRZ.COM
+========================================
+
+PROBLEMA DETECTADO:
+QRZ.com permite iframes PERO tiene restricciones de seguridad que pueden bloquear contenido externo.
+
+SOLUCIONES DISPONIBLES:
+
+========================================
+OPCIÓN 1: LINK DIRECTO (MÁS SIMPLE)
+========================================
+
+En lugar de iframe, usá un botón/link que abra el mapa en nueva ventana:
+
+1. Editá tu biografía en QRZ.com
+2. Click en "Source" (modo HTML)
+3. Pegá este código:
+
+<div style="text-align: center; margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 5px;">
+    <h3 style="margin: 0 0 10px 0;">📍 QSO Map</h3>
+    <p style="margin: 0 0 10px 0;">Ver mi mapa de contactos en tiempo real</p>
+    <a href="https://lu2met.ar/qsomap/index-headless.html" 
+       target="_blank" 
+       style="display: inline-block; padding: 10px 20px; background: #0066cc; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+        🗺️ Abrir Mapa de QSOs
+    </a>
+</div>
+
+4. Guardá y listo
+
+
+========================================
+OPCIÓN 2: IFRAME CON FALLBACK
+========================================
+
+Si querés intentar con iframe, probá este código que incluye un fallback:
+
+<div style="text-align: center; margin: 20px 0;">
+    <h3>📍 Mapa de QSOs</h3>
+    <iframe src="https://lu2met.ar/qsomap/index-headless.html" 
+            width="100%" 
+            height="600" 
+            frameborder="0" 
+            scrolling="no"
+            style="border: 2px solid #ccc; border-radius: 5px; max-width: 800px;">
+        <p>Tu navegador no soporta iframes. 
+           <a href="https://lu2met.ar/qsomap/index-headless.html" target="_blank">
+              Click aquí para ver el mapa
+           </a>
+        </p>
+    </iframe>
+</div>
+
+NOTA: Si QRZ.com bloquea el iframe, los usuarios verán el link de fallback.
+
+
+========================================
+OPCIÓN 3: IMAGEN CON LINK (VISUAL)
+========================================
+
+Creá una captura de pantalla del mapa y usala como preview clickeable:
+
+1. Tomá screenshot del mapa: https://lu2met.ar/qsomap/index-headless.html
+2. Subí la imagen a QRZ.com (sección Images)
+3. En biografía, modo Source, pegá:
+
+<div style="text-align: center; margin: 20px 0;">
+    <h3>📍 Mapa de QSOs</h3>
+    <a href="https://lu2met.ar/qsomap/index-headless.html" target="_blank">
+        <img src="URL_DE_TU_SCREENSHOT" 
+             alt="QSO Map" 
+             style="max-width: 100%; border: 2px solid #ccc; border-radius: 5px; cursor: pointer;">
+    </a>
+    <p><em>Click en la imagen para ver el mapa interactivo</em></p>
+</div>
+
+
+========================================
+OPCIÓN 4: POPUP WINDOW (JAVASCRIPT)
+========================================
+
+Botón que abre el mapa en ventana popup:
+
+<div style="text-align: center; margin: 20px 0;">
+    <h3>📍 Mapa de QSOs</h3>
+    <button onclick="window.open('https://lu2met.ar/qsomap/index-headless.html', 'qsomap', 'width=1000,height=700,scrollbars=yes,resizable=yes'); return false;"
+            style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;">
+        🗺️ Ver Mapa de QSOs
+    </button>
+</div>
+
+
+========================================
+RECOMENDACIÓN
+========================================
+
+Empezá con OPCIÓN 1 (link directo) porque:
+- ✅ Siempre funciona
+- ✅ No hay problemas de seguridad
+- ✅ Se ve profesional
+- ✅ Abre en ventana completa (mejor experiencia)
+
+Si querés probar iframe (OPCIÓN 2), hacelo después.
+
+
+========================================
+VERIFICAR QUE FUNCIONA
+========================================
+
+Después de pegar el código:
+1. Guardá la biografía
+2. Visitá tu página de QRZ.com
+3. Click en el botón/link
+4. Debería abrir el mapa en nueva ventana
+
+Si el iframe no carga:
+- Es normal, QRZ.com puede bloquearlo por seguridad
+- Usá OPCIÓN 1 (link directo) en su lugar
