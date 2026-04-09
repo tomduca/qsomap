@@ -2,8 +2,13 @@
 QSO MAP - CARACTERÍSTICAS Y MEJORAS
 ========================================
 
+PROYECTO ORIGINAL:
+- Autor: Ian Renton (https://ianrenton.com)
+- Repositorio: https://git.ianrenton.com/ian/qsomap.git
+- Licencia: MIT
+
 Este documento describe las características implementadas y mejoras
-realizadas al sistema QSO Map original.
+realizadas al sistema QSO Map original de Ian Renton.
 
 ========================================
 CARACTERÍSTICAS PRINCIPALES
@@ -198,5 +203,15 @@ APIs:
 - LOTW (fallback)
 - HamQTH (grid lookup)
 - Spothole (grid fallback)
+
+========================================
+CRÉDITOS
+========================================
+
+Este proyecto está basado en QSO Map de Ian Renton.
+Ver CREDITS.txt para información completa de atribuciones.
+
+Repositorio original: https://git.ianrenton.com/ian/qsomap.git
+Licencia: MIT
 
 ========================================

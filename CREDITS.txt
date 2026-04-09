@@ -1,0 +1,109 @@
+========================================
+CRÉDITOS Y ATRIBUCIONES
+========================================
+
+PROYECTO ORIGINAL
+========================================
+
+QSO Map
+Autor: Ian Renton
+Website: https://ianrenton.com
+Repositorio: https://git.ianrenton.com/ian/qsomap.git
+Licencia: MIT License
+
+Descripción:
+Sistema de visualización de QSOs en mapa interactivo usando Leaflet,
+con soporte para múltiples fuentes de datos (LOTW, Clublog) y
+lookups de grid automáticos.
+
+========================================
+MEJORAS Y ADAPTACIONES
+========================================
+
+Implementadas para LU2MET por Tomás Duca
+Repositorio: https://github.com/tomduca/qsomap
+
+Principales mejoras:
+- Sincronización automática con Clublog (primaria) y LOTW (fallback)
+- Cache incremental para mejor performance
+- Preservación de grids manuales de RUMlogNG/Clublog
+- Scripts portables para hosting compartido sin SSH
+- Margen de seguridad de 2 días en sync incremental
+- Fix de colores de marcadores por banda
+- Documentación completa en español para deployment en cPanel
+
+========================================
+BIBLIOTECAS Y SERVICIOS UTILIZADOS
+========================================
+
+FRONTEND:
+- Leaflet.js - Biblioteca de mapas interactivos
+- jQuery - Manipulación DOM
+- Esri.NatGeoWorldMap - Mapa base
+
+BACKEND:
+- PHP 7.4+ - Procesamiento server-side
+- cURL - Comunicación con APIs
+
+APIs EXTERNAS:
+- Clublog API - Fuente primaria de QSOs
+- LOTW (Logbook of The World) - Fuente fallback de QSOs
+- HamQTH - Lookup de grids (primario)
+- Spothole - Lookup de grids (fallback)
+
+UTILIDADES:
+- ham.js - Funciones de radio amateur (Ian Renton)
+- ui-ham.js - UI helpers para ham radio (Ian Renton)
+
+========================================
+LICENCIA
+========================================
+
+Este proyecto mantiene la licencia MIT del proyecto original.
+
+Copyright (c) Ian Renton (proyecto original)
+Copyright (c) 2026 Tomás Duca (mejoras y adaptaciones)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+========================================
+AGRADECIMIENTOS
+========================================
+
+- Ian Renton por el proyecto original QSO Map
+- Clublog por su excelente API y servicio
+- ARRL por LOTW (Logbook of The World)
+- HamQTH por su servicio de lookup de callsigns
+- Spothole por su API de grids
+- La comunidad de radioaficionados por su apoyo
+
+========================================
+CONTACTO
+========================================
+
+Para consultas sobre las mejoras y adaptaciones:
+- Callsign: LU2MET
+- GitHub: https://github.com/tomduca/qsomap
+
+Para consultas sobre el proyecto original:
+- Website: https://ianrenton.com
+- Repositorio: https://git.ianrenton.com/ian/qsomap.git
+
+========================================

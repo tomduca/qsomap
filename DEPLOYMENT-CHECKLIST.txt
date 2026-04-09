@@ -2,6 +2,12 @@
 CHECKLIST DE DEPLOYMENT - QSO MAP
 ========================================
 
+BASADO EN: QSO Map por Ian Renton
+Repositorio original: https://git.ianrenton.com/ian/qsomap.git
+Licencia: MIT
+
+========================================
+
 PASO 1: LIMPIAR TODO EN EL HOSTING
 ========================================
 

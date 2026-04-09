@@ -2,6 +2,10 @@
 GUÍA DE INSTALACIÓN EN HOSTING
 ========================================
 
+BASADO EN: QSO Map por Ian Renton
+Repositorio original: https://git.ianrenton.com/ian/qsomap.git
+Licencia: MIT
+
 IMPORTANTE: Esta guía es para hostings SIN acceso SSH.
 Si tenés SSH, podés ejecutar los scripts directamente.
 
