@@ -127,6 +127,9 @@ foreach ($qsos as $qso) {
         if (empty($processed['grid']) && !empty($cached['grid'])) {
             $processed['grid'] = $cached['grid'];
         }
+        if (empty($processed['dxcc']) && !empty($cached['dxcc'])) {
+            $processed['dxcc'] = $cached['dxcc'];
+        }
         if (empty($processed['name']) && !empty($cached['name'])) {
             $processed['name'] = $cached['name'];
         }
