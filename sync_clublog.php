@@ -220,7 +220,7 @@ function parseADIF($content) {
             $value = trim($match[4]);
             
             // Store important fields
-            if (in_array($field, ['CALL', 'BAND', 'MODE', 'FREQ', 'QSO_DATE', 'TIME_ON', 'GRIDSQUARE', 'COMMENT', 'SIG', 'SIG_INFO'])) {
+            if (in_array($field, ['CALL', 'BAND', 'MODE', 'FREQ', 'QSO_DATE', 'TIME_ON', 'GRIDSQUARE', 'DXCC', 'COMMENT', 'SIG', 'SIG_INFO'])) {
                 $qso[$field] = $value;
             }
         }
