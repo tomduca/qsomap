@@ -96,6 +96,7 @@ foreach ($qsos as $qso) {
         'date' => $qso['QSO_DATE'] ?? '',
         'time' => $qso['TIME_ON'] ?? '',
         'grid' => $qso['GRIDSQUARE'] ?? '',
+        'dxcc' => $qso['DXCC'] ?? '',
         'name' => $qso['NAME'] ?? '',
         'qth' => $qso['QTH'] ?? '',
         'comment' => $qso['COMMENT'] ?? '',
