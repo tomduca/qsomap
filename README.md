@@ -1,52 +1,165 @@
-# MØTRT QSO Map Tool
+# QSO Map - Automated Sync Edition
 
-A utility for amateur radio operators, to show the contents of their log visually on a map. This is what I use to generate maps for my blog posts about portable radio operations.
+Sistema automatizado de visualización de QSOs en mapa interactivo con sincronización automática desde Clublog/LOTW.
 
-This was originally intended to be a replacement of sorts for the GMA/Adventure Radio QSO Map tool, during the period when it was offline. I have since added more features; it also does all the processing client-side rather than using a database and processing on the back end.
+**Basado en:** [QSO Map](https://git.ianrenton.com/ian/qsomap.git) por Ian Renton (M0TRT)  
+**Licencia:** MIT  
+**Adaptado para:** LU2MET
 
-![Screenshot](/img/screenshot.png)
+## 🎯 Características Principales
 
-Use it at [https://qsomap.m0trt.radio](https://qsomap.m0trt.radio).
+### Sincronización Automática
+- ✅ Sync diario desde Clublog (fuente primaria)
+- ✅ Fallback a LOTW si Clublog falla
+- ✅ Margen de seguridad de 2 días para no perder QSOs
+- ✅ Detecta y sincroniza QSOs editados recientemente
+- ✅ Cache incremental (~10 seg vs 3+ min)
 
-### Features
+### Gestión Inteligente de Grids
+- ✅ Respeta grids manuales de RUMlogNG/Clublog
+- ✅ Lookup automático solo para QSOs sin grid (HamQTH → Spothole)
+- ✅ Los grids de Clublog NUNCA se sobrescriben
+- ✅ Grids corregidos se actualizan automáticamente
 
-* Load ADIF, Cabrillo & SOTA CSV files
-* Combine data from multiple files of any type
-* Configurable base maps
-* Configurable icons, including POTA/SOTA/etc. symbols
-* Maidenhead grid map with worked grid highlighting
-* Worked All Britain grid, CQ and ITU zones
-* Lots more options for drawing lines, labelling markers etc
-* Popup balloons showing your QSO history
-* Filter by date, band and mode
-* Grid/location lookups using the Spothole API
+### Visualización
+- ✅ Marcadores en colores por banda (PSK Reporter scheme)
+- ✅ Líneas geodésicas coloreadas
+- ✅ Símbolos xOTA para activaciones POTA/SOTA
+- ✅ Popups con información completa del QSO
+- ✅ Carga instantánea desde cache JSON
 
-For upcoming features, see the [issues backlog](https://git.ianrenton.com/ian/qsomap/issues). If you'd like an extra feature, please let me know!
+### Portabilidad
+- ✅ Scripts con paths relativos (funcionan en cualquier hosting)
+- ✅ Compatible con cPanel y hosting compartido
+- ✅ No requiere SSH para deployment
+- ✅ Logs locales (no requiere permisos especiales)
 
-### Privacy
+## 📦 Instalación Rápida
 
-All the code for the QSO map runs locally in your browser, so your log file "uploads" don't leave your computer. Where QSOs are found with missing data, the [Spothole](https://spothole.app) API can be queried to fetch the data. No personally identifying information such as your own callsign is transmitted.
+Ver [DEPLOYMENT-CHECKLIST.txt](DEPLOYMENT-CHECKLIST.txt) para instrucciones completas paso a paso.
 
-The website itself does not use cookies, is not monetised, does not contain advertising, and does not receive or store any user data. It is open source and the code is released into the Public Domain.
+## 🚀 Deployment
 
-### Third Party Libraries
+### Requisitos
+- Hosting con PHP 7.4+ y cPanel
+- Credenciales de Clublog (API key + application password)
+- Credenciales de HamQTH (opcional, para lookup de grids)
 
-This project contains a self-hosted variant of `dxcc.json` from [this project](https://github.com/k0swe/dxcc-json/) by Chris K0SWE, in the `/data/` directory. This is subject to the Apache licence and is not covered by the overall licence declared in the `LICENSE` file, and used with many thanks.
+### Proceso de Instalación
 
-It also contains a self-hosted variant of the Leaflet Maidenhead, CQ Zone and ITU Zone layers by HA8TKS. These have been modified to allow fractional zoom levels in the Maidenhead grid and to expose the CQ/ITU zone GeoJSON to use it within our similar "worked" CQ and ITU zone layers. These are MIT licenced, and also used with many thanks. 
+1. **Subir archivos**
+   ```bash
+   # Descomprimir qsomap-clean-deploy.tar.gz
+   # Subir a public_html/qsomap/ vía FTP/File Manager
+   ```
 
-It also contains a self-hosted copy of Font Awesome's free library, in the `/fa/` directory. This is subject to Font Awesome's licence. This approach was taken in preference to using their hosted kits due to the popularity of this project exceeding the page view limit for their free hosted offering.
+2. **Configurar permisos**
+   ```bash
+   chmod 755 data/
+   chmod 755 setup_initial.sh
+   chmod 755 sync_daily.sh
+   ```
 
-Other third party libraries, such as Leaflet and jQuery, plus many plugins for them, are included from a CDN in the head of `index.html`.
+3. **Editar config.json**
+   - Agregar credenciales de Clublog
+   - Agregar credenciales de HamQTH
+   - Configurar QTH (callsign, grid, lat/lon)
 
-This project would not have been possible without these libraries, so many thanks to their developers.
+4. **Inicialización (una vez)**
+   ```bash
+   # Crear cron temporal en cPanel:
+   cd /home/USUARIO/public_html/qsomap && /bin/bash setup_initial.sh > /home/USUARIO/qsomap_init.log 2>&1
+   ```
 
-### Alternatives
+5. **Sync diario (permanente)**
+   ```bash
+   # Cron a las 2 AM:
+   cd /home/USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
+   ```
 
-If this software doesn't quite scratch the itch for you, you could consider:
+Ver documentación completa en:
+- [HOSTING-SETUP.txt](HOSTING-SETUP.txt) - Guía de instalación
+- [DEPLOYMENT-CHECKLIST.txt](DEPLOYMENT-CHECKLIST.txt) - Checklist paso a paso
+- [CRON-SETUP.txt](CRON-SETUP.txt) - Configuración de cron
+- [README-FEATURES.txt](README-FEATURES.txt) - Características y mejoras
 
-* The popular [GridTracker](https://gridtracker.org/) application offers similar features plus integration with logbooks and digimode software.
-* The online [ADIF Processor](https://www.adif.uk/) by M0NOM which can generate KML files for viewing in Google Earth etc. This provides its own location lookup, has some nice features such as estimating HF "hops", and using Google Earth likely provides better performance once you get into hundreds of QSOs.
-* For SOTA activations, the Sotadata website itself will produce some basic maps for you; there's also [sotamaps.org](https://www.sotamaps.org/) which gives a better view and also provides various statistics about your activations.
-* The [ON6ZQ Log2Map tool](https://on6zq.be/w/index.php/Log2Map/HomePage)
-* The original [GMA/Adventure Radio QSO Map](http://qsomap.adventureradio.de/) is now back online.
+## 🔧 Uso
+
+### Visualización
+Acceder al mapa en: `https://tu-dominio.com/qsomap/index-headless.html`
+
+### Actualización de Grids
+1. Editar QSO en RUMlogNG
+2. RUMlogNG sincroniza con Clublog
+3. Esperar al sync diario (2 AM) o forzar manualmente
+4. El mapa se actualiza automáticamente
+
+### Sync Manual
+```bash
+cd ~/public_html/qsomap
+bash sync_daily.sh
+```
+
+### Sync Completo (después de editar grids viejos)
+```bash
+cd ~/public_html/qsomap
+rm -f data/clublog_last_sync.txt
+bash sync_daily.sh
+```
+
+## 📊 Arquitectura
+
+### Flujo de Datos
+```
+RUMlogNG → Clublog → sync_clublog.php → qso_data.json
+                                       ↓
+                              build_cache.php → qso_cache.json
+                                       ↓
+                              index-headless.html (mapa)
+```
+
+### Prioridad de Datos
+1. **Clublog** (máxima) - Grids manuales de RUMlogNG
+2. **Cache** (media) - Lookups previos reutilizados
+3. **HamQTH/Spothole** (baja) - Solo si falta grid
+
+### Archivos Importantes
+- `sync_daily.sh` - Script de sync diario
+- `sync_clublog.php` - Descarga de Clublog
+- `build_cache.php` - Construcción de cache
+- `data/qso_cache.json` - Cache usado por el mapa
+- `sync_daily.log` - Log de sync diario
+
+## 🎨 Mejoras sobre el Original
+
+### Problemas Resueltos
+1. ✅ **Marcadores negros** → Normalización de nombres de banda
+2. ✅ **Pérdida de QSOs** → Margen de 2 días en sync
+3. ✅ **Grids incorrectos** → Prioridad Clublog > Lookups
+4. ✅ **Sync lento** → Cache incremental
+5. ✅ **Scripts no portables** → Paths relativos
+
+Ver [README-FEATURES.txt](README-FEATURES.txt) para detalles completos.
+
+## 📝 Créditos
+
+**Proyecto Original:** [QSO Map](https://git.ianrenton.com/ian/qsomap.git) por Ian Renton (M0TRT)
+
+**Mejoras y Adaptaciones:** Tomás Duca para LU2MET
+
+Ver [CREDITS.txt](CREDITS.txt) para atribuciones completas.
+
+## 📄 Licencia
+
+MIT License - Ver [CREDITS.txt](CREDITS.txt) para texto completo.
+
+## 🔗 Enlaces
+
+- **Repositorio Original:** https://git.ianrenton.com/ian/qsomap.git
+- **Demo Original:** https://qsomap.m0trt.radio
+- **Este Fork:** https://github.com/tomduca/qsomap
+
+## 📞 Contacto
+
+- **Callsign:** LU2MET
+- **GitHub:** https://github.com/tomduca/qsomap
