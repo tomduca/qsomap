@@ -1,119 +1,204 @@
 ========================================
-GUÍA PARA EMBEBER MAPA EN QRZ.COM
+QRZ.COM EMBEDDING GUIDE
 ========================================
 
-PROBLEMA DETECTADO:
-QRZ.com permite iframes PERO tiene restricciones de seguridad que pueden bloquear contenido externo.
+This guide explains how to embed your QSO map in your QRZ.com biography page.
 
-SOLUCIONES DISPONIBLES:
-
-========================================
-OPCIÓN 1: LINK DIRECTO (MÁS SIMPLE)
-========================================
-
-En lugar de iframe, usá un botón/link que abra el mapa en nueva ventana:
-
-1. Editá tu biografía en QRZ.com
-2. Click en "Source" (modo HTML)
-3. Pegá este código:
-
-<div style="text-align: center; margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 5px;">
-    <h3 style="margin: 0 0 10px 0;">📍 QSO Map</h3>
-    <p style="margin: 0 0 10px 0;">Ver mi mapa de contactos en tiempo real</p>
-    <a href="https://lu2met.ar/qsomap/index-headless.html" 
-       target="_blank" 
-       style="display: inline-block; padding: 10px 20px; background: #0066cc; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        🗺️ Abrir Mapa de QSOs
-    </a>
-</div>
-
-4. Guardá y listo
-
+QRZ.com uses a restrictive sandbox for iframes, so we need to use Base64 encoding
+similar to how other users (like LU1ANG) embed external content.
 
 ========================================
-OPCIÓN 2: IFRAME CON FALLBACK
+METHOD 1: BASE64 IFRAME EMBED (RECOMMENDED)
 ========================================
 
-Si querés intentar con iframe, probá este código que incluye un fallback:
+This method creates a self-contained iframe that QRZ.com will accept.
 
-<div style="text-align: center; margin: 20px 0;">
-    <h3>📍 Mapa de QSOs</h3>
-    <iframe src="https://lu2met.ar/qsomap/index-headless.html" 
-            width="100%" 
-            height="600" 
-            frameborder="0" 
-            scrolling="no"
-            style="border: 2px solid #ccc; border-radius: 5px; max-width: 800px;">
-        <p>Tu navegador no soporta iframes. 
-           <a href="https://lu2met.ar/qsomap/index-headless.html" target="_blank">
-              Click aquí para ver el mapa
-           </a>
-        </p>
-    </iframe>
-</div>
+STEP 1: Generate the embed code
+--------------------------------
+On your server (via cPanel Terminal or SSH):
 
-NOTA: Si QRZ.com bloquea el iframe, los usuarios verán el link de fallback.
+cd ~/public_html/qsomap
+php generate_qrz_embed.php
 
+This will create a file: qrz-embed-code.txt
 
-========================================
-OPCIÓN 3: IMAGEN CON LINK (VISUAL)
-========================================
+STEP 2: Download the embed code
+--------------------------------
+Use File Manager to download qrz-embed-code.txt to your computer.
 
-Creá una captura de pantalla del mapa y usala como preview clickeable:
+STEP 3: Copy the embed code
+----------------------------
+Open qrz-embed-code.txt and copy the ENTIRE content.
 
-1. Tomá screenshot del mapa: https://lu2met.ar/qsomap/index-headless.html
-2. Subí la imagen a QRZ.com (sección Images)
-3. En biografía, modo Source, pegá:
+STEP 4: Paste into QRZ.com
+---------------------------
+1. Log into QRZ.com
+2. Go to your profile edit page
+3. Click on "Biography" tab
+4. Paste the code where you want the map to appear
+5. Save your profile
 
-<div style="text-align: center; margin: 20px 0;">
-    <h3>📍 Mapa de QSOs</h3>
-    <a href="https://lu2met.ar/qsomap/index-headless.html" target="_blank">
-        <img src="URL_DE_TU_SCREENSHOT" 
-             alt="QSO Map" 
-             style="max-width: 100%; border: 2px solid #ccc; border-radius: 5px; cursor: pointer;">
-    </a>
-    <p><em>Click en la imagen para ver el mapa interactivo</em></p>
-</div>
+STEP 5: Verify
+--------------
+Visit your QRZ.com profile page and check that the map loads.
 
+The map will:
+- Load your QSO data from https://lu2met.ar/qsomap/data/qso_cache.json
+- Show all QSOs with colored markers by band
+- Display geodesic lines from your QTH
+- Include a link to the full interactive map
 
-========================================
-OPCIÓN 4: POPUP WINDOW (JAVASCRIPT)
-========================================
+Pros:
+✓ Works within QRZ.com's security restrictions
+✓ Shows actual map with markers and lines
+✓ Updates automatically when cache updates
+✓ Interactive (click markers for QSO details)
 
-Botón que abre el mapa en ventana popup:
-
-<div style="text-align: center; margin: 20px 0;">
-    <h3>📍 Mapa de QSOs</h3>
-    <button onclick="window.open('https://lu2met.ar/qsomap/index-headless.html', 'qsomap', 'width=1000,height=700,scrollbars=yes,resizable=yes'); return false;"
-            style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;">
-        🗺️ Ver Mapa de QSOs
-    </button>
-</div>
-
+Cons:
+✗ Requires regenerating code if you change the map design
+✗ Slightly more complex setup
 
 ========================================
-RECOMENDACIÓN
+METHOD 2: DIRECT IFRAME (PROBABLY WON'T WORK)
 ========================================
 
-Empezá con OPCIÓN 1 (link directo) porque:
-- ✅ Siempre funciona
-- ✅ No hay problemas de seguridad
-- ✅ Se ve profesional
-- ✅ Abre en ventana completa (mejor experiencia)
+Add this code to your QRZ.com biography:
 
-Si querés probar iframe (OPCIÓN 2), hacelo después.
+<iframe src="https://lu2met.ar/qsomap/index-headless.html" 
+        width="100%" 
+        height="600" 
+        frameborder="0" 
+        scrolling="no">
+</iframe>
 
+Note: This method likely won't work due to QRZ.com's iframe restrictions.
+Use Method 1 instead.
 
 ========================================
-VERIFICAR QUE FUNCIONA
+METHOD 3: LINK WITH PREVIEW IMAGE
 ========================================
 
-Después de pegar el código:
-1. Guardá la biografía
-2. Visitá tu página de QRZ.com
-3. Click en el botón/link
-4. Debería abrir el mapa en nueva ventana
+Add this code to your QRZ.com biography:
 
-Si el iframe no carga:
-- Es normal, QRZ.com puede bloquearlo por seguridad
-- Usá OPCIÓN 1 (link directo) en su lugar
+<a href="https://lu2met.ar/qsomap/index-headless.html" target="_blank">
+  <img src="https://lu2met.ar/qsomap/preview.png" 
+       alt="QSO Map" 
+       style="width:100%; max-width:800px; border:1px solid #ccc;">
+</a>
+<p>Click to view interactive QSO map</p>
+
+Pros:
+✓ Always works
+✓ Fast loading
+
+Cons:
+✗ Requires creating and updating preview image manually
+✗ Not interactive in QRZ
+
+========================================
+UPDATING THE EMBEDDED MAP
+========================================
+
+The embedded map loads data from your qso_cache.json file.
+When your daily sync runs, the map will automatically show updated data.
+
+If you change the map design (colors, layout, etc.):
+1. Edit index-qrz-embed.html
+2. Run: php generate_qrz_embed.php
+3. Download qrz-embed-code.txt
+4. Copy the new code
+5. Update your QRZ.com biography
+
+========================================
+CUSTOMIZING THE EMBED
+========================================
+
+To customize the embedded map, edit: index-qrz-embed.html
+
+You can change:
+- Map height (default: 400px)
+- Initial zoom level
+- Band colors
+- Marker sizes
+- Line styles
+- Base map style
+
+After editing, regenerate the embed code:
+php generate_qrz_embed.php
+
+========================================
+TROUBLESHOOTING
+========================================
+
+Problem: Map doesn't show in QRZ.com
+Solution: 
+- Check that you copied the ENTIRE embed code
+- Verify the code is in the Biography section, not elsewhere
+- Try clearing your browser cache
+- Check browser console for errors (F12)
+
+Problem: Map shows "Error loading map data"
+Solution: 
+- Check that https://lu2met.ar/qsomap/data/qso_cache.json is accessible
+- Verify the file has correct permissions (644)
+- Check that sync is running and updating the cache
+- Test the URL directly in browser
+
+Problem: Map is blank or shows only base map
+Solution:
+- Verify qso_cache.json has data (open it in browser)
+- Check browser console for errors (F12)
+- Ensure CDN resources (Leaflet) are loading
+- Check CORS headers on your server
+
+Problem: Map is too small/large
+Solution:
+- Edit index-qrz-embed.html
+- Change height in: #map { height: 400px; }
+- Regenerate embed code with php generate_qrz_embed.php
+
+Problem: Markers don't show correct colors
+Solution:
+- Check that band names in qso_cache.json match bandColors in script
+- Band names should be lowercase (e.g., "20m" not "20M")
+- Regenerate cache if needed
+
+========================================
+SECURITY NOTES
+========================================
+
+- Your map must be publicly accessible (no password protection)
+- config.json is protected by .htaccess (not accessible via web)
+- Only qso_cache.json needs to be public
+- No sensitive data (passwords, API keys) is exposed
+- The embed uses HTTPS for all resources
+- QRZ.com's sandbox prevents malicious scripts
+
+========================================
+FILES INVOLVED
+========================================
+
+index-qrz-embed.html     - Minimal embeddable map HTML
+generate_qrz_embed.php   - Script to generate Base64 embed code
+qrz-embed-code.txt       - Generated embed code (copy to QRZ.com)
+data/qso_cache.json      - QSO data (must be publicly accessible)
+
+========================================
+TECHNICAL DETAILS
+========================================
+
+How it works:
+1. index-qrz-embed.html is a minimal HTML page with Leaflet map
+2. generate_qrz_embed.php reads the HTML and encodes it to Base64
+3. The script wraps it in QRZ.com-compatible iframe code
+4. QRZ.com's sandbox allows the iframe with src="about:blank"
+5. JavaScript decodes Base64 and injects HTML into iframe
+6. Map loads data from your public qso_cache.json via HTTPS
+
+Why Base64?
+- QRZ.com blocks external iframe sources for security
+- Base64 encoding allows embedding HTML as data
+- Similar to how LU1ANG and others embed external content
+- Works within QRZ.com's security restrictions
+
+========================================
