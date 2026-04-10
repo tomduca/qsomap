@@ -374,30 +374,24 @@ function setFineZoomControl(enable) {
 
 // Get text for the normal click-to-appear popups. Takes a data item that may contain multiple QSOs.
 function getPopupText(d) {
+    // Line 1: User icon + Callsign + Name
     let text = "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-user markerPopupIcon'></i>&nbsp;<span class='popupBlock'><a href='https://www.qrz.com/db/" + d.call + "' target='_blank'><b>" + d.call + "</b></a>";
     if (d.name) {
         text += "&nbsp;&nbsp;" + d.name;
     }
     text += "</span></span><br/>"
 
-    // QTH information. If we have one or more QSOs with SIG/xOTA references but they're all the same, we list them. If
-    // we don't have any QSOs with SIG/xOTA references, we use the qth text which will be from QRZ or HamQTH. If we have
-    // more than one QSO with *different* references, we only display the grid here, and instead list the references
-    // separately under each QSO.
-    let sigRefsPerQSO = d.qsos.map(q => listSIGRefsWithLinks(q));
-    let sigRefsExist = sigRefsPerQSO.every(v => v.length > 0);
-    let sigRefsEqual = sigRefsPerQSO.every((val, i, arr) => val === arr[0]);
-
-    text += "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-location-dot markerPopupIcon'></i>&nbsp;<span class='popupBlock'>";
-    
-    // Add DXCC prefix and name if available
-    // Try to get DXCC from the data object itself first, then from qsos array
+    // Line 2: Radio icon + DXCC prefix + Country name
     let dxccId = d.dxcc || (d.qsos && d.qsos.length > 0 && d.qsos[0].dxcc);
-    
     if (dxccId && DXCC_DATA && DXCC_DATA[dxccId]) {
         let dxccPrefix = d.call.match(/^[A-Z0-9]+/)?.[0] || d.call.substring(0, 2);
-        text += dxccPrefix + " " + DXCC_DATA[dxccId].name + " - ";
+        text += "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-radio markerPopupIcon'></i>&nbsp;<span class='popupBlock'>";
+        text += dxccPrefix + " " + DXCC_DATA[dxccId].name;
+        text += "</span></span><br/>";
     }
+
+    // Line 3: Location icon + Grid + Distance (+ QTH/SIG refs if applicable)
+    text += "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-location-dot markerPopupIcon'></i>&nbsp;<span class='popupBlock'>";
     
     if (d.grid) {
         text += formatGrid(d.grid);
@@ -406,7 +400,14 @@ function getPopupText(d) {
         }
     }
     
-    // Add QTH or SIG refs on a new line if they exist
+    // QTH information. If we have one or more QSOs with SIG/xOTA references but they're all the same, we list them. If
+    // we don't have any QSOs with SIG/xOTA references, we use the qth text which will be from QRZ or HamQTH. If we have
+    // more than one QSO with *different* references, we only display the grid here, and instead list the references
+    // separately under each QSO.
+    let sigRefsPerQSO = d.qsos.map(q => listSIGRefsWithLinks(q));
+    let sigRefsExist = sigRefsPerQSO.every(v => v.length > 0);
+    let sigRefsEqual = sigRefsPerQSO.every((val, i, arr) => val === arr[0]);
+    
     if (!sigRefsExist) {
         if (d.qth) {
             text += "<br/>" + d.qth;
