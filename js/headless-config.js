@@ -133,6 +133,7 @@ async function loadQSOsFromCache() {
                 mode: qso.mode,
                 freq: qso.freq,
                 grid: qso.grid,
+                dxcc: qso.dxcc || '',
                 time: moment(qso.date + ' ' + qso.time, 'YYYYMMDD HHmmss'),
                 comment: qso.comment || '',
                 sig: qso.sig || '',
