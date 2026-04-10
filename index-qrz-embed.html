@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LU2MET QSO Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            width: 600px;
+            height: 400px;
+            margin: 0 auto;
+        }
+        .map-info {
+            text-align: center;
+            padding: 10px;
+            background: #f5f5f5;
+            border-top: 2px solid #ddd;
+            font-size: 12px;
+        }
+        .map-info a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .map-info a:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="map">
+        <div class="loading">Loading map...</div>
+    </div>
+    <div class="map-info">
+        <a href="https://lu2met.ar/qsomap/index-headless.html" target="_top">Click here to view full interactive map</a>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.geodesic"></script>
+    
+    <script>
+        // Initialize map
+        var map = L.map('map', {
+            center: [-34.6037, -58.3816], // Buenos Aires area (FF57)
+            zoom: 2,
+            zoomControl: true,
+            scrollWheelZoom: false
+        });
+
+        // Add base map
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 16
+        }).addTo(map);
+
+        // Band colors (PSK Reporter scheme)
+        var bandColors = {
+            '160m': '#ff0000',
+            '80m': '#ff8000',
+            '60m': '#ffff00',
+            '40m': '#00ff00',
+            '30m': '#00ffff',
+            '20m': '#0000ff',
+            '17m': '#ff00ff',
+            '15m': '#800080',
+            '12m': '#808080',
+            '10m': '#ff0080',
+            '6m': '#00ff80',
+            '2m': '#8000ff',
+            '70cm': '#ff8080'
+        };
+
+        // QTH marker
+        var qthIcon = L.divIcon({
+            className: 'qth-marker',
+            html: '<div style="background: red; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
+            iconSize: [12, 12],
+            iconAnchor: [6, 6]
+        });
+
+        // Load QSO data
+        fetch('data/qso_cache.json')
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('.loading').style.display = 'none';
+                
+                // Add QTH marker
+                if (data.qth) {
+                    L.marker([data.qth.lat, data.qth.lon], {icon: qthIcon})
+                        .bindPopup('<b>' + data.qth.callsign + '</b><br>Grid: ' + data.qth.grid)
+                        .addTo(map);
+                }
+
+                // Add QSO markers and lines
+                var qsos = data.qsos || [];
+                var bounds = [];
+                
+                if (data.qth) {
+                    bounds.push([data.qth.lat, data.qth.lon]);
+                }
+
+                qsos.forEach(function(qso) {
+                    if (!qso.lat || !qso.lon) return;
+                    
+                    var coords = [qso.lat, qso.lon];
+                    bounds.push(coords);
+                    
+                    // Get band color
+                    var band = qso.band ? qso.band.toLowerCase() : '';
+                    var color = bandColors[band] || '#888888';
+                    
+                    // Create marker
+                    var markerIcon = L.divIcon({
+                        className: 'qso-marker',
+                        html: '<div style="background: ' + color + '; width: 8px; height: 8px; border-radius: 50%; border: 1px solid white;"></div>',
+                        iconSize: [8, 8],
+                        iconAnchor: [4, 4]
+                    });
+                    
+                    var marker = L.marker(coords, {icon: markerIcon})
+                        .bindPopup(
+                            '<b>' + qso.call + '</b><br>' +
+                            (qso.name ? qso.name + '<br>' : '') +
+                            (qso.grid ? 'Grid: ' + qso.grid + '<br>' : '') +
+                            'Band: ' + (qso.band || 'N/A') + '<br>' +
+                            'Mode: ' + (qso.mode || 'N/A') + '<br>' +
+                            'Date: ' + (qso.date || 'N/A')
+                        )
+                        .addTo(map);
+                    
+                    // Draw line from QTH to QSO
+                    if (data.qth) {
+                        var line = L.geodesic([
+                            [data.qth.lat, data.qth.lon],
+                            coords
+                        ], {
+                            weight: 1,
+                            opacity: 0.4,
+                            color: color
+                        }).addTo(map);
+                    }
+                });
+
+                // Fit map to bounds
+                if (bounds.length > 0) {
+                    map.fitBounds(bounds, {padding: [20, 20]});
+                }
+            })
+            .catch(error => {
+                document.querySelector('.loading').textContent = 'Error loading map data';
+                console.error('Error loading QSO data:', error);
+            });
+    </script>
+</body>
+</html>
