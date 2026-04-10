@@ -384,7 +384,9 @@ function getPopupText(d) {
     // Line 2: Radio icon + DXCC prefix + Country name
     let dxccId = d.dxcc || (d.qsos && d.qsos.length > 0 && d.qsos[0].dxcc);
     if (dxccId && DXCC_DATA && DXCC_DATA[dxccId]) {
-        let dxccPrefix = d.call.match(/^[A-Z0-9]+/)?.[0] || d.call.substring(0, 2);
+        // Extract DXCC prefix (country prefix only, not full callsign)
+        // Examples: RW1A -> RW1, 5B4AMX -> 5B4, LU2MET -> LU, K1ABC -> K
+        let dxccPrefix = d.call.match(/^[A-Z0-9]{1,3}(?=[0-9])/)?.[0] || d.call.match(/^[A-Z0-9]{1,2}/)?.[0] || d.call.substring(0, 2);
         text += "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-radio markerPopupIcon'></i>&nbsp;<span class='popupBlock'>";
         text += dxccPrefix + " " + DXCC_DATA[dxccId].name;
         text += "</span></span><br/>";
