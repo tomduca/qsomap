@@ -389,20 +389,29 @@ function getPopupText(d) {
     let sigRefsEqual = sigRefsPerQSO.every((val, i, arr) => val === arr[0]);
 
     text += "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-location-dot markerPopupIcon'></i>&nbsp;<span class='popupBlock'>";
-    if (!sigRefsExist) {
-        if (d.qth) {
-            text += d.qth + "&nbsp;&nbsp;&nbsp;";
-        }
-    } else if (sigRefsEqual) {
-        text += sigRefsPerQSO[0] + "&nbsp;&nbsp;&nbsp;";
+    
+    // Add DXCC prefix and name if available
+    if (d.qsos && d.qsos.length > 0 && d.qsos[0].dxcc && DXCC_DATA[d.qsos[0].dxcc]) {
+        let dxccPrefix = d.call.match(/^[A-Z0-9]+/)?.[0] || d.call.substring(0, 2);
+        text += dxccPrefix + " " + DXCC_DATA[d.qsos[0].dxcc].name + " - ";
     }
-
+    
     if (d.grid) {
         text += formatGrid(d.grid);
         if (qthPos) {
             text += "&nbsp;(" + getDistanceString(d) + ")";
         }
     }
+    
+    // Add QTH or SIG refs on a new line if they exist
+    if (!sigRefsExist) {
+        if (d.qth) {
+            text += "<br/>" + d.qth;
+        }
+    } else if (sigRefsEqual) {
+        text += "<br/>" + sigRefsPerQSO[0];
+    }
+    
     text += "</span></span><table class='popupQSOTable'>"
 
     getQSOsMatchingFilter(d).forEach(qso => {
