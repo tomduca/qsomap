@@ -391,9 +391,12 @@ function getPopupText(d) {
     text += "<span style='display:inline-block; white-space: nowrap;'><i class='fa-solid fa-location-dot markerPopupIcon'></i>&nbsp;<span class='popupBlock'>";
     
     // Add DXCC prefix and name if available
-    if (d.qsos && d.qsos.length > 0 && d.qsos[0].dxcc && DXCC_DATA[d.qsos[0].dxcc]) {
+    // Try to get DXCC from the data object itself first, then from qsos array
+    let dxccId = d.dxcc || (d.qsos && d.qsos.length > 0 && d.qsos[0].dxcc);
+    
+    if (dxccId && DXCC_DATA && DXCC_DATA[dxccId]) {
         let dxccPrefix = d.call.match(/^[A-Z0-9]+/)?.[0] || d.call.substring(0, 2);
-        text += dxccPrefix + " " + DXCC_DATA[d.qsos[0].dxcc].name + " - ";
+        text += dxccPrefix + " " + DXCC_DATA[dxccId].name + " - ";
     }
     
     if (d.grid) {
