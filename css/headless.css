@@ -19,9 +19,10 @@
     display: none !important;
 }
 
-/* Hide Leaflet attribution text */
+/* Show Leaflet attribution text */
 .leaflet-control-attribution {
-    display: none !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    font-size: 10px !important;
 }
 
 /* Hide all modals and popups */
