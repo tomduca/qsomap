@@ -6,10 +6,17 @@ function setUpMap() {
     // Create map
     map = L.map('map', {
         zoomControl: false,
+        attributionControl: true,  // Enable attribution
         minZoom: 2,
         maxZoom: 17,
         zoomSnap: 1
     });
+    
+    // Add custom attribution for original project on bottom-left
+    L.control.attribution({
+        position: 'bottomleft',
+        prefix: 'Based on <a href="https://git.ianrenton.com/ian/qsomap" target="_blank">QSO Map</a> by Ian Renton'
+    }).addTo(map);
 
     // Create custom panes with explicit z-indices to enforce layer ordering
     map.createPane('overlaysPane');
