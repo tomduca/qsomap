@@ -28,11 +28,12 @@ CARACTERÍSTICAS PRINCIPALES
      * Spothole (fallback)
    - Grids corregidos se actualizan automáticamente
 
-3. CACHE INCREMENTAL
-   - Primera construcción: ~1-3 minutos (todos los QSOs)
-   - Syncs subsiguientes: ~10 segundos (solo QSOs nuevos/modificados)
+3. CACHE INCREMENTAL Y OPTIMIZADO
+   - Primera construcción: ~10 segundos (optimizado)
+   - Syncs subsiguientes: ~5 segundos (solo QSOs nuevos/modificados)
    - Reutiliza datos de cache cuando no hay cambios
    - Detecta cambios en datos de Clublog automáticamente
+   - Skip automático de lookups cuando grid ya existe (99% de QSOs)
 
 4. VISUALIZACIÓN
    - Marcadores en colores por banda (PSK Reporter scheme)
@@ -40,6 +41,7 @@ CARACTERÍSTICAS PRINCIPALES
    - Símbolos xOTA para activaciones
    - Popups con información completa del QSO
    - Carga instantánea desde cache JSON
+   - Mapa de QSOs confirmados (solo LoTW/Clublog)
 
 5. PORTABILIDAD
    - Scripts con paths relativos (funcionan en cualquier hosting)
@@ -72,6 +74,10 @@ PROBLEMA 5: Scripts no funcionan en hosting
 SOLUCIÓN: Paths relativos y auto-detección de directorio
 RESULTADO: Scripts portables que funcionan en cualquier entorno
 
+PROBLEMA 6: Cache build lento (lookups innecesarios)
+SOLUCIÓN: Skip lookups cuando grid ya existe en Clublog/cache
+RESULTADO: Cache build instantáneo (2 lookups vs 132 antes)
+
 ========================================
 FLUJO DE DATOS
 ========================================
@@ -88,10 +94,10 @@ FLUJO DE DATOS
 
 3. CONSTRUCCIÓN DE CACHE
    build_cache.php procesa:
-   - QSOs nuevos: lookup de grid (HamQTH/Spothole)
+   - QSOs con grid de Clublog: usa directo (sin lookup) ⚡
    - QSOs existentes sin cambios: reutiliza cache
-   - QSOs con grid de Clublog: preserva grid original
-   - Resultado: data/qso_cache.json
+   - QSOs sin grid: lookup (HamQTH/Spothole) - solo ~1% de casos
+   - Resultado: data/qso_cache.json (construcción instantánea)
 
 4. VISUALIZACIÓN
    index-headless.html carga:
@@ -146,14 +152,61 @@ rm -f data/clublog_last_sync.txt
 bash sync_daily.sh
 
 ========================================
+MAPA DE QSOs CONFIRMADOS
+========================================
+
+DESCRIPCIÓN:
+- Mapa separado que muestra solo QSOs confirmados en LoTW o Clublog
+- Mismo diseño y funcionalidad que el mapa principal
+- Agrupa por CALL-GRID (muestra primer QSO confirmado por estación)
+
+ARCHIVOS:
+- qsl.html - Mapa de QSL
+- js/headless-config-confirmed.js - Lógica de filtrado
+
+CRITERIOS DE CONFIRMACIÓN:
+- QSL_RCVD = 'Y' (confirmado en Clublog)
+- LOTW_QSL_RCVD = 'Y' (confirmado en LoTW)
+- Se muestra si cumple cualquiera de los dos
+
+LÓGICA DE AGRUPACIÓN:
+- Agrupa QSOs por CALL-GRID (callsign + gridsquare del corresponsal)
+- Si hay múltiples QSOs confirmados con la misma estación desde el mismo grid:
+  * Se muestra el primer QSO confirmado (más antiguo)
+- Si la estación opera portable desde otro grid:
+  * Se muestra como marcador separado
+
+EJEMPLO:
+- QSO 1: W2EUA en EL97UD el 2026-04-16 (confirmado) → SE MUESTRA
+- QSO 2: W2EUA en EL97UD el 2026-04-20 (confirmado) → NO SE MUESTRA (duplicado)
+- QSO 3: W2EUA en FM19MA el 2026-04-21 (confirmado) → SE MUESTRA (grid diferente)
+
+DEPLOYMENT EN CPANEL:
+Después de subir archivos nuevos/modificados:
+
+1. Re-sincronizar desde Clublog (para obtener campos de confirmación):
+   cd ~/public_html/qsomap
+   php sync_clublog.php
+
+2. Eliminar cache viejo y reconstruir:
+   rm data/qso_cache.json
+   php build_cache.php
+
+3. Verificar mapa QSL:
+   https://tu-dominio.com/qsomap/qsl.html
+
+NOTA: El sync diario automático (2 AM) ya incluye los campos de confirmación,
+por lo que después del primer deployment manual, todo se actualiza automáticamente.
+
+========================================
 ARCHIVOS IMPORTANTES
 ========================================
 
 SCRIPTS:
 - setup_initial.sh - Inicialización (una vez)
 - sync_daily.sh - Sync diario (cron)
-- sync_clublog.php - Descarga de Clublog
-- build_cache.php - Construcción de cache
+- sync_clublog.php - Descarga de Clublog (incluye campos de confirmación)
+- build_cache.php - Construcción de cache (incluye QSL_RCVD, LOTW_QSL_RCVD)
 
 DATOS:
 - data/qso_data.json - QSOs raw de Clublog

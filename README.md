@@ -13,13 +13,14 @@ Sistema automatizado de visualización de QSOs en mapa interactivo con sincroniz
 - ✅ Fallback a LOTW si Clublog falla
 - ✅ Margen de seguridad de 2 días para no perder QSOs
 - ✅ Detecta y sincroniza QSOs editados recientemente
-- ✅ Cache incremental (~10 seg vs 3+ min)
+- ✅ Cache optimizado (instantáneo - skip lookups innecesarios)
 
 ### Gestión Inteligente de Grids
 - ✅ Respeta grids manuales de RUMlogNG/Clublog
 - ✅ Lookup automático solo para QSOs sin grid (HamQTH → Spothole)
 - ✅ Los grids de Clublog NUNCA se sobrescriben
 - ✅ Grids corregidos se actualizan automáticamente
+- ⚡ Optimizado: skip lookups cuando grid ya existe (99% de casos)
 
 ### Visualización
 - ✅ Marcadores en colores por banda (PSK Reporter scheme)
@@ -86,7 +87,8 @@ Ver documentación completa en:
 ## 🔧 Uso
 
 ### Visualización
-Acceder al mapa en: `https://tu-dominio.com/qsomap/index-headless.html`
+- **Mapa completo:** `https://tu-dominio.com/qsomap/index-headless.html`
+- **Mapa QSL:** `https://tu-dominio.com/qsomap/qsl.html`
 
 ### Actualización de Grids
 1. Editar QSO en RUMlogNG
@@ -106,6 +108,19 @@ cd ~/public_html/qsomap
 rm -f data/clublog_last_sync.txt
 bash sync_daily.sh
 ```
+
+### Deployment de Mapa Confirmado (primera vez)
+Después de subir archivos nuevos:
+```bash
+cd ~/public_html/qsomap
+php sync_clublog.php          # Re-sync con campos de confirmación
+rm data/qso_cache.json         # Eliminar cache viejo
+php build_cache.php            # Reconstruir cache completo
+```
+
+Luego acceder a: `https://tu-dominio.com/qsomap/qsl.html`
+
+**Nota:** El sync diario automático ya incluye los campos de confirmación, por lo que después del primer deployment manual, todo se actualiza automáticamente.
 
 ## 📊 Arquitectura
 
@@ -138,6 +153,7 @@ RUMlogNG → Clublog → sync_clublog.php → qso_data.json
 3. ✅ **Grids incorrectos** → Prioridad Clublog > Lookups
 4. ✅ **Sync lento** → Cache incremental
 5. ✅ **Scripts no portables** → Paths relativos
+6. ⚡ **Cache build lento** → Skip lookups cuando grid existe (2 vs 132 lookups)
 
 Ver [README-FEATURES.txt](README-FEATURES.txt) para detalles completos.
 

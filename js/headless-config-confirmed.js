@@ -1,6 +1,6 @@
 /**
- * Headless Map Configuration & Auto-Load
- * Loads QSOs from JSON cache and applies exact settings
+ * Headless Map Configuration & Auto-Load - CONFIRMED QSOs ONLY
+ * Loads only QSOs confirmed in Clublog or LoTW from JSON cache
  */
 
 // Configuration
@@ -30,7 +30,7 @@ const HEADLESS_CONFIG = {
 
 // Wait for map to initialize
 $(document).ready(function() {
-    console.log('Initializing headless QSO Map...');
+    console.log('Initializing headless QSO Map (CONFIRMED ONLY)...');
     
     // Wait for map setup to complete
     setTimeout(async function() {
@@ -105,7 +105,7 @@ async function initializeHeadlessMap() {
 
 async function loadQSOsFromCache() {
     try {
-        console.log('Loading QSOs from cache...');
+        console.log('Loading CONFIRMED QSOs from cache...');
         
         const response = await fetch(HEADLESS_CONFIG.cacheFile);
         if (!response.ok) {
@@ -117,9 +117,10 @@ async function loadQSOsFromCache() {
         console.log(`Loaded cache with ${cache.total_qsos} QSOs`);
         
         let skipped = 0;
+        let notConfirmed = 0;
         
-        // Group QSOs by CALL-GRID and keep only first per combination
-        const byCallGrid = new Map();
+        // First, filter only confirmed QSOs with grid
+        const confirmedQsos = [];
         for (const qso of cache.qsos) {
             // Only process QSOs with grid
             if (!qso.grid || qso.grid.length < 4) {
@@ -127,6 +128,21 @@ async function loadQSOsFromCache() {
                 continue;
             }
             
+            // FILTER: Only include QSOs confirmed in LoTW or Clublog
+            const lotwConfirmed = qso.lotw_qsl_rcvd === 'Y';
+            const clublogConfirmed = qso.clublog_status === 'Y' || qso.qsl_rcvd === 'Y';
+            
+            if (!lotwConfirmed && !clublogConfirmed) {
+                notConfirmed++;
+                continue;
+            }
+            
+            confirmedQsos.push(qso);
+        }
+        
+        // Group confirmed QSOs by CALL-GRID and keep only first per combination
+        const byCallGrid = new Map();
+        for (const qso of confirmedQsos) {
             const key = qso.call + '-' + qso.grid;
             const qsoTime = moment(qso.date + ' ' + qso.time, 'YYYYMMDD HHmmss');
             
@@ -141,7 +157,7 @@ async function loadQSOsFromCache() {
             }
         }
         
-        // Now add unique QSOs to map
+        // Now add unique confirmed QSOs to map
         let loaded = 0;
         for (const [key, { qso }] of byCallGrid) {
             const formattedQso = {
@@ -164,7 +180,7 @@ async function loadQSOsFromCache() {
             }
         }
         
-        console.log(`✓ Loaded ${loaded} QSOs (${skipped} skipped - no grid, ${cache.qsos.length - skipped - loaded} duplicates)`);
+        console.log(`✓ Loaded ${loaded} CONFIRMED QSOs (${skipped} skipped - no grid, ${notConfirmed} not confirmed, ${confirmedQsos.length - loaded} duplicates)`);
         
         // Redraw map
         setTimeout(function() {

@@ -34,3 +34,5 @@ backup/
 # Test files
 test*.php
 debug*.php
+.env
+adif examples

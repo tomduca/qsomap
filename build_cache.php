@@ -100,6 +100,9 @@ foreach ($qsos as $qso) {
         'name' => $qso['NAME'] ?? '',
         'qth' => $qso['QTH'] ?? '',
         'comment' => $qso['COMMENT'] ?? '',
+        'lotw_qsl_rcvd' => $qso['LOTW_QSL_RCVD'] ?? null,
+        'qsl_rcvd' => $qso['QSL_RCVD'] ?? null,
+        'clublog_status' => $qso['CLUBLOG_QSO_UPLOAD_STATUS'] ?? null,
         'sig' => $qso['SIG'] ?? '',
         'sig_info' => $qso['SIG_INFO'] ?? ''
     ];
@@ -107,55 +110,26 @@ foreach ($qsos as $qso) {
     // Build cache key
     $cacheKey = ($qso['CALL'] ?? '') . '|' . ($qso['QSO_DATE'] ?? '') . '|' . ($qso['TIME_ON'] ?? '');
     
-    // Check if we can reuse complete cached entry (incremental cache)
-    if (isset($existingCache[$cacheKey])) {
-        $cached = $existingCache[$cacheKey];
-        
-        // Detect if Clublog has NEW data that differs from cache
-        $clublogHasNewGrid = !empty($processed['grid']) && ($processed['grid'] !== ($cached['grid'] ?? ''));
-        $clublogHasNewName = !empty($processed['name']) && ($processed['name'] !== ($cached['name'] ?? ''));
-        $clublogHasNewQth = !empty($processed['qth']) && ($processed['qth'] !== ($cached['qth'] ?? ''));
-        
-        // If Clublog has no new data and cache is complete, reuse it (INCREMENTAL - FAST PATH)
-        if (!$clublogHasNewGrid && !$clublogHasNewName && !$clublogHasNewQth && !empty($cached['grid'])) {
-            $processedQSOs[] = $cached;
-            $stats['with_grid']++;
-            continue;
-        }
-        
-        // Otherwise, fill missing fields from cache but don't overwrite Clublog data
-        if (empty($processed['grid']) && !empty($cached['grid'])) {
-            $processed['grid'] = $cached['grid'];
-        }
-        if (empty($processed['dxcc']) && !empty($cached['dxcc'])) {
-            $processed['dxcc'] = $cached['dxcc'];
-        }
-        if (empty($processed['name']) && !empty($cached['name'])) {
-            $processed['name'] = $cached['name'];
-        }
-        if (empty($processed['qth']) && !empty($cached['qth'])) {
-            $processed['qth'] = $cached['qth'];
-        }
+    // Fill missing grid from cache if available (never overwrite Clublog data)
+    if (empty($processed['grid']) && isset($existingCache[$cacheKey]) && !empty($existingCache[$cacheKey]['grid'])) {
+        $processed['grid'] = $existingCache[$cacheKey]['grid'];
     }
     
-    // Only lookup if we still have missing fields
-    if ((empty($processed['grid']) || empty($processed['name']) || empty($processed['qth'])) && !empty($processed['call'])) {
+    // Count QSOs with grid (from Clublog or cache)
+    if (!empty($processed['grid'])) {
+        $stats['with_grid']++;
+    }
+    
+    // Only lookup grid if missing from both Clublog and cache
+    if (empty($processed['grid']) && !empty($processed['call'])) {
         $stats['lookups']++;
         
-        // Try HamQTH first
+        // Try HamQTH first for grid lookup only
         if ($hamqthSession) {
             $info = lookupCallsignHamQTH($processed['call'], $hamqthSession);
-            if ($info) {
-                // Only fill missing fields, never overwrite existing ones
-                if (empty($processed['grid']) && !empty($info['grid'])) {
-                    $processed['grid'] = $info['grid'];
-                }
-                if (empty($processed['name']) && !empty($info['name'])) {
-                    $processed['name'] = $info['name'];
-                }
-                if (empty($processed['qth']) && !empty($info['qth'])) {
-                    $processed['qth'] = $info['qth'];
-                }
+            if ($info && !empty($info['grid'])) {
+                $processed['grid'] = $info['grid'];
+                $stats['with_grid']++;
                 $stats['hamqth']++;
                 echo ".";
                 usleep(20000); // 20ms delay
@@ -168,14 +142,13 @@ foreach ($qsos as $qso) {
             if ($grid) {
                 $processed['grid'] = $grid;
                 $stats['spothole']++;
+                $stats['with_grid']++;
                 echo ".";
                 usleep(50000); // 50ms delay
             } else {
                 $stats['failed']++;
             }
         }
-    } elseif (!empty($processed['grid'])) {
-        $stats['with_grid']++;
     }
     
     $processedQSOs[] = $processed;
