@@ -119,11 +119,20 @@ async function loadQSOsFromCache() {
         let skipped = 0;
         let notConfirmed = 0;
         
+        // Allowed modes: phone and CW only (no digital)
+        const allowedModes = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
+        
         // First, filter only confirmed QSOs with grid
         const confirmedQsos = [];
         for (const qso of cache.qsos) {
             // Only process QSOs with grid
             if (!qso.grid || qso.grid.length < 4) {
+                skipped++;
+                continue;
+            }
+            
+            // Filter by mode: only phone and CW
+            if (!allowedModes.includes(qso.mode.toUpperCase())) {
                 skipped++;
                 continue;
             }
