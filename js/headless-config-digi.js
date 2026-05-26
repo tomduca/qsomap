@@ -121,8 +121,8 @@ async function loadQSOsFromCache() {
         // Group QSOs by CALL-GRID and keep only first per combination
         const byCallGrid = new Map();
         
-        // Allowed modes: phone and CW only (no digital)
-        const allowedModes = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
+        // Excluded modes: phone and CW (show only digital)
+        const excludedModes = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
         
         for (const qso of cache.qsos) {
             // Only process QSOs with grid
@@ -131,8 +131,8 @@ async function loadQSOsFromCache() {
                 continue;
             }
             
-            // Filter by mode: only phone and CW
-            if (!allowedModes.includes(qso.mode.toUpperCase())) {
+            // Filter by mode: exclude phone and CW (show only digital)
+            if (excludedModes.includes(qso.mode.toUpperCase())) {
                 skipped++;
                 continue;
             }
