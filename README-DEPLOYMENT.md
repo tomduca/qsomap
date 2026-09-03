@@ -1,118 +1,44 @@
-# QSO Map - Deployment Guide
+# Deployment de QSO Map
 
-## Sistema Implementado
+Esta guía usa File Manager, navegador y Cron de cPanel. No requiere SSH.
 
-### Componentes
-- **sync_clublog.php** - Sincroniza QSOs desde Clublog (fuente única)
-- **build_cache.php** - Construye cache con lookups de grids (HamQTH/Spothole)
-- **index-headless.html** - Mapa sin UI para embedding
-- **config.json** - Credenciales (protegido por .htaccess)
+## Archivos principales
 
-### Configuración Actual
-- **Callsign**: LU2MET
-- **Grid**: FF57oc
-- **Data Source:** Clublog (fuente única de QSOs)
-- **QSOs**: 265 desde Clublog
-- **Grids**: 221 (83% cobertura)
-  - 217 desde Clublog directamente
-  - 4 vía HamQTH/Spothole
+- `map-ssb.html`: vista SSB y CW.
+- `map-digi.html`: vista de modos digitales.
+- `map-qsl.html`: vista de QSOs confirmados por LoTW mediante `QSL_RCVD = Y`.
+- `sync_clublog.php`: sincronización desde Clublog.
+- `sync_lotw.php`: sincronización alternativa desde LoTW.
+- `build_cache.php`: genera `data/qso_cache.json` con los grids disponibles.
+- `sync_daily.sh`: orquestador utilizado por Cron.
+- `config.json`: configuración privada y credenciales.
 
-## Instalación en Producción
+## Instalación manual
 
-### 1. Subir Archivos
-Subir todo el contenido a tu hosting:
-```bash
-scp -r qsomap/ usuario@hosting:/path/to/webroot/
-```
+1. Sube el contenido a `public_html/qsomap/` desde File Manager.
+2. Copia `config.json.example` como `config.json` y completa los datos privados.
+3. Abre desde el navegador `sync_clublog.php` y espera a que termine.
+4. Después abre `build_cache.php` y espera a que termine.
+5. Si Clublog no está disponible, abre `sync_lotw.php` y después `build_cache.php`.
+6. Verifica que existan `data/qso_data.json` y `data/qso_cache.json`.
+7. Prueba las tres páginas `map-ssb.html`, `map-digi.html` y `map-qsl.html`.
 
-### 2. Configurar Permisos
-```bash
-chmod 755 sync_lotw.php build_cache.php
-chmod 644 config.json
-chmod 755 data/
-chmod 644 data/*.json
-```
+No ejecutes dos procesos al mismo tiempo. `build_cache.php` siempre debe ejecutarse después de una sincronización terminada.
 
-### 3. Verificar .htaccess
-Asegurar que Apache tiene mod_rewrite y mod_headers habilitados.
+## Cron diario
 
-### 4. Configurar Cron (Sync Diario)
-Agregar a crontab:
+En cPanel crea una tarea diaria a las 02:00. Para esta instalación:
+
 ```cron
-0 2 * * * /path/to/qsomap/sync_daily.sh
+cd /home/lu2met/public_html/qsomap && /bin/bash sync_daily.sh
 ```
 
-Esto ejecutará el sync todos los días a las 2 AM.
+Para otro hosting, reemplaza `/home/lu2met` por la ruta absoluta correspondiente.
 
-### 5. Primera Sincronización
-```bash
-cd /path/to/qsomap
-php sync_lotw.php
-php build_cache.php
-```
+`sync_daily.sh` ejecuta Clublog, usa LoTW como fallback y reconstruye el cache. El log se escribe en `sync_daily.log` dentro de `public_html/qsomap/`.
 
-## URLs
+El archivo `sync_daily.sh` debe tener permisos 755 y la carpeta `data/` debe ser escribible.
 
-- **Mapa Headless**: `https://tudominio.com/qsomap/index-headless.html`
-- **Mapa Normal**: `https://tudominio.com/qsomap/index.html`
+## Seguridad
 
-## Embedding en QRZ.com
-
-El mapa headless está configurado para ser embebido como iframe:
-
-```html
-<iframe src="https://tudominio.com/qsomap/index-headless.html" 
-        width="100%" height="600" frameborder="0">
-</iframe>
-```
-
-## Configuración del Mapa
-
-El mapa headless tiene configuración hardcodeada en `js/headless-config.js`:
-- Basemap: ESRI NatGeo World Map (50% opacity)
-- Markers: Círculos pequeños (size 0.5)
-- Colores: Por banda (PSK Reporter scheme)
-- Líneas: Geodésicas, coloreadas, finas
-
-## Troubleshooting
-
-### Los QSOs no se actualizan
-```bash
-# Ejecutar manualmente
-php sync_lotw.php
-php build_cache.php
-```
-
-### Pocos QSOs con grid
-- LOTW no incluye gridsquare en el ADIF
-- HamQTH tiene cobertura limitada (~34%)
-- Considerar agregar más fuentes de lookup
-
-### Errores de permisos
-```bash
-chown -R www-data:www-data /path/to/qsomap/data/
-chmod 755 /path/to/qsomap/data/
-```
-
-## Logs
-
-Los logs del sync diario se guardan en:
-```
-/var/log/qsomap-sync.log
-```
-
-## Credenciales
-
-Las credenciales están en `config.json` y protegidas por `.htaccess`.
-**NUNCA** commitear este archivo a git ni exponerlo públicamente.
-
-## Próximas Mejoras
-
-1. **Clublog como fuente primaria** - Mejor cobertura de grids
-2. **Colores de marcadores** - Actualmente muestran negro, necesita debugging adicional
-3. **API adicionales** - Agregar más fuentes de grid lookup
-4. **Monitoreo** - Alertas si el sync falla
-
-## Soporte
-
-Para problemas o mejoras, contactar al desarrollador.
+`config.json` contiene credenciales y no debe publicarse ni exponerse al navegador. Las URLs PHP de sincronización deben usarse solo durante la administración inicial o una resincronización manual; si el hosting lo permite, protégelas con autenticación o restricción de acceso.

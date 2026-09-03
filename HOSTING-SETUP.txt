@@ -1,152 +1,69 @@
 ========================================
-GUÍA DE INSTALACIÓN EN HOSTING
+GUIA DE INSTALACION EN HOSTING
 ========================================
 
-BASADO EN: QSO Map por Ian Renton
-Repositorio original: https://git.ianrenton.com/ian/qsomap.git
-Licencia: MIT
+Esta guia usa File Manager, navegador y Cron de cPanel. No requiere SSH.
 
-IMPORTANTE: Esta guía es para hostings SIN acceso SSH.
-Si tenés SSH, podés ejecutar los scripts directamente.
+1. SUBIR ARCHIVOS
 
-========================================
-PASO 1: SUBIR ARCHIVOS
-========================================
-
-1. Descomprimí qsomap-deploy-final.tar.gz en tu computadora
-2. Subí todos los archivos a tu hosting vía FTP/File Manager
-   Destino: public_html/qsomap/ (o el directorio que prefieras)
-3. Verificá que config.json tenga tus credenciales correctas
-
-========================================
-PASO 2: CONFIGURAR PERMISOS
-========================================
-
-En File Manager de cPanel:
-1. Click derecho en carpeta "data/" → Permissions
-2. Configurá: 755 (rwxr-xr-x)
-3. Click derecho en "setup_initial.sh" → Permissions
-4. Configurá: 755 (rwxr-xr-x)
-5. Click derecho en "sync_daily.sh" → Permissions
-6. Configurá: 755 (rwxr-xr-x)
-
-========================================
-PASO 3: INICIALIZACIÓN (UNA SOLA VEZ)
-========================================
-
-Opción A - Usando Cron Jobs (RECOMENDADO):
--------------------------------------------
-1. cPanel → Cron Jobs
-2. Agregá un cron job TEMPORAL:
-   
-   Common Settings: Once Per Day
-   Command: cd /home/TU_USUARIO/public_html/qsomap && /bin/bash setup_initial.sh >> ~/qsomap_setup.log 2>&1
-   
-   (Reemplazá TU_USUARIO con tu usuario de cPanel)
-
-3. Guardá y esperá 24 horas (o cambiá la hora para que corra pronto)
-4. Después de que corra, revisá el log:
-   File Manager → buscar qsomap_setup.log en tu home
-5. Si dice "Initial Setup Complete!", BORRÁ este cron job temporal
-
-Opción B - Usando Terminal de cPanel (si está disponible):
------------------------------------------------------------
-1. cPanel → Terminal
-2. Ejecutá:
-   cd ~/public_html/qsomap
-   bash setup_initial.sh
-
-========================================
-PASO 4: VERIFICAR QUE FUNCIONA
-========================================
-
-1. Abrí en tu navegador:
-   https://tu-dominio.com/qsomap/index-headless.html
-
-2. Deberías ver:
-   - Tu posición QTH
-   - Todos tus QSOs en el mapa
-   - Marcadores en colores por banda
-
-3. Si no ves QSOs:
-   - Revisá qsomap_setup.log para ver errores
-   - Verificá que data/qso_cache.json existe y tiene contenido
-
-========================================
-PASO 5: CONFIGURAR SYNC DIARIO
-========================================
-
-1. cPanel → Cron Jobs
-2. Agregá un cron job PERMANENTE:
-
-   Minute:  0
-   Hour:    2     (2 AM - horario de baja actividad)
-   Day:     *
-   Month:   *
-   Weekday: *
-   
-   Command:
-   cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
-
-3. Guardá
-
-Esto va a:
-- Sincronizar con Clublog cada día (últimos 2 días + QSOs editados)
-- Actualizar el cache automáticamente (solo QSOs nuevos/modificados)
-- Tomar ~10 segundos por día
-- Log automático en: public_html/qsomap/sync_daily.log
-
-========================================
-PASO 6: LIMPIEZA (OPCIONAL)
-========================================
-
-Podés borrar estos archivos que ya no necesitás:
-- setup_initial.sh (ya corrió)
-- HOSTING-SETUP.txt (esta guía)
-- CRON-SETUP.txt
-- QRZ-EMBEDDING-GUIDE.txt
-
-NO BORRES:
-- sync_daily.sh (lo usa el cron)
-- sync_clublog.php
-- build_cache.php
+Subi el proyecto a public_html/qsomap/ y verifica que existan:
 - config.json
-- Todo lo demás
+- sync_clublog.php
+- sync_lotw.php
+- build_cache.php
+- sync_daily.sh
+- data/
+- map-ssb.html, map-digi.html y map-qsl.html
 
-========================================
-TROUBLESHOOTING
-========================================
+No publiques config.json en un repositorio. Contiene credenciales.
 
-Problema: "Permission denied" al correr scripts
-Solución: Verificá permisos (755) en setup_initial.sh y sync_daily.sh
+2. CONFIGURAR config.json
 
-Problema: No se crean archivos en data/
-Solución: Verificá permisos (755) en carpeta data/
+Copia config.json.example como config.json y completa las credenciales de las fuentes que uses:
+- Clublog: email, password, api_key y callsign.
+- LoTW: username, password y days_back.
+- HamQTH: username y password, si usaras lookup de grids.
+- map: callsign y grid del operador.
 
-Problema: "Cannot load config.json"
-Solución: Verificá que config.json existe y tiene tus credenciales
+3. INICIALIZACION DESDE EL NAVEGADOR
 
-Problema: Cron no corre
-Solución: 
-- Verificá la ruta completa en el comando
-- Reemplazá TU_USUARIO con tu usuario real de cPanel
-- Revisá ~/qsomap_cron.log para ver errores
+Abre las URLs en este orden y espera a que cada proceso termine:
 
-Problema: Map muestra solo QTH, no QSOs
-Solución:
-- Verificá que data/qso_cache.json existe
-- Abrí el archivo y verificá que tiene QSOs
-- Hacé hard refresh (Ctrl+Shift+R) en el navegador
+1. https://tu-dominio.com/qsomap/sync_clublog.php
+2. https://tu-dominio.com/qsomap/build_cache.php
 
-========================================
-SOPORTE
-========================================
+Si Clublog no esta configurado o falla, usa este orden alternativo:
 
-Si tenés problemas:
-1. Revisá los logs:
-   - qsomap_setup.log (en home, inicialización)
-   - sync_daily.log (en qsomap/, sync diario)
-2. Verificá que config.json tiene credenciales correctas
-3. Probá correr los scripts manualmente desde Terminal de cPanel:
-   cd ~/public_html/qsomap
-   bash sync_daily.sh
+1. https://tu-dominio.com/qsomap/sync_lotw.php
+2. https://tu-dominio.com/qsomap/build_cache.php
+
+No ejecutes dos PHP al mismo tiempo. El primer PHP genera data/qso_data.json y build_cache.php genera data/qso_cache.json.
+
+4. VERIFICAR EL MAPA
+
+Abre:
+- https://tu-dominio.com/qsomap/map-ssb.html
+- https://tu-dominio.com/qsomap/map-digi.html
+- https://tu-dominio.com/qsomap/map-qsl.html
+
+Si no aparecen datos, verifica en File Manager que data/qso_cache.json exista y tenga contenido.
+
+5. CRON DIARIO
+
+En cPanel, crea un Cron Job permanente a las 02:00 con este comando:
+
+cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
+
+Para tu instalación actual:
+
+cd /home/lu2met/public_html/qsomap && /bin/bash sync_daily.sh
+
+sync_daily.sh ejecuta Clublog, usa LoTW como fallback y después reconstruye el cache. El log queda en:
+
+public_html/qsomap/sync_daily.log
+
+El archivo sync_daily.sh debe tener permisos 755 y data/ debe permitir escritura.
+
+6. ACTUALIZACION MANUAL
+
+Para una actualización puntual, abre sync_clublog.php y luego build_cache.php. Si usas LoTW como fuente, abre sync_lotw.php y luego build_cache.php.
