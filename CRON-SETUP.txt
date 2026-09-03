@@ -9,7 +9,7 @@ CONFIGURACIÓN DE CRON JOB EN CPANEL
 
 2. CONFIGURAR NUEVA TAREA CRON
    
-   Opción A - Configuración Simple (recomendada):
+   Configuración Simple:
    ------------------------------------------------
    Common Settings: "Once Per Day (0 0 * * *)"
    
@@ -37,9 +37,10 @@ CONFIGURACIÓN DE CRON JOB EN CPANEL
    Después de que corra el cron, revisá el log:
    public_html/qsomap/sync_daily.log
    
-   O ejecutá manualmente desde cPanel Terminal:
-   cd ~/public_html/qsomap
-   bash sync_daily.sh
+   Para inicializar manualmente desde el navegador:
+   1. Abrí sync_clublog.php y esperá a que termine.
+   2. Abrí build_cache.php y esperá a que termine.
+   3. Si Clublog no está disponible, abrí sync_lotw.php antes de build_cache.php.
 
 5. QUÉ HACE EL CRON
    - Sincroniza con Clublog (últimos 2 días + QSOs editados recientemente)
@@ -58,10 +59,10 @@ TROUBLESHOOTING
 
 Si el cron no funciona:
 1. Verificá el log: public_html/qsomap/sync_daily.log
-2. Verificá permisos: sync_daily.sh debe ser 755
+2. Verificá que sync_daily.sh exista y tenga permisos 755
 3. Verificá que el path es absoluto: /home/USUARIO/...
 4. NO uses ~ en el comando del cron
-5. Probá manualmente: cd ~/public_html/qsomap && bash sync_daily.sh
+5. La inicialización manual se hace abriendo sync_clublog.php y después build_cache.php.
 
 Si necesitás forzar sync completo (ej: después de editar grids viejos):
 cd ~/public_html/qsomap
@@ -70,4 +71,3 @@ bash sync_daily.sh
 
 Logs importantes:
 - sync_daily.log (sync diario, en qsomap/)
-- qsomap_init.log (inicialización, en home)

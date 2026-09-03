@@ -1,181 +1,89 @@
-# QSO Map - Automated Sync Edition
+# QSO Map
 
-Sistema automatizado de visualización de QSOs en mapa interactivo con sincronización automática desde Clublog/LOTW.
+Visor simple de QSOs para hosting PHP, con sincronización desde Clublog o LoTW y tres vistas de mapa.
 
-**Basado en:** [QSO Map](https://git.ianrenton.com/ian/qsomap.git) por Ian Renton (M0TRT)  
-**Licencia:** MIT  
-**Adaptado para:** LU2MET
+El proyecto se inspira en [QSO Map](https://git.ianrenton.com/ian/qsomap.git) por Ian Renton. Las páginas actuales del visor simple no cargan código desde ese proyecto; los enlaces que aparecen en la documentación de créditos son únicamente atribuciones.
 
-## 🎯 Características Principales
+## Vistas
 
-### Sincronización Automática
-- ✅ Sync diario desde Clublog (fuente primaria)
-- ✅ Fallback a LOTW si Clublog falla
-- ✅ Margen de seguridad de 2 días para no perder QSOs
-- ✅ Detecta y sincroniza QSOs editados recientemente
-- ✅ Cache optimizado (instantáneo - skip lookups innecesarios)
+- `map-ssb.html`: contactos de voz y CW.
+- `map-digi.html`: contactos digitales.
+- `map-qsl.html`: contactos confirmados por LoTW, identificados en el cache con `QSL_RCVD = Y` desde Clublog.
 
-### Gestión Inteligente de Grids
-- ✅ Respeta grids manuales de RUMlogNG/Clublog
-- ✅ Lookup automático solo para QSOs sin grid (HamQTH → Spothole)
-- ✅ Los grids de Clublog NUNCA se sobrescriben
-- ✅ Grids corregidos se actualizan automáticamente
-- ⚡ Optimizado: skip lookups cuando grid ya existe (99% de casos)
+Las tres vistas muestran el mapa base, la posición del operador, marcadores coloreados por banda, líneas de trayectoria y agrupación de marcadores superpuestos. Los popups incluyen la información disponible en `data/qso_cache.json`.
 
-### Visualización
-- ✅ Marcadores en colores por banda (PSK Reporter scheme)
-- ✅ Líneas geodésicas coloreadas
-- ✅ Símbolos xOTA para activaciones POTA/SOTA
-- ✅ Popups con información completa del QSO
-- ✅ Carga instantánea desde cache JSON
+## Instalación
 
-### Portabilidad
-- ✅ Scripts con paths relativos (funcionan en cualquier hosting)
-- ✅ Compatible con cPanel y hosting compartido
-- ✅ No requiere SSH para deployment
-- ✅ Logs locales (no requiere permisos especiales)
+Requisitos:
 
-## 📦 Instalación Rápida
+- Hosting con PHP 7.4 o superior.
+- Acceso a cron para la sincronización automática.
+- Credenciales de las fuentes que se quieran utilizar.
 
-Ver [DEPLOYMENT-CHECKLIST.txt](DEPLOYMENT-CHECKLIST.txt) para instrucciones completas paso a paso.
+1. Copiar `config.json.example` como `config.json`.
+2. Completar las credenciales y el callsign en `config.json`.
+3. Subir el proyecto al hosting.
+4. Ejecutar desde el navegador los PHP de inicialización en el orden indicado abajo.
+5. Configurar `sync_daily.sh` como tarea cron.
 
-## 🚀 Deployment
+El archivo `config.json` contiene secretos y está excluido de Git. No debe publicarse.
 
-### Requisitos
-- Hosting con PHP 7.4+ y cPanel
-- Credenciales de Clublog (API key + application password)
-- Credenciales de HamQTH (opcional, para lookup de grids)
+## Sincronización
 
-### Proceso de Instalación
+El flujo es:
 
-1. **Subir archivos**
-   ```bash
-   # Descomprimir qsomap-clean-deploy.tar.gz
-   # Subir a public_html/qsomap/ vía FTP/File Manager
-   ```
+```text
+Clublog -> sync_clublog.php -> data/qso_data.json
+LoTW    -> sync_lotw.php    -> data/qso_data.json
+                              |
+                       build_cache.php
+                              |
+                       data/qso_cache.json
+                              |
+                       map-*.html
+```
 
-2. **Configurar permisos**
-   ```bash
-   chmod 755 data/
-   chmod 755 setup_initial.sh
-   chmod 755 sync_daily.sh
-   ```
+`build_cache.php` conserva grids existentes y puede consultar HamQTH y Spothole cuando falta un grid. Las credenciales de Clublog, LoTW y HamQTH se leen desde `config.json`.
 
-3. **Editar config.json**
-   - Agregar credenciales de Clublog
-   - Agregar credenciales de HamQTH
-   - Configurar QTH (callsign, grid, lat/lon)
+Sincronización manual:
 
-4. **Inicialización (una vez)**
-   ```bash
-   # Crear cron temporal en cPanel:
-   cd /home/USUARIO/public_html/qsomap && /bin/bash setup_initial.sh > /home/USUARIO/qsomap_init.log 2>&1
-   ```
-
-5. **Sync diario (permanente)**
-   ```bash
-   # Cron a las 2 AM:
-   cd /home/USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
-   ```
-
-Ver documentación completa en:
-- [HOSTING-SETUP.txt](HOSTING-SETUP.txt) - Guía de instalación
-- [DEPLOYMENT-CHECKLIST.txt](DEPLOYMENT-CHECKLIST.txt) - Checklist paso a paso
-- [CRON-SETUP.txt](CRON-SETUP.txt) - Configuración de cron
-- [README-FEATURES.txt](README-FEATURES.txt) - Características y mejoras
-
-## 🔧 Uso
-
-### Visualización
-- **Mapa completo:** `https://tu-dominio.com/qsomap/index-headless.html`
-- **Mapa QSL:** `https://tu-dominio.com/qsomap/qsl.html`
-
-### Actualización de Grids
-1. Editar QSO en RUMlogNG
-2. RUMlogNG sincroniza con Clublog
-3. Esperar al sync diario (2 AM) o forzar manualmente
-4. El mapa se actualiza automáticamente
-
-### Sync Manual
 ```bash
-cd ~/public_html/qsomap
 bash sync_daily.sh
 ```
 
-### Sync Completo (después de editar grids viejos)
-```bash
-cd ~/public_html/qsomap
-rm -f data/clublog_last_sync.txt
-bash sync_daily.sh
-```
+Inicialización desde File Manager y navegador:
 
-### Deployment de Mapa Confirmado (primera vez)
-Después de subir archivos nuevos:
-```bash
-cd ~/public_html/qsomap
-php sync_clublog.php          # Re-sync con campos de confirmación
-rm data/qso_cache.json         # Eliminar cache viejo
-php build_cache.php            # Reconstruir cache completo
-```
+1. Subir y completar `config.json`.
+2. Abrir `https://tu-dominio.com/qsomap/sync_clublog.php` y esperar a que finalice.
+3. Abrir `https://tu-dominio.com/qsomap/build_cache.php` y esperar a que finalice.
+4. Verificar que existan `data/qso_data.json` y `data/qso_cache.json`.
 
-Luego acceder a: `https://tu-dominio.com/qsomap/qsl.html`
+Si Clublog no está disponible, abrir primero `sync_lotw.php` y después `build_cache.php`.
 
-**Nota:** El sync diario automático ya incluye los campos de confirmación, por lo que después del primer deployment manual, todo se actualiza automáticamente.
+No ejecutar dos PHP simultáneamente: `build_cache.php` necesita que la descarga anterior haya terminado.
 
-## 📊 Arquitectura
+Documentación operativa:
 
-### Flujo de Datos
-```
-RUMlogNG → Clublog → sync_clublog.php → qso_data.json
-                                       ↓
-                              build_cache.php → qso_cache.json
-                                       ↓
-                              index-headless.html (mapa)
-```
+- [DEPLOYMENT-CHECKLIST.txt](DEPLOYMENT-CHECKLIST.txt)
+- [HOSTING-SETUP.txt](HOSTING-SETUP.txt)
+- [CRON-SETUP.txt](CRON-SETUP.txt)
+- [README-DEPLOYMENT.md](README-DEPLOYMENT.md)
 
-### Prioridad de Datos
-1. **Clublog** (máxima) - Grids manuales de RUMlogNG
-2. **Cache** (media) - Lookups previos reutilizados
-3. **HamQTH/Spothole** (baja) - Solo si falta grid
+## Parametrización futura
 
-### Archivos Importantes
-- `sync_daily.sh` - Script de sync diario
-- `sync_clublog.php` - Descarga de Clublog
-- `build_cache.php` - Construcción de cache
-- `data/qso_cache.json` - Cache usado por el mapa
-- `sync_daily.log` - Log de sync diario
+La parametrización completa es posible y conviene hacerla antes de publicar el repositorio como plantilla. Actualmente quedan hardcodeados en `js/simple-map.js`:
 
-## 🎨 Mejoras sobre el Original
+- Callsign del operador: `LU2MET`.
+- Grid del operador: `FF57oc`.
+- Ruta del cache: `data/qso_cache.json`.
+- Proveedor y configuración inicial del mapa.
 
-### Problemas Resueltos
-1. ✅ **Marcadores negros** → Normalización de nombres de banda
-2. ✅ **Pérdida de QSOs** → Margen de 2 días en sync
-3. ✅ **Grids incorrectos** → Prioridad Clublog > Lookups
-4. ✅ **Sync lento** → Cache incremental
-5. ✅ **Scripts no portables** → Paths relativos
-6. ⚡ **Cache build lento** → Skip lookups cuando grid existe (2 vs 132 lookups)
+La primera fase recomendada sería agregar una sección pública `map` a `config.json.example` y generar un archivo frontend sin secretos, por ejemplo `data/map-config.json`, con solo `callsign`, `grid`, `cache_file`, `default_basemap` y colores. El visor leería ese archivo antes de cargar el cache.
 
-Ver [README-FEATURES.txt](README-FEATURES.txt) para detalles completos.
+Las credenciales deben permanecer exclusivamente en `config.json` del servidor y nunca enviarse al navegador. La fuente de datos debería controlarse mediante opciones backend (`clublog.enabled`, `lotw.enabled`, `hamqth.enabled`, `spothole.enabled`), manteniendo un formato normalizado único para el cache. Así otro operador solo tendría que editar su configuración, ejecutar la sincronización y publicar las páginas de mapa.
 
-## 📝 Créditos
+Esta parametrización está documentada como diseño futuro; todavía no está implementada.
 
-**Proyecto Original:** [QSO Map](https://git.ianrenton.com/ian/qsomap.git) por Ian Renton (M0TRT)
+## Créditos y licencia
 
-**Mejoras y Adaptaciones:** Tomás Duca para LU2MET
-
-Ver [CREDITS.txt](CREDITS.txt) para atribuciones completas.
-
-## 📄 Licencia
-
-MIT License - Ver [CREDITS.txt](CREDITS.txt) para texto completo.
-
-## 🔗 Enlaces
-
-- **Repositorio Original:** https://git.ianrenton.com/ian/qsomap.git
-- **Demo Original:** https://qsomap.m0trt.radio
-- **Este Fork:** https://github.com/tomduca/qsomap
-
-## 📞 Contacto
-
-- **Callsign:** LU2MET
-- **GitHub:** https://github.com/tomduca/qsomap
+Las atribuciones del proyecto original están en [CREDITS.txt](CREDITS.txt). El proyecto utiliza licencia MIT.

@@ -1,71 +1,82 @@
 ========================================
-CRÉDITOS Y ATRIBUCIONES
+CREDITOS Y ATRIBUCIONES
 ========================================
 
-PROYECTO ORIGINAL
+INSPIRACION Y REFERENCIA
 ========================================
 
 QSO Map
-Autor: Ian Renton
+Autor: Ian Renton M0TRT
 Website: https://ianrenton.com
-Repositorio: https://git.ianrenton.com/ian/qsomap.git
-Licencia: MIT License
+Repositorio original: https://git.ianrenton.com/ian/qsomap.git
+Licencia declarada por el proyecto original: MIT License
 
-Descripción:
-Sistema de visualización de QSOs en mapa interactivo usando Leaflet,
-con soporte para múltiples fuentes de datos (LOTW, Clublog) y
-lookups de grid automáticos.
+Este proyecto esta inspirado en la solucion QSO Map de Ian Renton. Tomamos como referencia:
+- La idea de representar QSOs de radioaficionados sobre un mapa.
+- El uso de grids Maidenhead para ubicar estaciones.
+- La representacion de una estacion propia, contactos y trayectorias.
+- La organizacion general de los datos de QSO y la generacion de un cache para el visor.
+
+La implementacion actual del visor es una version simplificada y adaptada. No carga scripts desde Ian Renton ni desde sus dominios. Las conversiones Maidenhead, las lineas de gran circulo, los filtros SSB/DIGI/QSL y la interfaz actual fueron implementados para este proyecto.
 
 ========================================
 MEJORAS Y ADAPTACIONES
 ========================================
 
-Implementadas para LU2MET por Tomás Duca
+Implementadas para LU2MET por Tomas Duca
 Repositorio: https://github.com/tomduca/qsomap
 
-Principales mejoras:
-- Sincronización automática con Clublog (primaria) y LOTW (fallback)
-- Cache incremental para mejor performance
-- Preservación de grids manuales de RUMlogNG/Clublog
-- Scripts portables para hosting compartido sin SSH
-- Margen de seguridad de 2 días en sync incremental
-- Fix de colores de marcadores por banda
-- Documentación completa en español para deployment en cPanel
+- Visores simples para SSB, DIGI y QSL confirmados por LoTW mediante `QSL_RCVD = Y` de Clublog.
+- Marcadores pequenos coloreados por banda.
+- Agrupacion de marcadores superpuestos.
+- Lineas de gran circulo calculadas localmente y usando la ruta longitudinal mas corta.
+- Repeticion horizontal del mapa para visualizar trayectorias hacia Asia y el Pacifico.
+- Popups con los datos disponibles del cache y nombre de entidad DXCC.
+- Sincronizacion con Clublog y fallback a LoTW.
+- Cache incremental y lookups server-side de grids mediante HamQTH y Spothole.
+- Documentacion para instalacion con File Manager y Cron de cPanel.
 
 ========================================
 BIBLIOTECAS Y SERVICIOS UTILIZADOS
 ========================================
 
-FRONTEND:
-- Leaflet.js - Biblioteca de mapas interactivos
-- jQuery - Manipulación DOM
-- Esri.NatGeoWorldMap - Mapa base
+BIBLIOTECAS FRONTEND:
+- Leaflet.js 1.9.4 - https://leafletjs.com/
+  Biblioteca de mapas interactivos. Licencia BSD-2-Clause.
+- Leaflet Providers - https://github.com/leaflet-extras/leaflet-providers
+  Catalogo de proveedores para capas base. Licencia MIT.
+- OverlappingMarkerSpiderfier - https://github.com/jawj/OverlappingMarkerSpiderfier-Leaflet
+  Agrupa visualmente marcadores superpuestos. Licencia MIT.
+
+MAPAS:
+- Esri World Maps, incluido Esri.NatGeoWorldMap.
+  Se utiliza mediante Leaflet Providers y debe conservarse la atribucion exigida por Esri en cualquier deployment.
 
 BACKEND:
-- PHP 7.4+ - Procesamiento server-side
-- cURL - Comunicación con APIs
+- PHP 7.4+ para sincronizacion y construccion del cache.
+- cURL o streams HTTP de PHP para comunicacion con servicios externos.
 
-APIs EXTERNAS:
-- Clublog API - Fuente primaria de QSOs
-- LOTW (Logbook of The World) - Fuente fallback de QSOs
-- HamQTH - Lookup de grids (primario)
-- Spothole - Lookup de grids (fallback)
+SERVICIOS Y FUENTES DE DATOS:
+- Clublog: https://clublog.org/
+- LoTW, Logbook of The World: https://lotw.arrl.org/
+- HamQTH: https://www.hamqth.com/
+- Spothole: https://spothole.app/
+- QRZ se utiliza solo como enlace opcional desde los popups; no se usa embedding.
 
-UTILIDADES:
-- ham.js - Funciones de radio amateur (Ian Renton)
-- ui-ham.js - UI helpers para ham radio (Ian Renton)
+DATOS LOCALES:
+- data/dxcc.js contiene el catalogo local de entidades DXCC utilizado para mostrar nombre y codigo.
 
 ========================================
 LICENCIA
 ========================================
 
-Este proyecto mantiene la licencia MIT del proyecto original.
+Este proyecto conserva la atribucion al proyecto original y distribuye sus adaptaciones bajo licencia MIT, salvo que una dependencia o proveedor indique condiciones diferentes.
 
-Copyright (c) Ian Renton (proyecto original)
-Copyright (c) 2026 Tomás Duca (mejoras y adaptaciones)
+Copyright (c) Ian Renton (inspiracion y proyecto original)
+Copyright (c) 2026 Tomas Duca (adaptaciones y visor actual)
 
 Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
+ a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
 without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
@@ -87,23 +98,22 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 AGRADECIMIENTOS
 ========================================
 
-- Ian Renton por el proyecto original QSO Map
-- Clublog por su excelente API y servicio
-- ARRL por LOTW (Logbook of The World)
-- HamQTH por su servicio de lookup de callsigns
-- Spothole por su API de grids
-- La comunidad de radioaficionados por su apoyo
+- Ian Renton por la inspiracion y el proyecto original QSO Map.
+- Leaflet y sus colaboradores.
+- Los mantenedores de Leaflet Providers.
+- Jawj y colaboradores de OverlappingMarkerSpiderfier.
+- Esri por los mapas base utilizados.
+- Clublog, ARRL/LoTW, HamQTH y Spothole por sus servicios.
+- La comunidad de radioaficionados.
 
 ========================================
 CONTACTO
 ========================================
 
-Para consultas sobre las mejoras y adaptaciones:
+Adaptaciones actuales:
 - Callsign: LU2MET
 - GitHub: https://github.com/tomduca/qsomap
 
-Para consultas sobre el proyecto original:
+Proyecto de referencia:
 - Website: https://ianrenton.com
 - Repositorio: https://git.ianrenton.com/ian/qsomap.git
-
-========================================
