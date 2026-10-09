@@ -7,6 +7,7 @@ Esta guía usa File Manager, navegador y Cron de cPanel. No requiere SSH.
 - `map-ssb.html`: vista SSB y CW.
 - `map-digi.html`: vista de modos digitales.
 - `map-qsl.html`: vista de QSOs confirmados por LoTW mediante `QSL_RCVD = Y`.
+- `map-ssb-qrz.php`: mapa SSB estático de 900 px para iframe.
 - `sync_clublog.php`: sincronización desde Clublog.
 - `sync_lotw.php`: sincronización alternativa desde LoTW.
 - `build_cache.php`: genera `data/qso_cache.json` con los grids disponibles.
@@ -22,8 +23,21 @@ Esta guía usa File Manager, navegador y Cron de cPanel. No requiere SSH.
 5. Si Clublog no está disponible, abre `sync_lotw.php` y después `build_cache.php`.
 6. Verifica que existan `data/qso_data.json` y `data/qso_cache.json`.
 7. Prueba las tres páginas `map-ssb.html`, `map-digi.html` y `map-qsl.html`.
+8. Prueba también `map-ssb-qrz.php` antes de insertarlo en QRZ.
 
 No ejecutes dos procesos al mismo tiempo. `build_cache.php` siempre debe ejecutarse después de una sincronización terminada.
+
+## Iframe estático para QRZ
+
+La URL del mapa estático es:
+
+```html
+<iframe src="https://tu-dominio.com/qsomap/map-ssb-qrz.php" width="900" height="425" frameborder="0" scrolling="no"></iframe>
+```
+
+La página no ejecuta JavaScript. Genera las líneas y puntos server-side y utiliza una imagen cartográfica estática de Esri. QRZ debe permitir iframes desde tu dominio; la aceptación final depende de las políticas de QRZ.
+
+No hace falta modificar el cron: `map-ssb-qrz.php` lee `data/qso_cache.json`, que ya actualiza `sync_daily.sh`.
 
 ## Cron diario
 

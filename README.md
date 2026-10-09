@@ -9,8 +9,11 @@ El proyecto se inspira en [QSO Map](https://git.ianrenton.com/ian/qsomap.git) po
 - `map-ssb.html`: contactos de voz y CW.
 - `map-digi.html`: contactos digitales.
 - `map-qsl.html`: contactos confirmados por LoTW, identificados en el cache con `QSL_RCVD = Y` desde Clublog.
+- `map-ssb-qrz.php`: mapa SSB estático de 900 px para insertar como iframe en QRZ.
 
 Las tres vistas muestran el mapa base, la posición del operador, marcadores coloreados por banda, líneas de trayectoria y agrupación de marcadores superpuestos. Los popups incluyen la información disponible en `data/qso_cache.json`.
+
+La vista `map-ssb-qrz.php` no usa JavaScript: genera un mapa estático de 900 x 425 px con puntos y trayectorias SSB. La longitud de `FF57` queda centrada horizontalmente, conservando la relación de aspecto geográfica, y el fondo se repite a ambos lados. Está pensada para el formato de iframe de QRZ. Lee el cache actualizado directamente, por lo que no requiere modificar `sync_daily.sh`.
 
 ## Instalación
 

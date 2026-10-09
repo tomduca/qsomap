@@ -5,6 +5,7 @@
 - `map-ssb.html`: contactos SSB, voz y CW.
 - `map-digi.html`: contactos digitales.
 - `map-qsl.html`: contactos confirmados por LoTW, identificados en el cache con `QSL_RCVD = Y` desde Clublog.
+- `map-ssb-qrz.php`: mapa SSB estatico de 900 px para iframe, sin JavaScript.
 
 ## Mapa
 
@@ -45,5 +46,6 @@ Si Clublog falla:
 - `sync_daily.sh`: ejecuta la sincronización diaria desde Cron.
 - `config.json`: credenciales y configuración privada.
 - `data/qso_cache.json`: datos consumidos por las vistas.
+- `map-ssb-qrz.php` lee directamente `data/qso_cache.json`; no requiere cambios en el Cron.
 
 No se requiere SSH para la instalación o la operación prevista con File Manager, navegador y Cron de cPanel.
