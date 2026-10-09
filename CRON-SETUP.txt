@@ -49,6 +49,8 @@ CONFIGURACIÓN DE CRON JOB EN CPANEL
    - Actualiza data/qso_cache.json automáticamente
    - Loguea en sync_daily.log (mismo directorio)
 
+   El Cron actualiza los datos de los mapas interactivos y del PHP estático. No regenera el PNG de fondo de QRZ: ejecuta make_bg_1x1.php manualmente solo si cambia el grid del QTH o el planisferio.
+
 6. PERMISOS NECESARIOS
    Asegurate que el directorio data/ tenga permisos de escritura:
    chmod 755 data/
