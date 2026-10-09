@@ -1,9 +1,13 @@
 <?php
+header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Static SSB map using a pre-generated background image stored on the hosting.
-const MAP_WIDTH = 900;
-const MAP_HEIGHT = 900;
-const MAP_LAT_MIN = -90;
-const MAP_LAT_MAX = 90;
+const MAP_WIDTH = 600;
+const MAP_HEIGHT = 600;
+//const MAP_LAT_MIN = -90;
+//const MAP_LAT_MAX = 90;
 
 $config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
 $qthCall = (string)($config['map']['my_callsign'] ?? 'LU2MET');
@@ -50,6 +54,14 @@ function gridCentre(string $grid): ?array {
         }
     }
     return [$lat - 90 + $latSize / 2, $lon - 180 + $lonSize / 2];
+}
+
+function normalizeLongitude(float $longitude): float {
+    $value = fmod($longitude + 180.0, 360.0);
+    if ($value < 0.0) {
+        $value += 360.0;
+    }
+    return $value - 180.0;
 }
 
 function shortestLongitude(float $longitude, float $origin): float {
@@ -102,25 +114,25 @@ foreach ($qsos as $qso) {
     if (!isset($groups[$key])) $groups[$key] = ['qso' => $qso, 'position' => $position, 'band' => $band];
 }
 
-// IMPORTANT: this map uses the full-square world projection. The old cropped projection
-// from the initial project is intentionally not used here. No horizontal repeats, no
-// background offset, and no legacy 1200x600 assumptions.
-$backgroundFile = __DIR__ . '/background_lu2met.png';
-$backgroundUrl = file_exists($backgroundFile)
-    ? 'background_lu2met.png?v=' . filemtime($backgroundFile)
-    : 'background_lu2met.png';
+// IMPORTANT: this map uses the square 1:1 world projection to match the generated
+// background image exactly.
+$cacheBuster = rawurlencode((string)microtime(true));
+$backgroundUrl = 'background_lu2met_1x1.png?v=' . $cacheBuster;
 
 function mapX(float $longitude): float {
     global $qth;
-    $centerX = MAP_WIDTH / 2.0;
-    $diff = fmod($longitude - $qth[1] + 540.0, 360.0) - 180.0;
-    return $centerX + ($diff / 360.0) * MAP_WIDTH;
+    $relativeLongitude = normalizeLongitude($longitude - $qth[1]);
+    return (($relativeLongitude + 180.0) / 360.0) * MAP_WIDTH;
 }
 
 function mapY(float $latitude): float {
-    return (MAP_LAT_MAX - $latitude) / (MAP_LAT_MAX - MAP_LAT_MIN) * MAP_HEIGHT;
-}
-?>
+    $R = 6378137.0;                    // radio esférico de Web Mercator
+    $halfExtent = M_PI * $R;           // 20037508.34 m: mitad del extent cuadrado
+    $limit = 85.0511287798;            // límite de Web Mercator
+    $lat = max(-$limit, min($limit, $latitude));
+    $y = $R * log(tan(M_PI / 4 + deg2rad($lat) / 2));
+    return (0.5 - $y / (2 * $halfExtent)) * MAP_HEIGHT;
+}?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -129,40 +141,44 @@ function mapY(float $latitude): float {
 <title><?php echo esc($qthCall); ?> SSB map</title>
 <style>
 html, body { margin: 0; padding: 0; background: #d9e2e5; }
-.qrz-map { position: relative; width: 900px; height: 900px; overflow: hidden; font: 14px Arial, sans-serif; }
-.qrz-map-background { position: absolute; inset: 0; width: 900px; height: 900px; background-image: url('<?php echo htmlspecialchars($backgroundUrl, ENT_QUOTES, 'UTF-8'); ?>'); background-size: 900px 900px; background-position: center center; background-repeat: no-repeat; }
-.qrz-map-lines { position: absolute; inset: 0; width: 900px; height: 900px; pointer-events: none; z-index: 2; }
-.qrz-map-points { position: absolute; inset: 0; width: 900px; height: 900px; z-index: 3; }
-.qrz-map-point { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border: 1px solid #fff; border-radius: 50%; box-shadow: 0 1px 3px #333; }
-.qrz-map-qth { background: #f3c969; border-color: #18343a; width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+.qrz-map-link { display: block; width: 600px; height: 600px; text-decoration: none; cursor: pointer; position: relative; }
+.qrz-map { position: relative; width: 600px; height: 600px; overflow: hidden; font: 14px Arial, sans-serif; }
+.qrz-map-background { position: absolute; inset: 0; width: 600px; height: 600px; background-image: url('<?php echo htmlspecialchars($backgroundUrl, ENT_QUOTES, 'UTF-8'); ?>'); background-size: 600px 600px; background-position: center center; background-repeat: no-repeat; }
+.qrz-map-lines { position: absolute; inset: 0; width: 600px; height: 600px; pointer-events: none; z-index: 2; }
+.qrz-map-points { position: absolute; inset: 0; width: 600px; height: 600px; z-index: 3; pointer-events: none; }
+.qrz-map-point { position: absolute; width: 4px; height: 4px; margin: -2px 0 0 -2px; border: 1px solid #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.qrz-map-qth { background: #f3c969; border-color: #18343a; width: 6px; height: 6px; margin: -3px 0 0 -3px; }
 .qrz-map-label { position: absolute; left: 10px; top: 10px; padding: 7px 10px; color: #18343a; background: rgba(255,255,255,.92); border-radius: 4px; font-weight: bold; z-index: 10; }
 .qrz-map-count { font-weight: normal; }
+.qrz-map-hit { position: absolute; inset: 0; display: block; z-index: 20; }
 </style>
 </head>
 <body>
-<div class="qrz-map">
-    <div class="qrz-map-background" role="img" aria-label="World map"></div>
-    <svg class="qrz-map-lines" viewBox="0 0 900 900" aria-hidden="true">
+<a href="https://lu2met.ar/qsomap/map-ssb.html" target="_blank" rel="noopener noreferrer" class="qrz-map-link" aria-label="Open map details">
+    <div class="qrz-map">
+        <div class="qrz-map-background" role="img" aria-label="World map"></div>
+        <svg class="qrz-map-lines" viewBox="0 0 600 600" aria-hidden="true">
 <?php foreach ($groups as $group):
     $points = greatCirclePoints($qth, $group['position']);
     $path = [];
     foreach ($points as $point) $path[] = round(mapX($point[1]), 1) . ',' . round(mapY($point[0]), 1);
     $color = $bandColors[$group['band']] ?? '#68747d';
 ?>
-        <polyline points="<?php echo esc(implode(' ', $path)); ?>" fill="none" stroke="<?php echo esc($color); ?>" stroke-width="1" stroke-opacity=".75" />
+            <polyline points="<?php echo esc(implode(' ', $path)); ?>" fill="none" stroke="<?php echo esc($color); ?>" stroke-width="0.8" stroke-opacity=".8" />
 <?php endforeach; ?>
-    </svg>
-    <div class="qrz-map-points">
-        <div class="qrz-map-point qrz-map-qth" style="left:<?php echo round(mapX($qth[1]), 1); ?>px;top:<?php echo round(mapY($qth[0]), 1); ?>px" title="<?php echo esc($qthCall . ' ' . $qthGrid); ?>"></div>
+        </svg>
+        <div class="qrz-map-points">
+            <div class="qrz-map-point qrz-map-qth" style="left:<?php echo round(mapX($qth[1]), 1); ?>px;top:<?php echo round(mapY($qth[0]), 1); ?>px" title="<?php echo esc($qthCall . ' ' . $qthGrid); ?>"></div>
 <?php foreach ($groups as $group):
     $qso = $group['qso'];
     $color = $bandColors[$group['band']] ?? '#68747d';
     $label = ($qso['call'] ?? '') . ' ' . ($qso['grid'] ?? '') . ' ' . $group['band'];
 ?>
-    <div class="qrz-map-point" style="left:<?php echo round(mapX($group['position'][1]), 1); ?>px;top:<?php echo round(mapY($group['position'][0]), 1); ?>px;background:<?php echo esc($color); ?>" title="<?php echo esc(trim($label)); ?>"></div>
+            <div class="qrz-map-point" style="left:<?php echo round(mapX($group['position'][1]), 1); ?>px;top:<?php echo round(mapY($group['position'][0]), 1); ?>px;background:<?php echo esc($color); ?>" title="<?php echo esc(trim($label)); ?>"></div>
 <?php endforeach; ?>
+        </div>
+        <div class="qrz-map-label"><?php echo esc($qthCall); ?> SSB <span class="qrz-map-count"><?php echo count($groups); ?> locations</span></div>
     </div>
-    <div class="qrz-map-label"><?php echo esc($qthCall); ?> SSB <span class="qrz-map-count"><?php echo count($groups); ?> locations</span></div>
-</div>
+</a>
 </body>
 </html>

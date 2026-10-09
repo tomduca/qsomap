@@ -1,51 +1,31 @@
 # Características actuales
 
-## Vistas
+## Vistas interactivas
 
-- `map-ssb.html`: contactos SSB, voz y CW.
-- `map-digi.html`: contactos digitales.
-- `map-qsl.html`: contactos confirmados por LoTW, identificados en el cache con `QSL_RCVD = Y` desde Clublog.
-- `map-ssb-qrz.php`: mapa SSB estatico de 900 px para iframe, sin JavaScript.
+- `map-ssb.html`: contactos de voz y CW.
+- `map-digi.html`: modos digitales.
+- `map-qsl.html`: QSOs confirmados (`QSL_RCVD = Y`).
+- Leaflet permite mover y ampliar el mapa; los puntos se agrupan y las trayectorias se vuelven a dibujar con la vista.
+- Los puntos se colorean por banda y los popups muestran los datos disponibles del QSO y DXCC.
 
-## Mapa
+Estas páginas consumen `data/qso_cache.json`, utilizan `js/simple-map.js`, `css/simple-map.css` y `data/dxcc.js`, y cargan Leaflet, Leaflet Providers y OverlappingMarkerSpiderfier desde CDN.
 
-- Mapa base con Leaflet Providers.
-- Posición del operador a partir de su grid.
-- Marcadores pequeños coloreados por banda.
-- Agrupación de marcadores superpuestos.
-- Líneas locales de gran círculo por la ruta longitudinal más corta.
-- Repetición horizontal del mapa para mostrar recorridos hacia Asia y el Pacífico.
-- Redibujado de puntos y líneas al mover o ampliar el mapa.
-- Popup con llamada, nombre, grid, QTH, DXCC, banda, fecha, frecuencia, modo, SIG y comentarios disponibles.
+## Mapa estático para QRZ
+
+- `map-ssb-qrz.php` genera una página de 600 x 600 px sin JavaScript.
+- Lee los QSOs enriquecidos de `data/qso_cache.json` y calcula en cada solicitud las coordenadas y rutas de gran círculo.
+- La longitud se centra en el QTH y la latitud usa Web Mercator, limitada a +/-85.0511288 grados.
+- Usa `background_lu2met_1x1.png`, generado por `make_bg_1x1.php` a partir de `map600x600.png` y el grid de `config.json`.
+- Las respuestas PHP envían cabeceras anti-caché; el PNG lleva un parámetro único. En QRZ, agrega también `?v=...` al URL del iframe y actualízalo al publicar cambios.
+- Un clic sobre el mapa abre la vista interactiva SSB.
+
+Genera el fondo al instalar o actualizar el generador y cuando cambie el QTH o el planisferio. `php make_bg_1x1.php` requiere PHP GD y no forma parte de `sync_daily.sh`.
 
 ## Datos y sincronización
 
-- Clublog es la fuente primaria configurada.
-- LoTW puede actuar como fallback.
-- HamQTH y Spothole se usan server-side para completar grids faltantes.
-- `build_cache.php` conserva los datos normalizados en `data/qso_cache.json`.
-- `sync_daily.sh` actualiza los datos mediante Cron.
+- `sync_clublog.php` descarga QSOs de Clublog; `sync_lotw.php` es una fuente alternativa.
+- Ambos producen `data/qso_data.json`.
+- `build_cache.php` completa grids faltantes con HamQTH/Spothole y escribe `data/qso_cache.json`.
+- `sync_daily.sh` automatiza la sincronización y reconstrucción del caché mediante Cron.
 
-## Inicialización manual
-
-Desde el navegador, ejecutar en este orden:
-
-1. `sync_clublog.php` y esperar a que termine.
-2. `build_cache.php` y esperar a que termine.
-
-Si Clublog falla:
-
-1. `sync_lotw.php` y esperar a que termine.
-2. `build_cache.php` y esperar a que termine.
-
-## Archivos de administración
-
-- `sync_clublog.php`: descarga y normaliza QSOs de Clublog.
-- `sync_lotw.php`: descarga y normaliza QSOs de LoTW.
-- `build_cache.php`: completa grids y construye el cache para el navegador.
-- `sync_daily.sh`: ejecuta la sincronización diaria desde Cron.
-- `config.json`: credenciales y configuración privada.
-- `data/qso_cache.json`: datos consumidos por las vistas.
-- `map-ssb-qrz.php` lee directamente `data/qso_cache.json`; no requiere cambios en el Cron.
-
-No se requiere SSH para la instalación o la operación prevista con File Manager, navegador y Cron de cPanel.
+Flujo manual: Clublog (o LoTW si hace falta), luego `build_cache.php`. No ejecutes las sincronizaciones en paralelo.

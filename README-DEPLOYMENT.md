@@ -1,58 +1,56 @@
-# Deployment de QSO Map
+# Despliegue de QSO Map
 
-Esta guía usa File Manager, navegador y Cron de cPanel. No requiere SSH.
+Guía para publicar desde File Manager y operar con navegador y Cron.
 
-## Archivos principales
+## Componentes
 
-- `map-ssb.html`: vista SSB y CW.
-- `map-digi.html`: vista de modos digitales.
-- `map-qsl.html`: vista de QSOs confirmados por LoTW mediante `QSL_RCVD = Y`.
-- `map-ssb-qrz.php`: mapa SSB estático de 900 px para iframe.
-- `sync_clublog.php`: sincronización desde Clublog.
-- `sync_lotw.php`: sincronización alternativa desde LoTW.
-- `build_cache.php`: genera `data/qso_cache.json` con los grids disponibles.
-- `sync_daily.sh`: orquestador utilizado por Cron.
-- `config.json`: configuración privada y credenciales.
+- Mapas interactivos: `map-ssb.html`, `map-digi.html`, `map-qsl.html`, `js/simple-map.js`, `css/simple-map.css` y `data/dxcc.js`.
+- Mapa estático QRZ: `map-ssb-qrz.php`, `background_lu2met_1x1.png` y `data/qso_cache.json`.
+- Generador del fondo: `make_bg_1x1.php`, que usa `map600x600.png` y `config.json`.
+- Sincronización: `sync_clublog.php`, `sync_lotw.php`, `build_cache.php` y `sync_daily.sh`.
 
-## Instalación manual
+## Instalación y datos
 
-1. Sube el contenido a `public_html/qsomap/` desde File Manager.
-2. Copia `config.json.example` como `config.json` y completa los datos privados.
-3. Abre desde el navegador `sync_clublog.php` y espera a que termine.
-4. Después abre `build_cache.php` y espera a que termine.
-5. Si Clublog no está disponible, abre `sync_lotw.php` y después `build_cache.php`.
-6. Verifica que existan `data/qso_data.json` y `data/qso_cache.json`.
-7. Prueba las tres páginas `map-ssb.html`, `map-digi.html` y `map-qsl.html`.
-8. Prueba también `map-ssb-qrz.php` antes de insertarlo en QRZ.
+1. Sube el proyecto a `public_html/qsomap/`, incluyendo las tres vistas interactivas y sus carpetas `js/`, `css/`, `data/`, `img/` y `fa/`.
+2. Copia `config.json.example` como `config.json` y configura credenciales, `map.my_callsign` y `map.my_grid`. No publiques `config.json`.
+3. Asegúrate de que `data/` permita escritura.
+4. Ejecuta `sync_clublog.php` y espera a que termine; luego ejecuta `build_cache.php`. Si Clublog falla, ejecuta `sync_lotw.php` y luego `build_cache.php`.
+5. Comprueba que existan `data/qso_data.json` y `data/qso_cache.json`; abre las tres páginas interactivas.
 
-No ejecutes dos procesos al mismo tiempo. `build_cache.php` siempre debe ejecutarse después de una sincronización terminada.
+No ejecutes procesos de sincronización en paralelo.
 
-## Iframe estático para QRZ
+## Generar el fondo estático
 
-La URL del mapa estático es:
+El fondo activo es cuadrado, de 600 x 600. `make_bg_1x1.php` usa el planisferio local `map600x600.png` y el grid configurado en `config.json`; genera `background_lu2met_1x1.png`. Requiere PHP con GD. Ejecútalo al instalar o actualizar el generador y cuando cambie el QTH o el planisferio, no en el Cron diario:
 
-```html
-<iframe src="https://tu-dominio.com/qsomap/map-ssb-qrz.php" width="900" height="425" frameborder="0" scrolling="no"></iframe>
+```bash
+php make_bg_1x1.php
 ```
 
-La página no ejecuta JavaScript. Genera las líneas y puntos server-side y utiliza una imagen cartográfica estática de Esri. QRZ debe permitir iframes desde tu dominio; la aceptación final depende de las políticas de QRZ.
+Si generas el fondo en otra máquina, sube `background_lu2met_1x1.png` al directorio raíz del sitio. `map-ssb-qrz.php` recalcula las posiciones y las rutas al cargar y lee `data/qso_cache.json`; no requiere regenerar el fondo cuando solo cambian los QSOs.
 
-No hace falta modificar el cron: `map-ssb-qrz.php` lee `data/qso_cache.json`, que ya actualiza `sync_daily.sh`.
+Sin acceso a consola, ejecuta el PHP desde el navegador del hosting abriendo `https://tu-dominio.com/qsomap/make_bg_1x1.php` y verifica que el archivo PNG se haya actualizado.
+
+## Iframe para QRZ
+
+Usa un iframe cuadrado. Conserva un parámetro `v` en el URL y cámbialo al publicar cambios para forzar a QRZ a solicitar la versión actual:
+
+```html
+<iframe src="https://tu-dominio.com/qsomap/map-ssb-qrz.php?v=20261009-1" width="600" height="600" frameborder="0" scrolling="no"></iframe>
+```
+
+El PHP envía cabeceras anti-caché; además, el URL del PNG de fondo lleva un valor único en cada respuesta. Abre exactamente el URL del `src` en una pestaña para comprobar la versión servida. Al hacer clic en el mapa, se abre la vista interactiva SSB en otra pestaña.
 
 ## Cron diario
 
-En cPanel crea una tarea diaria a las 02:00. Para esta instalación:
+En cPanel programa `sync_daily.sh` una vez al día, por ejemplo a las 02:00:
 
 ```cron
-cd /home/lu2met/public_html/qsomap && /bin/bash sync_daily.sh
+cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
 ```
 
-Para otro hosting, reemplaza `/home/lu2met` por la ruta absoluta correspondiente.
-
-`sync_daily.sh` ejecuta Clublog, usa LoTW como fallback y reconstruye el cache. El log se escribe en `sync_daily.log` dentro de `public_html/qsomap/`.
-
-El archivo `sync_daily.sh` debe tener permisos 755 y la carpeta `data/` debe ser escribible.
+El script sincroniza datos, usa LoTW como fallback si Clublog falla, reconstruye `data/qso_cache.json` y escribe `sync_daily.log`. Dale permiso 755 al script y confirma que `data/` sea escribible. El generador del PNG estático no forma parte de este flujo.
 
 ## Seguridad
 
-`config.json` contiene credenciales y no debe publicarse ni exponerse al navegador. Las URLs PHP de sincronización deben usarse solo durante la administración inicial o una resincronización manual; si el hosting lo permite, protégelas con autenticación o restricción de acceso.
+`config.json` contiene credenciales. No lo publiques ni lo expongas desde el sitio. Protege las rutas de sincronización si el hosting permite restringirlas.

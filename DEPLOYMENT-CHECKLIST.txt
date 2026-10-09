@@ -6,12 +6,15 @@ CHECKLIST DE DEPLOYMENT - QSO MAP
 
 2. Verifica estos archivos:
    - config.json
+   - config.json.example
    - sync_clublog.php
    - sync_lotw.php
    - build_cache.php
    - sync_daily.sh
    - data/
    - map-ssb.html, map-digi.html y map-qsl.html
+   - js/, css/, data/dxcc.js, img/ y fa/
+   - make_bg_1x1.php, map600x600.png y background_lu2met_1x1.png
 
 3. Configura config.json usando config.json.example como referencia. No publiques config.json porque contiene credenciales.
 
@@ -32,12 +35,20 @@ CHECKLIST DE DEPLOYMENT - QSO MAP
    - map-digi.html
    - map-qsl.html
 
-8. Configura el Cron Job diario en cPanel:
+8. Al instalar o actualizar el generador, confirma que `config.json` tenga el grid correcto y ejecuta `make_bg_1x1.php` con PHP GD. El resultado debe ser `background_lu2met_1x1.png` de 600 x 600. Sube el PNG al directorio raíz junto a `map-ssb-qrz.php`.
+
+9. Prueba `map-ssb-qrz.php` directamente y confirma que muestre el fondo, las rutas y los puntos.
+
+10. Configura el Cron Job diario en cPanel:
    cd /home/TU_USUARIO/public_html/qsomap && /bin/bash sync_daily.sh
 
    En tu hosting actual:
    cd /home/lu2met/public_html/qsomap && /bin/bash sync_daily.sh
 
-9. Verifica que sync_daily.sh tenga permisos 755, que data/ sea escribible y revisa `public_html/qsomap/sync_daily.log`.
+11. En QRZ, usa un iframe cuadrado y un parámetro `v` que cambie al publicar actualizaciones:
 
-10. No ejecutes simultaneamente los PHP de sincronizacion. build_cache.php siempre debe ejecutarse despues de sync_clublog.php o sync_lotw.php.
+   `<iframe src="https://tu-dominio.com/qsomap/map-ssb-qrz.php?v=20261009-1" width="600" height="600" frameborder="0" scrolling="no"></iframe>`
+
+12. Verifica que sync_daily.sh tenga permisos 755, que data/ sea escribible y revisa `public_html/qsomap/sync_daily.log`.
+
+13. No ejecutes simultaneamente los PHP de sincronizacion. build_cache.php siempre debe ejecutarse despues de sync_clublog.php o sync_lotw.php. La generación del fondo es manual y no se ejecuta con Cron.

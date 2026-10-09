@@ -8,12 +8,15 @@ Esta guia usa File Manager, navegador y Cron de cPanel. No requiere SSH.
 
 Subi el proyecto a public_html/qsomap/ y verifica que existan:
 - config.json
+- map-ssb.html, map-digi.html y map-qsl.html
+- js/, css/, data/dxcc.js, img/ y fa/
 - sync_clublog.php
 - sync_lotw.php
 - build_cache.php
 - sync_daily.sh
 - data/
-- map-ssb.html, map-digi.html y map-qsl.html
+- map-ssb-qrz.php
+- make_bg_1x1.php, map600x600.png y background_lu2met_1x1.png
 
 No publiques config.json en un repositorio. Contiene credenciales.
 
@@ -64,6 +67,18 @@ public_html/qsomap/sync_daily.log
 
 El archivo sync_daily.sh debe tener permisos 755 y data/ debe permitir escritura.
 
-6. ACTUALIZACION MANUAL
+6. MAPA ESTATICO PARA QRZ
+
+El mapa estático mide 600 x 600 px. `map-ssb-qrz.php` necesita `data/qso_cache.json` y `background_lu2met_1x1.png`; calcula las posiciones y las rutas al abrirse.
+
+Al instalar o actualizar el generador, y cuando cambie el QTH o el planisferio, configura `map.my_grid` en config.json y ejecuta `make_bg_1x1.php` con PHP GD. El script lee `map600x600.png` y escribe `background_lu2met_1x1.png`. Sin SSH, puedes abrir `https://tu-dominio.com/qsomap/make_bg_1x1.php` en el navegador del hosting. No se ejecuta con el Cron diario. Si lo generas en otra máquina, sube el PNG resultante a `public_html/qsomap/`.
+
+Prueba primero `https://tu-dominio.com/qsomap/map-ssb-qrz.php?v=20261009-1`. En QRZ, usa la URL con un parámetro `v` y cámbialo al publicar una nueva versión:
+
+<iframe src="https://tu-dominio.com/qsomap/map-ssb-qrz.php?v=20261009-1" width="600" height="600" frameborder="0" scrolling="no"></iframe>
+
+Las cabeceras PHP desactivan el caché de la página y el URL del PNG se cambia en cada respuesta. Si QRZ muestra una versión previa, cambia el valor de `v` en el iframe. Un clic en el mapa abre el mapa interactivo SSB en una pestaña nueva.
+
+7. ACTUALIZACION MANUAL
 
 Para una actualización puntual, abre sync_clublog.php y luego build_cache.php. Si usas LoTW como fuente, abre sync_lotw.php y luego build_cache.php.

@@ -1,16 +1,34 @@
 <?php
 /**
- * Genera un fondo cuadrado 1:1 centrado en la grilla del QTH.
- * Mantiene el mundo completo y lo desplaza de tal forma que el QTH queda
- * centrado horizontalmente, sin recortar ni deformar el planisferio.
+ * Variant: fixed 600x600 canvas, QTH centered horizontally.
+ * The base planisphere comes from the local PNG file map600x600.png and is
+ * repeated in a seamless 3x strip so the world wraps continuously without white
+ * gaps while keeping the canvas at 600x600.
  */
 
-const MAP_WIDTH = 900;
-const MAP_HEIGHT = 900;
+const MAP_WIDTH = 600;
+const MAP_HEIGHT = 600;
+const MAP_LAT_MIN = -90;
+const MAP_LAT_MAX = 90;
 
-$config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
-$qthGrid = strtoupper((string)($config['map']['my_grid'] ?? 'FF57oc'));
-$qthCall = (string)($config['map']['my_callsign'] ?? 'LU2MET');
+$configPath = __DIR__ . '/config.json';
+$configData = @file_get_contents($configPath);
+$config = $configData === false ? null : json_decode($configData, true);
+$qthGrid = null;
+
+if (is_array($config)) {
+    $qthGrid = $config['QTH_GRID'] ?? $config['qth_grid'] ?? $config['grid'] ?? null;
+    if (!is_string($qthGrid) || $qthGrid === '') {
+        $mapConfig = $config['map'] ?? null;
+        if (is_array($mapConfig)) {
+            $qthGrid = $mapConfig['QTH_GRID'] ?? $mapConfig['qth_grid'] ?? $mapConfig['my_grid'] ?? $mapConfig['grid'] ?? null;
+        }
+    }
+}
+
+if (!is_string($qthGrid) || $qthGrid === '') {
+    die('No se encontró QTH_GRID en ' . $configPath . PHP_EOL);
+}
 
 function gridCentre(string $grid): ?array {
     $value = strtoupper(preg_replace('/[^A-Z0-9]/', '', trim($grid)));
@@ -68,37 +86,34 @@ if ($qth === null) {
 }
 
 $qthLon = (float)$qth[1];
-$sourceUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/export?'
-    . http_build_query([
-        'bbox' => '-180,-90,180,90',
-        'bboxSR' => 4326,
-        'size' => MAP_WIDTH . ',' . MAP_HEIGHT,
-        'adjustAspectRatio' => 'false',
-        'format' => 'png',
-        'f' => 'image',
-    ]);
-
-$sourceData = @file_get_contents($sourceUrl);
-if ($sourceData === false) {
-    die('Error al descargar el mapa base de ArcGIS.' . PHP_EOL);
+$sourcePath = __DIR__ . '/map600x600.png';
+if (!is_file($sourcePath)) {
+    die('No se encontró el mapa base local: ' . $sourcePath . PHP_EOL);
 }
 
-$sourceImage = imagecreatefromstring($sourceData);
+$sourceData = @file_get_contents($sourcePath);
+if ($sourceData === false) {
+    die('No se pudo leer el mapa base local: ' . $sourcePath . PHP_EOL);
+}
+
+$sourceImage = @imagecreatefromstring($sourceData);
 if ($sourceImage === false) {
-    die('No se pudo crear la imagen a partir del mapa base.' . PHP_EOL);
+    die('No se pudo crear la imagen desde ' . $sourcePath . PHP_EOL);
 }
 
 $sourceWidth = imagesx($sourceImage);
 $sourceHeight = imagesy($sourceImage);
-$sourceHeightScaled = MAP_HEIGHT;
-$sourceWidthScaled = (int)round(($sourceWidth / $sourceHeight) * $sourceHeightScaled);
-$baseImage = imagecreatetruecolor($sourceWidthScaled, $sourceHeightScaled);
-imagecopyresampled($baseImage, $sourceImage, 0, 0, 0, 0, $sourceWidthScaled, $sourceHeightScaled, $sourceWidth, $sourceHeight);
+$baseHeight = $sourceHeight;
+$baseWidth = $sourceWidth;
+$baseImage = imagecreatetruecolor($baseWidth, $baseHeight);
+imagealphablending($baseImage, true);
+imagesavealpha($baseImage, true);
+imagecopyresampled($baseImage, $sourceImage, 0, 0, 0, 0, $baseWidth, $baseHeight, $sourceWidth, $sourceHeight);
 
-$wideImage = imagecreatetruecolor($sourceWidthScaled * 3, $sourceHeightScaled);
-imagecopy($wideImage, $baseImage, 0, 0, 0, 0, $sourceWidthScaled, $sourceHeightScaled);
-imagecopy($wideImage, $baseImage, $sourceWidthScaled, 0, 0, 0, $sourceWidthScaled, $sourceHeightScaled);
-imagecopy($wideImage, $baseImage, $sourceWidthScaled * 2, 0, 0, 0, $sourceWidthScaled, $sourceHeightScaled);
+$wideImage = imagecreatetruecolor($baseWidth * 3, $baseHeight);
+imagecopy($wideImage, $baseImage, 0, 0, 0, 0, $baseWidth, $baseHeight);
+imagecopy($wideImage, $baseImage, $baseWidth, 0, 0, 0, $baseWidth, $baseHeight);
+imagecopy($wideImage, $baseImage, $baseWidth * 2, 0, 0, 0, $baseWidth, $baseHeight);
 
 $finalImage = imagecreatetruecolor(MAP_WIDTH, MAP_HEIGHT);
 $centerX = MAP_WIDTH / 2;
@@ -107,10 +122,15 @@ for ($x = 0; $x < MAP_WIDTH; $x++) {
     $offsetFromCenter = $x - $centerX;
     $longitude = $qthLon + (($offsetFromCenter / MAP_WIDTH) * 360.0);
     $normalizedLon = normalizeLongitude($longitude);
-    $srcX = (($normalizedLon + 180.0) / 360.0) * $sourceWidthScaled;
+    $srcX = (($normalizedLon + 180.0) / 360.0) * $baseWidth;
     $srcX = (int)round($srcX);
-    $wideX = $srcX + $sourceWidthScaled;
+    $wideX = $srcX + $baseWidth;
     imagecopy($finalImage, $wideImage, $x, 0, $wideX, 0, 1, MAP_HEIGHT);
+}
+
+$legacyPath = __DIR__ . '/background_1x1.png';
+if (is_file($legacyPath)) {
+    @unlink($legacyPath);
 }
 
 $outputPath = __DIR__ . '/background_lu2met_1x1.png';
@@ -128,5 +148,4 @@ imagedestroy($wideImage);
 imagedestroy($finalImage);
 
 echo '1:1 generated: ' . $outputPath . PHP_EOL;
-echo 'QTH call: ' . $qthCall . PHP_EOL;
-echo 'QTH grid: ' . $qthGrid . ' lon=' . $qthLon . PHP_EOL;
+echo 'QTH: ' . $qthGrid . ' lon=' . $qthLon . PHP_EOL;
