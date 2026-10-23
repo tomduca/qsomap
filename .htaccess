@@ -1,0 +1,14 @@
+Options -Indexes
+
+# Never serve credentials, raw data, logs, docs or dotfiles (.env, .git, ...).
+<FilesMatch "^(config\.json|qso_data\.json|lotw_last_sync\.json)$|\.(log|lock|tmp|txt|md|sh)$|^\.">
+    Require all denied
+</FilesMatch>
+RedirectMatch 404 /\.git
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    # map-ssb-qrz.php is embedded in QRZ.com via iframe, so framing is allowed.
+    Header always unset X-Frame-Options
+    Header always set Content-Security-Policy "frame-ancestors *"
+</IfModule>
