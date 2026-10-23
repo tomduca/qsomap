@@ -104,6 +104,16 @@ In your QRZ biography editor, add a square iframe:
 
 QRZ may cache the iframe: if it still shows an old version after a change, bump the `v` value (e.g. `?v=2`). The PHP already sends no-cache headers and adds a unique parameter to the background URL. Clicking the map opens the interactive SSB view in a new tab.
 
+## 7. Show the map in a GitHub README
+
+GitHub strips iframes from READMEs, so use `map-ssb-github.php` instead: it draws the same map as a self-contained SVG image (background included) and links it to the interactive view:
+
+```markdown
+[![SSB map](https://your-domain.com/qsomap/map-ssb-github.php)](https://your-domain.com/qsomap/map-ssb.html)
+```
+
+GitHub serves remote images through its own cache (camo). The PHP sends `Cache-Control: no-cache` and an `ETag` that changes whenever `data/qso_cache.json` or the background is rebuilt, so the README picks up each daily sync. The image has no tooltips or clicks of its own; the link opens the interactive map.
+
 ## Verification checklist
 
 - [ ] `config.json` returns 403 in the browser.
@@ -112,6 +122,7 @@ QRZ may cache the iframe: if it still shows an old version after a change, bump 
 - [ ] `data/qso_cache.json` exists and contains QSOs.
 - [ ] `map-ssb.html`, `map-digi.html` and `map-qsl.html` show markers.
 - [ ] `map-ssb-qrz.php` shows the background, points and paths.
+- [ ] `map-ssb-github.php` opens as an image (SVG) with the same background, points and paths.
 - [ ] Cron ran and added a new entry to `data/sync.log`.
 
 ## Troubleshooting
@@ -122,7 +133,7 @@ QRZ may cache the iframe: if it still shows an old version after a change, bump 
 | "Invalid QTH grid" | `map.my_grid` is missing or malformed; fix it and run `scripts/build_cache.php` again. |
 | `Clublog download failed` in the log | Wrong credentials or API key. If LoTW is configured, it is used as a fallback. |
 | `Clublog credentials not configured` in the log | Expected if you use LoTW only. |
-| The QRZ map has no background | `data/qrz-background.png` is missing: run `scripts/make_background.php`. |
+| The QRZ or GitHub map has no background | `data/qrz-background.png` is missing: run `scripts/make_background.php`. |
 | `config.json` downloads in the browser | The host ignores `.htaccess` (`AllowOverride`) or it was not uploaded. Ask your provider before going further. |
 | Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole. They are retried on every sync. |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 3). |

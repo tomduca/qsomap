@@ -4,15 +4,16 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 
 **Live demo (LU2MET):** [interactive SSB map](https://lu2met.ar/qsomap2/map-ssb.html) · [static map for QRZ](https://lu2met.ar/qsomap2/map-ssb-qrz.php)
 
-[![LU2MET SSB map: 644 locations worked from Argentina, with great-circle paths colored by band](img/screenshot-qrz-map-2026-10-17.png)](https://lu2met.ar/qsomap/map-ssb.html)
+[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap/map-ssb-github.php)](https://lu2met.ar/qsomap/map-ssb.html)
 
-*LU2MET static map as of 2026-10-17. Click the image to open the live interactive map.*
+*LU2MET static map, updated daily by `map-ssb-github.php`. Click the image to open the live interactive map.*
 
 ## Features
 
 - **Three interactive views** (Leaflet): `map-ssb.html` (phone and CW), `map-digi.html` (digital modes) and `map-qsl.html` (confirmed QSOs).
 - Markers colored by band, short-path great-circle lines, and popups with date, frequency, mode, DXCC entity and POTA/SOTA references (`SIG`/`SIG_INFO`).
 - **Static map for QRZ.com** (`map-ssb-qrz.php`): 600 × 600 px, HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
+- **Live map image for a GitHub README** (`map-ssb-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
 - **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
 
@@ -25,8 +26,10 @@ flowchart LR
     D -->|build_cache.php<br/>+ HamQTH / Spothole| C[(data/qso_cache.json)]
     C --> I[map-ssb / digi / qsl.html]
     C --> Q[map-ssb-qrz.php]
+    C --> G[map-ssb-github.php]
     B[img/world-map-600.png] -->|make_background.php| P[data/qrz-background.png]
     P --> Q
+    P --> G
 ```
 
 1. `scripts/sync_daily.sh` (Cron) downloads the QSOs into `data/qso_data.json`.
@@ -42,6 +45,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 ```text
 ├── map-ssb.html, map-digi.html, map-qsl.html   Interactive views
 ├── map-ssb-qrz.php                             Static map for QRZ
+├── map-ssb-github.php                          Same map as an SVG image, for GitHub
 ├── js/map.js                                   Interactive map logic
 ├── js/dxcc.js                                  DXCC entity catalog
 ├── css/map.css
@@ -90,7 +94,7 @@ Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with 
 
 5. **Open** `https://your-domain.com/qsomap/map-ssb.html`.
 
-The full guide (QRZ iframe, verification checklist, troubleshooting) is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+The full guide (QRZ iframe, GitHub README image, verification checklist, troubleshooting) is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Security
 
