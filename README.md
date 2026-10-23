@@ -4,7 +4,7 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 
 **Live demo (LU2MET):** [interactive SSB map](https://lu2met.ar/qsomap2/map-ssb.html) · [static map for QRZ](https://lu2met.ar/qsomap2/map-ssb-qrz.php)
 
-[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap/map-ssb-github.php)](https://lu2met.ar/qsomap/map-ssb.html)
+[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap2/map-ssb-github.php)](https://lu2met.ar/qsomap2/map-ssb.html)
 
 *LU2MET static map, updated daily by `map-ssb-github.php`. Click the image to open the live interactive map.*
 
