@@ -17,6 +17,7 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
 - **Update notice**: a daily check against this repository's version tags shows a banner, only to the map's owner, when a new version is available.
 - **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
+- **Grid check against DXCC**: grids that do not match the QSO's DXCC entity (per TQSL's grid list, with a one-square tolerance at borders) are dropped and looked up again, so contacts never show in the wrong country.
 
 ## How it works
 
@@ -108,7 +109,7 @@ The full guide (QRZ iframe, GitHub README image, verification checklist, trouble
 - Credentials live only in `config.json`, which is git-ignored and blocked by `.htaccess`. The repository only ships `config.json.example` with placeholder values.
 - The scripts in `scripts/` run from the CLI (Cron), or from a browser only with `?token=` matching `web.token`, compared in constant time (`hash_equals`). With no token configured, web access is disabled. `common.php` and `sync_daily.sh` are never reachable from the web.
 - `.htaccess` denies `config.json`, the raw log (`qso_data.json`), logs, `.txt`/`.md`/`.sh` files and dotfiles, and disables directory listings.
-- The only public data is what the maps display: `data/qso_cache.json` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO) and the PNG background, plus `data/dxcc.json` (public DXCC list), `data/update.json` and `VERSION` (installed and latest version).
+- The only public data is what the maps display: `data/qso_cache.json` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO) and the PNG background, plus `data/dxcc.json` and `data/vuccgrids.json` (public DXCC lists), `data/update.json` and `VERSION` (installed and latest version).
 - All external data is escaped before being inserted into HTML, both in JavaScript and PHP.
 
 ## Credits and license

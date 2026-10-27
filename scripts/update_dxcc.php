@@ -1,11 +1,16 @@
 <?php
 /**
- * Download AD1C's country file (cty.csv, country-files.com) and write
- * data/dxcc.json, the current DXCC entities as code => name.
+ * Monthly refresh of the DXCC reference data:
+ *   - data/dxcc.json: current DXCC entities as code => name, from AD1C's
+ *     country file (cty.csv, country-files.com). js/dxcc.js stays the base
+ *     list (names, flags and deleted entities); the maps load data/dxcc.json
+ *     on top of it to pick up entities added since.
+ *   - data/vuccgrids.json: the 4-character grids of each entity, from TQSL's
+ *     vuccgrids.dat (ARRL's TrustedQSL repository), so build_cache.php can drop grids
+ *     that do not match the QSO's DXCC entity.
  *
- * js/dxcc.js stays the base list (names, flags and deleted entities); the maps
- * load data/dxcc.json on top of it to pick up entities added since. sync_daily.sh
- * runs this once a month. On failure the previous data/dxcc.json is kept.
+ * sync_daily.sh runs this once a month. On failure the previous files are kept
+ * and data/dxcc_last_update.txt is not updated, so the next run tries again.
  */
 
 require __DIR__ . '/common.php';
@@ -13,6 +18,8 @@ requireCliOrToken();
 
 const CTY_URL = 'https://www.country-files.com/cty/cty.csv';
 const MIN_ENTITIES = 300; // sanity check: a valid file lists about 340
+const VUCC_URL = 'https://sourceforge.net/p/trustedqsl/tqsl/ci/master/tree/apps/vuccgrids.dat?format=raw';
+const MIN_GRIDS = 10000; // sanity check: a valid file lists about 14,800 entity/grid pairs
 
 echo "=== DXCC list update ===\n";
 
@@ -40,11 +47,32 @@ $jsonFile = QSOMAP_DATA . '/dxcc.json';
 $previous = readJson($jsonFile) ?? [];
 $added = array_diff_key($entities, $previous);
 writeJson($jsonFile, $entities);
-file_put_contents(QSOMAP_DATA . '/dxcc_last_update.txt', date('Ymd'));
 
 echo count($entities) . " entities saved to data/dxcc.json\n";
 if ($previous && $added) {
     echo 'New since last update: ' . implode(', ', array_map(
         fn($code, $name) => "$name ($code)", array_keys($added), $added)) . "\n";
 }
+
+$dat = httpRequest(VUCC_URL);
+if ($dat === null) {
+    fail('cannot download ' . VUCC_URL);
+}
+// Each line looks like <vucc entity="1" pas="AB" grid="CO93" />, one line per entity and grid.
+$grids = [];
+preg_match_all('/<vucc\b[^>]*>/i', $dat, $tags);
+foreach ($tags[0] as $tag) {
+    if (preg_match('/\bentity="(\d+)"/', $tag, $entity) && preg_match('/\bgrid="([A-R]{2}\d{2})"/i', $tag, $grid)) {
+        $grids[(int)$entity[1]][strtoupper($grid[1])] = true;
+    }
+}
+$pairs = array_sum(array_map('count', $grids));
+if ($pairs < MIN_GRIDS) {
+    fail("unexpected vuccgrids.dat content: only $pairs grids found");
+}
+ksort($grids);
+writeJson(QSOMAP_DATA . '/vuccgrids.json', array_map(fn($set) => implode(' ', array_keys($set)), $grids));
+echo "$pairs grids of " . count($grids) . " entities saved to data/vuccgrids.json\n";
+
+file_put_contents(QSOMAP_DATA . '/dxcc_last_update.txt', date('Ymd'));
 

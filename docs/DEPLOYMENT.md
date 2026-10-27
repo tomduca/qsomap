@@ -107,22 +107,35 @@ To test without waiting for the night, set the job a couple of minutes ahead (Cr
 
 ### What the script does
 
-1. Once a month, refreshes the DXCC list (see below).
+1. Once a month, refreshes the DXCC list and the grids of each entity (see below).
 2. Checks GitHub for a newer QSO Map version (see *Update notice* below).
 3. Syncs from Clublog (incremental, with a 2-day overlap).
 4. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
-5. Rebuilds `data/qso_cache.json`, reusing grids found in earlier runs.
+5. Rebuilds `data/qso_cache.json`, reusing grids found in earlier runs and dropping grids that do not match the QSO's DXCC entity (see *Grid check* below).
 6. Logs everything to `data/sync.log`.
 
 If a sync is already running, the new one is skipped.
 
 Both sources are merged by callsign, date, time (to the minute) and band, so a night on the LoTW fallback followed by Clublog the next day never creates duplicate QSOs: each contact stays a single record combining the fields from both.
 
-### DXCC list
+### DXCC list and grids
 
 The popups name each contact's DXCC entity using `js/dxcc.js`, a base list with names, flags and deleted entities. When `data/dxcc_last_update.txt` is missing or more than 30 days old, the daily sync runs `scripts/update_dxcc.php`, which downloads AD1C's `cty.csv` from [country-files.com](https://www.country-files.com/) and writes the current entities to `data/dxcc.json`. The maps add any entity from that file that the base list does not have yet; names already in the base list are kept.
 
-If the download fails, the log shows `DXCC list update failed, keeping the current one`, the sync continues, and the update is retried the next day. To force an update, delete `data/dxcc_last_update.txt` or open `scripts/update_dxcc.php?token=YOUR_TOKEN`.
+The same script downloads `vuccgrids.dat`, the list of 4-character grids in each DXCC entity maintained in ARRL's [TrustedQSL repository](https://sourceforge.net/p/trustedqsl/tqsl/ci/master/tree/apps/vuccgrids.dat), and writes it to `data/vuccgrids.json`. It also runs when that file is missing.
+
+If a download fails, the log shows `DXCC list update failed, keeping the current one`, the sync continues, and the update is retried the next day. To force an update, delete `data/dxcc_last_update.txt` or open `scripts/update_dxcc.php?token=YOUR_TOKEN`.
+
+### Grid check
+
+A wrong grid puts a contact in the wrong place, e.g. `AA00` (the default value of some logging programs) for a US station, or an operator's home grid logged while operating abroad. On every run, `build_cache.php` checks each grid, logged or looked up, against the QSO's DXCC entity in `data/vuccgrids.json`:
+
+- The grid is accepted if its 4-character square, **or any of the 8 squares around it**, belongs to the entity. This one-square tolerance avoids false alarms along borders the file does not cover exactly (e.g. along the Mexico/US border, or the Russian regions that count as Asiatic Russia for DXCC).
+- If it does not match, it is dropped and the call is looked up on HamQTH and Spothole; the lookup result goes through the same check. A matching grid from the lookup puts the QSO in the right place.
+- If no matching grid is found, the QSO has no grid and no map shows it, including the QRZ and GitHub maps.
+- QSOs without a DXCC code, and entities missing from the file, are not checked.
+
+Each run lists the rejected grids in `data/sync.log` under `Grids rejected for not matching the DXCC entity`, so you can fix them in your log. Since the cache is rebuilt from the whole log on every run, the check applies to old and new QSOs alike and a fixed QSO shows up again after the next sync.
 
 ### Update notice
 
@@ -179,7 +192,7 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 | `Clublog credentials not configured` in the log | Expected if you use LoTW only. |
 | The QRZ or GitHub map has no background | `data/qrz-background.png` is missing: run `scripts/make_background.php`. |
 | `config.json` downloads in the browser | The host ignores `.htaccess` (`AllowOverride`) or it was not uploaded. Ask your provider before going further. |
-| Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole. They are retried on every sync. |
+| Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole, or their grid does not match their DXCC entity (listed in `data/sync.log`, see *Grid check*). They are retried on every sync. |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |
 | `is not a PHP CLI binary` in the log | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). |
 | A run ends with `Sync FAILED` | Look at the lines above it: the sync (Clublog and the LoTW fallback) or the cache rebuild failed. |

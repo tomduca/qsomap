@@ -30,10 +30,10 @@ fi
         exit 1
     fi
 
-    # Refresh the DXCC list once a month; the stamp is only written on success,
-    # so a failed download is retried on the next run.
+    # Refresh the DXCC list and grids once a month; the stamp is only written on
+    # success, so a failed download is retried on the next run.
     DXCC_STAMP="$DATA_DIR/dxcc_last_update.txt"
-    if [ ! -f "$DXCC_STAMP" ] || [ -n "$(find "$DXCC_STAMP" -mtime +29)" ]; then
+    if [ ! -f "$DXCC_STAMP" ] || [ ! -f "$DATA_DIR/vuccgrids.json" ] || [ -n "$(find "$DXCC_STAMP" -mtime +29)" ]; then
         "$PHP_BIN" "$SCRIPT_DIR/update_dxcc.php" || echo "DXCC list update failed, keeping the current one"
     fi
 

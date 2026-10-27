@@ -20,6 +20,7 @@ The current version is a rewrite: the viewer, Maidenhead conversions, great-circ
 - **[Clublog](https://clublog.org/)** and **[LoTW](https://lotw.arrl.org/)** (ARRL): QSO sources.
 - **[HamQTH](https://www.hamqth.com/)** and **[Spothole](https://spothole.app/)**: lookups for missing grids.
 - **[AD1C country files](https://www.country-files.com/)** (`cty.csv`): monthly refresh of the DXCC entity list.
+- **[TrustedQSL](https://sourceforge.net/projects/trustedqsl/)** (ARRL) `vuccgrids.dat`: grids of each DXCC entity, used to drop grids that do not match a QSO's entity.
 - **[QRZ.com](https://www.qrz.com/)**: linked from the popups, and the site where the static map is embedded.
 
 ## Local data
