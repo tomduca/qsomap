@@ -107,14 +107,21 @@ To test without waiting for the night, set the job a couple of minutes ahead (Cr
 
 ### What the script does
 
-1. Syncs from Clublog (incremental, with a 2-day overlap).
-2. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
-3. Rebuilds `data/qso_cache.json`, reusing grids found in earlier runs.
-4. Logs everything to `data/sync.log`.
+1. Once a month, refreshes the DXCC list (see below).
+2. Syncs from Clublog (incremental, with a 2-day overlap).
+3. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
+4. Rebuilds `data/qso_cache.json`, reusing grids found in earlier runs.
+5. Logs everything to `data/sync.log`.
 
 If a sync is already running, the new one is skipped.
 
 Both sources are merged by callsign, date, time (to the minute) and band, so a night on the LoTW fallback followed by Clublog the next day never creates duplicate QSOs: each contact stays a single record combining the fields from both.
+
+### DXCC list
+
+The popups name each contact's DXCC entity using `js/dxcc.js`, a base list with names, flags and deleted entities. When `data/dxcc_last_update.txt` is missing or more than 30 days old, the daily sync runs `scripts/update_dxcc.php`, which downloads AD1C's `cty.csv` from [country-files.com](https://www.country-files.com/) and writes the current entities to `data/dxcc.json`. The maps add any entity from that file that the base list does not have yet; names already in the base list are kept.
+
+If the download fails, the log shows `DXCC list update failed, keeping the current one`, the sync continues, and the update is retried the next day. To force an update, delete `data/dxcc_last_update.txt` or open `scripts/update_dxcc.php?token=YOUR_TOKEN`.
 
 ## 6. Embed the map on QRZ.com
 

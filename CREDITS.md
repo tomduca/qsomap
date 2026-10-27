@@ -19,9 +19,10 @@ The current version is a rewrite: the viewer, Maidenhead conversions, great-circ
 - **Esri NatGeo World Map**: base layer of the interactive maps. Leaflet displays the attribution required by Esri; it must be kept.
 - **[Clublog](https://clublog.org/)** and **[LoTW](https://lotw.arrl.org/)** (ARRL): QSO sources.
 - **[HamQTH](https://www.hamqth.com/)** and **[Spothole](https://spothole.app/)**: lookups for missing grids.
+- **[AD1C country files](https://www.country-files.com/)** (`cty.csv`): monthly refresh of the DXCC entity list.
 - **[QRZ.com](https://www.qrz.com/)**: linked from the popups, and the site where the static map is embedded.
 
 ## Local data
 
-- `js/dxcc.js`: DXCC entity catalog (code → name) used in the popups.
+- `js/dxcc.js`: base DXCC entity catalog (code → name and flag, including deleted entities) used in the popups. New entities are added from `data/dxcc.json` (see AD1C above).
 - `img/world-map-600.png`: base world map for the static map.

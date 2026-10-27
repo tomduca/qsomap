@@ -47,7 +47,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 ├── map-ssb-qrz.php                             Static map for QRZ
 ├── map-ssb-github.php                          Same map as an SVG image, for GitHub
 ├── js/map.js                                   Interactive map logic
-├── js/dxcc.js                                  DXCC entity catalog
+├── js/dxcc.js                                  DXCC entity catalog (base list)
 ├── css/map.css
 ├── img/world-map-600.png                       Base world map for the static map
 ├── scripts/                                    Sync scripts (CLI, or browser with token)
@@ -55,6 +55,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 │   ├── sync_clublog.php, sync_lotw.php         QSO download
 │   ├── build_cache.php                         Cache + grid lookups
 │   ├── make_background.php                     Static map background
+│   ├── update_dxcc.php                         Monthly DXCC list refresh
 │   └── sync_daily.sh                           Cron entry point
 ├── data/                                       Generated files (not versioned)
 └── config.json.example                         Credentials template

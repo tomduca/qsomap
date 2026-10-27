@@ -30,6 +30,13 @@ fi
         exit 1
     fi
 
+    # Refresh the DXCC list once a month; the stamp is only written on success,
+    # so a failed download is retried on the next run.
+    DXCC_STAMP="$DATA_DIR/dxcc_last_update.txt"
+    if [ ! -f "$DXCC_STAMP" ] || [ -n "$(find "$DXCC_STAMP" -mtime +29)" ]; then
+        "$PHP_BIN" "$SCRIPT_DIR/update_dxcc.php" || echo "DXCC list update failed, keeping the current one"
+    fi
+
     status=0
     if ! "$PHP_BIN" "$SCRIPT_DIR/sync_clublog.php"; then
         echo "Clublog sync failed, falling back to LoTW..."

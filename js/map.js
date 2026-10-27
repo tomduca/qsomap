@@ -131,8 +131,26 @@
             + escapeHtml(message) + '</span>';
     }
 
+    /**
+     * Add entities from data/dxcc.json (refreshed monthly by scripts/update_dxcc.php)
+     * that js/dxcc.js does not know yet. Names already in js/dxcc.js are kept.
+     */
+    async function loadDxccUpdates() {
+        if (typeof DXCC_DATA === 'undefined') return;
+        try {
+            const response = await fetch('data/dxcc.json?v=' + new Date().toISOString().slice(0, 10));
+            if (!response.ok) return;
+            Object.entries(await response.json()).forEach(([code, name]) => {
+                if (!DXCC_DATA[code]) DXCC_DATA[code] = { name, flag: '' };
+            });
+        } catch (error) {
+            // Optional file: without it the base list is used.
+        }
+    }
+
     async function start() {
         setStatus('Loading QSOs...');
+        const dxccUpdates = loadDxccUpdates();
         const response = await fetch('data/qso_cache.json?v=' + Date.now());
         if (!response.ok) throw new Error('Could not load data/qso_cache.json');
         const cache = await response.json();
@@ -159,6 +177,7 @@
             groups.get(key).items.push(qso);
         });
 
+        await dxccUpdates;
         groups.forEach(group => {
             const color = bandColor(group.band);
             // Draw each contact on the world copy closest to the QTH so paths take the short way.
