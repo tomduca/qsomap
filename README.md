@@ -92,7 +92,7 @@ Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with 
    cd /home/USER/public_html/qsomap && PHP_BIN=/opt/cpanel/ea-php74/root/usr/bin/php /bin/bash scripts/sync_daily.sh
    ```
 
-   `PHP_BIN` must be a PHP **CLI** binary: on cPanel the default `php` is often the CGI build, and every run then fails with `403 Forbidden` in `data/sync.log`. [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#choosing-the-php-binary) shows how to find the right path without a terminal.
+   `PHP_BIN` must be a PHP **CLI** binary: on cPanel the default `php` is often the CGI build, and the sync then stops with `is not a PHP CLI binary` in `data/sync.log`. [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#choosing-the-php-binary) shows how to find the right path without a terminal.
 
 5. **Open** `https://your-domain.com/qsomap/map-ssb.html`.
 

@@ -19,11 +19,29 @@ fi
 
 {
     echo "=== Daily QSO sync - $(date) ==="
+
+    # A CGI build of PHP makes the scripts answer 403 as if called from the web.
+    PHP_VERSION="$("$PHP_BIN" -v 2>&1 | head -n 1)"
+    if [[ "$PHP_VERSION" != *"(cli)"* ]]; then
+        echo "Error: PHP_BIN=$PHP_BIN is not a PHP CLI binary: $PHP_VERSION"
+        echo "Set PHP_BIN to a CLI build in the Cron command (see docs/DEPLOYMENT.md, step 5)."
+        echo "=== Sync FAILED ==="
+        echo
+        exit 1
+    fi
+
+    status=0
     if ! "$PHP_BIN" "$SCRIPT_DIR/sync_clublog.php"; then
         echo "Clublog sync failed, falling back to LoTW..."
-        "$PHP_BIN" "$SCRIPT_DIR/sync_lotw.php"
+        "$PHP_BIN" "$SCRIPT_DIR/sync_lotw.php" || status=1
     fi
-    "$PHP_BIN" "$SCRIPT_DIR/build_cache.php"
-    echo "=== Sync complete ==="
+    "$PHP_BIN" "$SCRIPT_DIR/build_cache.php" || status=1
+
+    if [ "$status" -eq 0 ]; then
+        echo "=== Sync complete ==="
+    else
+        echo "=== Sync FAILED ==="
+    fi
     echo
+    exit "$status"
 } >> "$LOGFILE" 2>&1

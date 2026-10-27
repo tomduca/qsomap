@@ -87,7 +87,7 @@ Use the absolute path (no `~`).
 
 ### Choosing the PHP binary
 
-`PHP_BIN` must point to a **CLI** build of PHP 7.4 or newer. On many cPanel hosts the plain `php` on Cron's PATH is the CGI build (`cgi-fcgi`): the scripts then treat the run as a web request without a token, and every run logs `Status: 403 Forbidden` / `Forbidden` while nothing is synced.
+`PHP_BIN` must point to a **CLI** build of PHP 7.4 or newer. On many cPanel hosts the plain `php` on Cron's PATH is the CGI build (`cgi-fcgi`): the scripts then treat the run as a web request without a token, so `sync_daily.sh` checks the binary first and stops with `is not a PHP CLI binary` in the log.
 
 To find the right path without a terminal:
 
@@ -159,6 +159,7 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 | `config.json` downloads in the browser | The host ignores `.htaccess` (`AllowOverride`) or it was not uploaded. Ask your provider before going further. |
 | Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole. They are retried on every sync. |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |
-| `Status: 403 Forbidden` / `Forbidden` in the log after each Cron run | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). The log still ends with `Sync complete`, but nothing was synced. |
+| `is not a PHP CLI binary` in the log | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). |
+| A run ends with `Sync FAILED` | Look at the lines above it: the sync (Clublog and the LoTW fallback) or the cache rebuild failed. |
 
 To force a full download (e.g. after fixing old grids), delete `data/clublog_last_sync.txt` (Clublog) or `data/lotw_last_sync.json` (LoTW) and run the sync again (browser or Cron).

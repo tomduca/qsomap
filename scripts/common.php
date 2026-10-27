@@ -22,7 +22,8 @@ function requireCliOrToken(): void {
     $given = (string)($_GET['token'] ?? '');
     if (strlen($expected) < 16 || !hash_equals($expected, $given)) {
         http_response_code(403);
-        exit("Forbidden\n");
+        echo "Forbidden\n";
+        exit(1); // non-zero so sync_daily.sh notices if Cron runs a CGI build of PHP
     }
 }
 
