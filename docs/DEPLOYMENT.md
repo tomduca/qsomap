@@ -77,13 +77,35 @@ It creates `data/qrz-background.png` from `img/world-map-600.png`. Requires the 
 
 ## 5. Daily Cron job
 
-In cPanel → *Cron Jobs*, add a daily task (e.g. at 02:00) with this command, replacing `USER` with your cPanel user and `qsomap` with your folder name:
+In cPanel → *Cron Jobs*, add a daily task (e.g. at 02:00) with this command, replacing `USER` with your cPanel user, `qsomap` with your folder name and the PHP path with the one found below:
 
 ```bash
-cd /home/USER/public_html/qsomap && /bin/bash scripts/sync_daily.sh
+cd /home/USER/public_html/qsomap && PHP_BIN=/opt/cpanel/ea-php74/root/usr/bin/php /bin/bash scripts/sync_daily.sh
 ```
 
-Use the absolute path (no `~`). The script:
+Use the absolute path (no `~`).
+
+### Choosing the PHP binary
+
+`PHP_BIN` must point to a **CLI** build of PHP 7.4 or newer. On many cPanel hosts the plain `php` on Cron's PATH is the CGI build (`cgi-fcgi`): the scripts then treat the run as a web request without a token, and every run logs `Status: 403 Forbidden` / `Forbidden` while nothing is synced.
+
+To find the right path without a terminal:
+
+1. In *Cron Jobs*, add a temporary job set to *Once Per Minute* with this command (one line, `USER` replaced):
+
+   ```bash
+   for p in /opt/cpanel/ea-php*/root/usr/bin/php /usr/local/bin/php /usr/bin/php; do echo "$p"; "$p" -v 2>&1 | head -1; done > /home/USER/php_check.txt 2>&1
+   ```
+
+2. Wait two minutes and delete that job.
+3. In the *File Manager*, open `php_check.txt` in your home folder (not in `public_html`). Each path is followed by its version, e.g. `PHP 7.4.33 (cli)` or `PHP 7.3.33 (cgi-fcgi)`.
+4. Pick a path marked `(cli)`, preferably the same version your domain uses in cPanel → *MultiPHP Manager* (e.g. `ea-php74` for PHP 7.4), and use it as `PHP_BIN`. Then delete `php_check.txt`.
+
+If you later change the domain's PHP version in MultiPHP Manager, update `PHP_BIN` to match. If no path shows `(cli)`, ask your hosting provider for the PHP CLI path for Cron.
+
+To test without waiting for the night, set the job a couple of minutes ahead (Cron uses the server's time zone, often GMT), check the end of `data/sync.log` in the File Manager, then set it back to daily. A successful run shows `=== Clublog sync: YOUR_CALLSIGN ===` and `data/clublog_last_sync.txt` holds today's date. Days missed while Cron was failing are recovered on the next good run.
+
+### What the script does
 
 1. Syncs from Clublog (incremental, with a 2-day overlap).
 2. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
@@ -136,6 +158,7 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 | The QRZ or GitHub map has no background | `data/qrz-background.png` is missing: run `scripts/make_background.php`. |
 | `config.json` downloads in the browser | The host ignores `.htaccess` (`AllowOverride`) or it was not uploaded. Ask your provider before going further. |
 | Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole. They are retried on every sync. |
-| `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 3). |
+| `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |
+| `Status: 403 Forbidden` / `Forbidden` in the log after each Cron run | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). The log still ends with `Sync complete`, but nothing was synced. |
 
 To force a full download (e.g. after fixing old grids), delete `data/clublog_last_sync.txt` (Clublog) or `data/lotw_last_sync.json` (LoTW) and run the sync again (browser or Cron).
