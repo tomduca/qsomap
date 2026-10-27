@@ -25,4 +25,4 @@ The current version is a rewrite: the viewer, Maidenhead conversions, great-circ
 ## Local data
 
 - `js/dxcc.js`: base DXCC entity catalog (code → name and flag, including deleted entities) used in the popups. New entities are added from `data/dxcc.json` (see AD1C above).
-- `img/world-map-600.png`: base world map for the static map.
+- `img/world-map-600.png`: base world map for the static map, built by `scripts/make_world_map.py` from [Natural Earth](https://www.naturalearthdata.com/) data (public domain): the *Natural Earth I with Shaded Relief and Water* 1:50m raster, coastlines and land boundaries. Made with Natural Earth.

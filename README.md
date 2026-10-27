@@ -56,6 +56,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 │   ├── build_cache.php                         Cache + grid lookups
 │   ├── make_background.php                     Static map background
 │   ├── update_dxcc.php                         Monthly DXCC list refresh
+│   ├── make_world_map.py                       Rebuilds img/world-map-600.png (dev tool)
 │   └── sync_daily.sh                           Cron entry point
 ├── data/                                       Generated files (not versioned)
 └── config.json.example                         Credentials template
