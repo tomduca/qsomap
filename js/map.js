@@ -148,6 +148,47 @@
         }
     }
 
+    /** localStorage that never throws (private windows, blocked storage). */
+    function storage(key, value) {
+        try {
+            if (value === undefined) return localStorage.getItem(key);
+            if (value === null) localStorage.removeItem(key);
+            else localStorage.setItem(key, value);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    /**
+     * Update banner, shown only to the owner: opening a map once with ?owner
+     * marks this browser (?owner=0 unmarks it). data/update.json is written
+     * daily by scripts/check_update.php.
+     */
+    async function showUpdateBanner() {
+        const owner = new URLSearchParams(location.search).get('owner');
+        if (owner !== null) storage('qsomap-owner', owner === '0' ? null : '1');
+        if (storage('qsomap-owner') !== '1') return;
+
+        const response = await fetch('data/update.json?v=' + Date.now());
+        if (!response.ok) return;
+        const update = await response.json();
+        if (!update.available || storage('qsomap-dismissed') === update.latest) return;
+
+        const banner = document.createElement('div');
+        banner.className = 'update-banner';
+        banner.innerHTML = 'QSO Map v' + escapeHtml(update.latest) + ' is available (installed: v'
+            + escapeHtml(update.current) + '). <a href="' + escapeHtml(update.url)
+            + '" target="_blank" rel="noopener">See what changed</a>'
+            + '<button type="button" aria-label="Dismiss">&times;</button>';
+        banner.querySelector('button').addEventListener('click', () => {
+            storage('qsomap-dismissed', update.latest);
+            banner.remove();
+            document.body.classList.remove('has-update-banner');
+        });
+        document.body.prepend(banner);
+        document.body.classList.add('has-update-banner');
+    }
+
     async function start() {
         setStatus('Loading QSOs...');
         const dxccUpdates = loadDxccUpdates();
@@ -195,4 +236,5 @@
     }
 
     start().catch(error => setStatus(error.message, true));
+    showUpdateBanner().catch(() => {});
 })();

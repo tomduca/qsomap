@@ -108,10 +108,11 @@ To test without waiting for the night, set the job a couple of minutes ahead (Cr
 ### What the script does
 
 1. Once a month, refreshes the DXCC list (see below).
-2. Syncs from Clublog (incremental, with a 2-day overlap).
-3. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
-4. Rebuilds `data/qso_cache.json`, reusing grids found in earlier runs.
-5. Logs everything to `data/sync.log`.
+2. Checks GitHub for a newer QSO Map version (see *Update notice* below).
+3. Syncs from Clublog (incremental, with a 2-day overlap).
+4. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
+5. Rebuilds `data/qso_cache.json`, reusing grids found in earlier runs.
+6. Logs everything to `data/sync.log`.
 
 If a sync is already running, the new one is skipped.
 
@@ -122,6 +123,20 @@ Both sources are merged by callsign, date, time (to the minute) and band, so a n
 The popups name each contact's DXCC entity using `js/dxcc.js`, a base list with names, flags and deleted entities. When `data/dxcc_last_update.txt` is missing or more than 30 days old, the daily sync runs `scripts/update_dxcc.php`, which downloads AD1C's `cty.csv` from [country-files.com](https://www.country-files.com/) and writes the current entities to `data/dxcc.json`. The maps add any entity from that file that the base list does not have yet; names already in the base list are kept.
 
 If the download fails, the log shows `DXCC list update failed, keeping the current one`, the sync continues, and the update is retried the next day. To force an update, delete `data/dxcc_last_update.txt` or open `scripts/update_dxcc.php?token=YOUR_TOKEN`.
+
+### Update notice
+
+The installed version is in the `VERSION` file. Every day `scripts/check_update.php` compares it with the version tags (`v1.2.0`, ...) of the [GitHub repository](https://github.com/tomduca/qsomap) and writes the result to `data/update.json`. If the check fails (e.g. GitHub is unreachable), the log shows `Update check failed, will retry tomorrow` and the sync continues.
+
+When a newer version exists, the interactive maps show a banner at the top with a link to it, **only in the owner's browser**, so visitors never see it. To mark your browser, open any map once with `?owner`:
+
+```text
+https://your-domain.com/qsomap/map-ssb.html?owner
+```
+
+The browser remembers it; open `?owner=0` to undo it. The banner's × hides it until the next version. This is a convenience, not access control: anyone who adds `?owner` only sees the same notice.
+
+To update, upload the new files over the old ones, keeping `config.json` and `data/`. The new `VERSION` file makes the banner go away after the next daily check (or open `scripts/check_update.php?token=YOUR_TOKEN` to check right away).
 
 ## 6. Embed the map on QRZ.com
 
@@ -170,3 +185,17 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 | A run ends with `Sync FAILED` | Look at the lines above it: the sync (Clublog and the LoTW fallback) or the cache rebuild failed. |
 
 To force a full download (e.g. after fixing old grids), delete `data/clublog_last_sync.txt` (Clublog) or `data/lotw_last_sync.json` (LoTW) and run the sync again (browser or Cron).
+
+## Publishing a new version (maintainer)
+
+Installed maps learn about a release from its git tag, so a push to `main` alone does not show the banner:
+
+1. Update `VERSION` (e.g. `1.1.0`) and commit it with the changes.
+2. Tag that commit and push the tag:
+
+   ```bash
+   git tag v1.1.0
+   git push origin main v1.1.0
+   ```
+
+3. Optional: create a GitHub release from the tag with notes on what changed; the banner links to `releases/tag/v1.1.0`, which shows the notes when the release exists.

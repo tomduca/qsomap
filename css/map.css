@@ -83,3 +83,44 @@ body {
     top: auto;
     bottom: 14px;
 }
+
+.update-banner {
+    position: fixed;
+    z-index: 1100;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 6px 44px 6px 14px;
+    box-sizing: border-box;
+    background: #f3c969;
+    color: #18343a;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(24, 52, 58, 0.2);
+}
+
+.update-banner a {
+    color: #18343a;
+    font-weight: 600;
+}
+
+.update-banner button {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    border: 0;
+    background: none;
+    color: #18343a;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.has-update-banner .map-status:not(.map-nav),
+.has-update-banner .leaflet-top {
+    margin-top: 40px;
+}

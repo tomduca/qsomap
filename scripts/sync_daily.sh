@@ -37,6 +37,9 @@ fi
         "$PHP_BIN" "$SCRIPT_DIR/update_dxcc.php" || echo "DXCC list update failed, keeping the current one"
     fi
 
+    # Look for a newer QSO Map version on GitHub (shown to the owner as a banner).
+    "$PHP_BIN" "$SCRIPT_DIR/check_update.php" || echo "Update check failed, will retry tomorrow"
+
     status=0
     if ! "$PHP_BIN" "$SCRIPT_DIR/sync_clublog.php"; then
         echo "Clublog sync failed, falling back to LoTW..."

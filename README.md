@@ -15,6 +15,7 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 - **Static map for QRZ.com** (`map-ssb-qrz.php`): 600 × 600 px, HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
 - **Live map image for a GitHub README** (`map-ssb-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
+- **Update notice**: a daily check against this repository's version tags shows a banner, only to the map's owner, when a new version is available.
 - **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
 
 ## How it works
@@ -56,9 +57,11 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 │   ├── build_cache.php                         Cache + grid lookups
 │   ├── make_background.php                     Static map background
 │   ├── update_dxcc.php                         Monthly DXCC list refresh
+│   ├── check_update.php                        Daily new-version check
 │   ├── make_world_map.py                       Rebuilds img/world-map-600.png (dev tool)
 │   └── sync_daily.sh                           Cron entry point
 ├── data/                                       Generated files (not versioned)
+├── VERSION                                     Installed version
 └── config.json.example                         Credentials template
 ```
 
@@ -105,7 +108,7 @@ The full guide (QRZ iframe, GitHub README image, verification checklist, trouble
 - Credentials live only in `config.json`, which is git-ignored and blocked by `.htaccess`. The repository only ships `config.json.example` with placeholder values.
 - The scripts in `scripts/` run from the CLI (Cron), or from a browser only with `?token=` matching `web.token`, compared in constant time (`hash_equals`). With no token configured, web access is disabled. `common.php` and `sync_daily.sh` are never reachable from the web.
 - `.htaccess` denies `config.json`, the raw log (`qso_data.json`), logs, `.txt`/`.md`/`.sh` files and dotfiles, and disables directory listings.
-- The only public data is what the maps display: `data/qso_cache.json` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO) and the PNG background.
+- The only public data is what the maps display: `data/qso_cache.json` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO) and the PNG background, plus `data/dxcc.json` (public DXCC list), `data/update.json` and `VERSION` (installed and latest version).
 - All external data is escaped before being inserted into HTML, both in JavaScript and PHP.
 
 ## Credits and license

@@ -1,6 +1,6 @@
 # Only the runnable scripts are reachable from the web, and they still require
 # ?token=<web.token from config.json> (see requireCliOrToken() in common.php).
 Require all denied
-<FilesMatch "^(sync_clublog|sync_lotw|build_cache|make_background|update_dxcc)\.php$">
+<FilesMatch "^(sync_clublog|sync_lotw|build_cache|make_background|update_dxcc|check_update)\.php$">
     Require all granted
 </FilesMatch>
