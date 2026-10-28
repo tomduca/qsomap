@@ -1,6 +1,14 @@
 # Only the runnable scripts are reachable from the web, and they still require
-# ?token=<web.token from config.json> (see requireCliOrToken() in common.php).
+# ?token=<web.token from config.json> (see requireCliOrToken() in common.php),
+# except setup.php, which requires a one-time key from make_setup_link.php.
 Require all denied
-<FilesMatch "^(sync_clublog|sync_lotw|build_cache|make_background|update_dxcc|check_update)\.php$">
+<FilesMatch "^(sync_clublog|sync_lotw|build_cache|make_background|update_dxcc|check_update|make_setup_link|setup)\.php$">
     Require all granted
 </FilesMatch>
+
+# The setup form handles passwords: never let another site frame it.
+<Files "setup.php">
+    <IfModule mod_headers.c>
+        Header always set Content-Security-Policy "frame-ancestors 'none'"
+    </IfModule>
+</Files>

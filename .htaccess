@@ -1,7 +1,7 @@
 Options -Indexes
 
 # Never serve credentials, raw data, logs, docs or dotfiles (.env, .git, ...).
-<FilesMatch "^(config\.json|qso_data\.json|lotw_last_sync\.json)$|\.(log|lock|tmp|txt|md|sh)$|^\.">
+<FilesMatch "^(config\.json|qso_data\.json|lotw_last_sync\.json|setup_link\.json)$|\.(log|lock|tmp|txt|md|sh)$|^\.">
     Require all denied
 </FilesMatch>
 RedirectMatch 404 /\.git

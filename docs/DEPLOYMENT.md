@@ -171,11 +171,36 @@ GitHub strips iframes from READMEs, so use `map-ssb-github.php` instead: it draw
 
 GitHub serves remote images through its own cache (camo). The PHP sends `Cache-Control: no-cache` and an `ETag` that changes whenever `data/qso_cache.json` or the background is rebuilt, so the README picks up each daily sync. The image has no tooltips or clicks of its own; the link opens the interactive map.
 
+## 8. Host a map for another station
+
+You can run a map for another ham on your hosting (one copy of QSO Map per station, each in its own folder with its own `config.json` and Cron job) without them sending you their passwords. Instead, send them a one-time setup link where they enter their credentials themselves:
+
+1. Upload a copy of QSO Map to a new folder, e.g. `public_html/qsomap-XX1ABC/`, and create its `config.json` with only what you provide: `web.token` and, if you share them, your Clublog `api_key` and your HamQTH account. Leave their callsign, grid and passwords out.
+2. Create the link:
+   - Browser: `https://your-domain.com/qsomap-XX1ABC/scripts/make_setup_link.php?token=YOUR_TOKEN`
+   - Terminal: `php scripts/make_setup_link.php`
+
+   It is valid for 48 hours by default (`&hours=72` in the browser, or `php scripts/make_setup_link.php 72`; at most 168) and for **one use**. From the terminal it prints only the path (`scripts/setup.php?key=...`): put the instance's URL in front of it.
+3. Send them the link. They open it, enter their callsign, grid and LoTW and/or Clublog credentials, and the page writes them straight into that instance's `config.json`. The LoTW login is checked against LoTW before saving.
+4. When they tell you it is done, run the first sync and generate the background (steps 3 and 4), then add the Cron job (step 5) for that folder.
+
+Fields they leave empty keep the value already in `config.json`, so your shared `api_key` and HamQTH account stay in place. Only a hash of the key is stored, in `data/setup_link.json`; the link stops working after a successful save, when it expires, or when you create a new one. The page refuses plain `http://`.
+
+### What the LoTW password gives access to
+
+Tell the station owner what they are entrusting to the server:
+
+- The LoTW **website password** only gives access to the LoTW website: viewing and downloading their QSOs and confirmations, and their account settings. QSO Map only reads.
+- It **cannot sign or upload QSOs**. Uploading to LoTW requires their TQSL certificate and its private key, which never leave their computer, so nobody can fake contacts with this password.
+- Recommend a password they use only for LoTW. Whoever runs the server can technically read `config.json`, so this link avoids sending the password to you by mail or chat, but it does not hide it from the server's administrator. To revoke access at any time they change their LoTW password.
+- If they use Clublog, an *application password* is better still: it is separate from their account password and they can delete it in their Clublog settings.
+
 ## Verification checklist
 
 - [ ] `config.json` returns 403 in the browser.
 - [ ] `scripts/sync_daily.sh`, `scripts/common.php` and `data/sync.log` return 403.
 - [ ] `scripts/sync_clublog.php` without `?token=` returns 403.
+- [ ] `scripts/setup.php` without a valid `?key=` returns 403, and `data/setup_link.json` returns 403.
 - [ ] `data/qso_cache.json` exists and contains QSOs.
 - [ ] `map-ssb.html`, `map-digi.html` and `map-qsl.html` show markers.
 - [ ] `map-ssb-qrz.php` shows the background, points and paths.
@@ -195,6 +220,7 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 | Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole, or their grid does not match their DXCC entity (listed in `data/sync.log`, see *Grid check*). They are retried on every sync. |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |
 | `is not a PHP CLI binary` in the log | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). |
+| The setup link says *expired or was already used* | It was used, it expired, or a newer link replaced it. Create a new one (step 8). |
 | A run ends with `Sync FAILED` | Look at the lines above it: the sync (Clublog and the LoTW fallback) or the cache rebuild failed. |
 
 To force a full download (e.g. after fixing old grids), delete `data/clublog_last_sync.txt` (Clublog) or `data/lotw_last_sync.json` (LoTW) and run the sync again (browser or Cron).
