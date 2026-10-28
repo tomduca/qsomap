@@ -1,0 +1,3 @@
+# Station configs (with credentials) and data: never served. The maps read
+# them through cache.php, background.php and the map-ssb-*.php pages.
+Require all denied

@@ -1,6 +1,7 @@
 # Only the runnable scripts are reachable from the web, and they still require
-# ?token=<web.token from config.json> (see requireCliOrToken() in common.php).
+# ?token=<web.token from config.json> (see requireCliOrToken() in common.php);
+# the first-sync scripts also accept a setup key from join.php.
 Require all denied
-<FilesMatch "^(sync_clublog|sync_lotw|build_cache|make_background|update_dxcc|check_update)\.php$">
+<FilesMatch "^(sync_clublog|sync_lotw|build_cache|make_background|update_dxcc|check_update|migrate_to_stations)\.php$">
     Require all granted
 </FilesMatch>

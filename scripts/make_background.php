@@ -1,6 +1,7 @@
 <?php
 /**
- * Generate data/qrz-background.png, the 600x600 world map behind map-ssb-qrz.php.
+ * Generate a station's qrz-background.png (in stations/<CALL>/data/), the
+ * 600x600 world map behind map-ssb-qrz.php and map-ssb-github.php.
  *
  * The base planisphere (img/world-map-600.png, Web Mercator, centred on
  * Greenwich) is shifted horizontally so the station's QTH ends up in the
@@ -9,7 +10,7 @@
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken();
+useStation(requireCliOrToken(true));
 
 const MAP_SIZE = 600;
 
@@ -35,8 +36,8 @@ for ($x = 0; $x < MAP_SIZE; $x++) {
     imagecopyresampled($output, $source, $x, 0, $sourceX, 0, 1, MAP_SIZE, 1, $sourceHeight);
 }
 
-$outputPath = QSOMAP_DATA . '/qrz-background.png';
-if (!is_dir(QSOMAP_DATA)) mkdir(QSOMAP_DATA, 0755, true);
+$outputPath = stationData('qrz-background.png');
+if (!is_dir(dirname($outputPath))) mkdir(dirname($outputPath), 0755, true);
 if (!imagepng($output, $outputPath)) {
     fail("cannot write $outputPath");
 }

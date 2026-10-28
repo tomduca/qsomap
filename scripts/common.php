@@ -1,30 +1,49 @@
 <?php
 /**
- * Shared helpers for the sync scripts and the static QRZ map.
+ * Shared helpers for the sync scripts, the maps and the portals.
+ *
+ * One installation serves several stations. The root config.json holds only
+ * the manager's settings (web.token, default_station); each station has its
+ * own folder, credentials included, and never sees another station's:
+ *   stations/<CALL>/config.json   map, lotw and optional hamqth and clublog
+ *   stations/<CALL>/data/         its QSOs, map cache, background and sync log
+ * data/ keeps what all stations share (DXCC lists, update check, invites,
+ * event log). Nothing under stations/ is reachable from the web.
  */
 
 define('QSOMAP_ROOT', dirname(__DIR__));
 define('QSOMAP_DATA', QSOMAP_ROOT . '/data');
+define('QSOMAP_STATIONS', QSOMAP_ROOT . '/stations');
 
 /** Phone modes shown on the SSB maps (CW included); everything else is DIGI. */
 const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
+
+/** Invites from the admin portal and setups in progress, keyed by callsign. */
+const INVITES_FILE = QSOMAP_DATA . '/invites.json';
 
 /**
  * Sync scripts handle credentials and call external APIs. They always run from
  * the command line (Cron, terminal); from a browser they require
  * ?token=<web.token from config.json>, and are disabled if no token is set.
+ * The first-sync scripts also accept ?key=<setup key> while join.php is setting
+ * up a station; the callsign of that station is returned, null otherwise.
  */
-function requireCliOrToken(): void {
-    if (PHP_SAPI === 'cli') return;
+function requireCliOrToken(bool $allowSetupKey = false): ?string {
+    if (PHP_SAPI === 'cli') return null;
     header('Content-Type: text/plain; charset=utf-8');
     header('Cache-Control: no-store');
-    $expected = (string)(loadConfig(false)['web']['token'] ?? '');
+    if ($allowSetupKey) {
+        $call = inviteByKey((string)($_GET['key'] ?? ''), 'sync');
+        if ($call !== null) return $call;
+    }
+    $expected = (string)(rootConfig()['web']['token'] ?? '');
     $given = (string)($_GET['token'] ?? '');
     if (strlen($expected) < 16 || !hash_equals($expected, $given)) {
         http_response_code(403);
         echo "Forbidden\n";
         exit(1); // non-zero so sync_daily.sh notices if Cron runs a CGI build of PHP
     }
+    return null;
 }
 
 /** Report an error and exit non-zero so sync_daily.sh can react. */
@@ -38,15 +57,186 @@ function fail(string $message): void {
     exit(1);
 }
 
-/** Load config.json. Returns [] when it is optional and missing. */
-function loadConfig(bool $required = true): array {
-    $path = QSOMAP_ROOT . '/config.json';
-    $config = is_file($path) ? json_decode((string)file_get_contents($path), true) : null;
-    if (!is_array($config)) {
-        if ($required) fail("cannot load $path (copy config.json.example and fill it in)");
-        return [];
+/** The root config.json (manager settings), or [] if missing. */
+function rootConfig(): array {
+    return readJson(QSOMAP_ROOT . '/config.json') ?? [];
+}
+
+/**
+ * A base callsign in upper case (e.g. LU2MET), or null. Station folders are
+ * named after it, so portable prefixes and suffixes (/P, EA8/) are rejected.
+ */
+function normalizeCall(string $call): ?string {
+    $call = strtoupper(trim($call));
+    return preg_match('/^(?=.*\d)(?=.*[A-Z])[A-Z0-9]{3,10}$/', $call) ? $call : null;
+}
+
+function stationExists(string $call): bool {
+    return is_file(QSOMAP_STATIONS . "/$call/config.json");
+}
+
+/** Callsigns of all set-up stations, sorted. */
+function stationList(): array {
+    $calls = [];
+    foreach (glob(QSOMAP_STATIONS . '/*/config.json') ?: [] as $file) {
+        $call = normalizeCall(basename(dirname($file)));
+        if ($call !== null) $calls[] = $call;
     }
+    sort($calls);
+    return $calls;
+}
+
+/** Get or set the station the current script works on. */
+function station(?string $set = null): ?string {
+    static $current = null;
+    if ($set !== null) $current = $set;
+    return $current;
+}
+
+/**
+ * The station a request or command asks for: ?station=CALL, or a bare ?CALL
+ * as in map-ssb.html?LU2MET, or QSOMAP_STATION in the environment (Cron);
+ * otherwise default_station from the root config.json. Null if that station
+ * does not exist.
+ */
+function requestedStation(): ?string {
+    $candidates = [$_GET['station'] ?? null];
+    foreach ($_GET as $name => $value) {
+        if ($value === '') $candidates[] = $name;
+    }
+    $candidates[] = getenv('QSOMAP_STATION') ?: null;
+    foreach ($candidates as $candidate) {
+        $call = normalizeCall((string)$candidate);
+        if ($call !== null) return stationExists($call) ? $call : null;
+    }
+    $default = normalizeCall((string)(rootConfig()['default_station'] ?? ''));
+    return $default !== null && stationExists($default) ? $default : null;
+}
+
+/**
+ * Select the station for a station script: the one a setup key belongs to,
+ * or the requested one. Fails if there is none.
+ */
+function useStation(?string $setupStation): string {
+    $call = $setupStation ?? requestedStation();
+    if ($call === null) {
+        fail('unknown station: pass ?station=CALL (browser) or QSOMAP_STATION=CALL (terminal), or set default_station');
+    }
+    station($call);
+    return $call;
+}
+
+function stationDir(?string $call = null): string {
+    $call = $call ?? station();
+    if ($call === null) fail('no station selected');
+    return QSOMAP_STATIONS . '/' . $call;
+}
+
+/**
+ * Select the station a public page shows (?CALL, or default_station), or
+ * answer 404 if there is none.
+ */
+function usePublicStation(): string {
+    $call = requestedStation();
+    if ($call === null) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "Unknown station\n";
+        exit;
+    }
+    station($call);
+    return $call;
+}
+
+/**
+ * Send a file from the current station's data folder (cache.php,
+ * background.php), revalidated on every request and answered with 304 while
+ * it has not changed.
+ */
+function serveStationFile(string $file, string $contentType): void {
+    $path = stationData($file);
+    if (!is_file($path)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "Not generated yet\n";
+        exit;
+    }
+    $etag = '"' . md5(station() . '|' . filemtime($path) . '|' . filesize($path)) . '"';
+    header('Cache-Control: public, no-cache, max-age=0');
+    header('ETag: ' . $etag);
+    if (trim((string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
+        http_response_code(304);
+        exit;
+    }
+    header('Content-Type: ' . $contentType);
+    readfile($path);
+    exit;
+}
+
+/** Path of a file in the current station's data folder. */
+function stationData(string $file): string {
+    return stationDir() . '/data/' . $file;
+}
+
+/**
+ * Configuration of the current station: its own config.json, plus web from the
+ * root one. Nothing else is inherited, so the manager's Clublog and HamQTH
+ * accounts are only used for the manager's own station.
+ */
+function loadConfig(bool $required = true): array {
+    $root = rootConfig();
+    $config = station() !== null ? readJson(stationDir() . '/config.json') : null;
+    if ($config === null) {
+        if ($required) fail('cannot load the station config.json');
+        return ['web' => $root['web'] ?? []];
+    }
+    $config['web'] = $root['web'] ?? [];
     return $config;
+}
+
+/** Append a line to data/events.log (never with secrets). */
+function logEvent(string $event): void {
+    if (!is_dir(QSOMAP_DATA)) mkdir(QSOMAP_DATA, 0755, true);
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
+    file_put_contents(QSOMAP_DATA . '/events.log', gmdate('Y-m-d H:i:s') . " UTC  $ip  $event\n", FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * Read, change and write data/invites.json under a lock. $change receives the
+ * invites (expired ones already removed) and may modify them; its return
+ * value is passed back.
+ */
+function withInvites(callable $change) {
+    if (!is_dir(QSOMAP_DATA)) mkdir(QSOMAP_DATA, 0755, true);
+    $lock = fopen(INVITES_FILE . '.lock', 'c');
+    flock($lock, LOCK_EX);
+    $invites = readJson(INVITES_FILE) ?? [];
+    $invites = array_filter($invites, fn($invite) => (int)($invite['expires'] ?? 0) >= time());
+    $result = $change($invites);
+    writeJson(INVITES_FILE, $invites);
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    return $result;
+}
+
+/** Callsign whose invite is at $stage ('sync') and matches $key, or null. */
+function inviteByKey(string $key, string $stage): ?string {
+    if ($key === '' || !is_file(INVITES_FILE)) return null;
+    $hash = hash('sha256', $key);
+    foreach (readJson(INVITES_FILE) ?? [] as $call => $invite) {
+        if (($invite['stage'] ?? '') === $stage && (int)($invite['expires'] ?? 0) >= time()
+            && hash_equals((string)($invite['key'] ?? ''), $hash)) {
+            return (string)$call;
+        }
+    }
+    return null;
+}
+
+/** https://host/path of this installation, from a script $depth folders below the root. */
+function instanceUrl(int $depth = 0): string {
+    $path = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
+    for ($level = 0; $level < $depth; $level++) $path = dirname($path);
+    return 'https://' . ($_SERVER['HTTP_HOST'] ?? 'your-domain.com') . rtrim($path, '/');
 }
 
 function readJson(string $path): ?array {

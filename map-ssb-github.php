@@ -7,19 +7,22 @@
  * background is inlined as a data: URI, because browsers do not load external
  * resources from an SVG shown through <img>. GitHub proxies images through its
  * camo cache, so the response carries an ETag that changes with every sync.
+ * The station comes from the query string (map-ssb-github.php?LU2MET), or is
+ * default_station.
  */
 
 require __DIR__ . '/scripts/common.php';
+$call = usePublicStation();
 
 const MAP_SIZE = 600;
 const BAND_COLORS = ['10M' => '#e45756', '15M' => '#f28e2b', '20M' => '#59a14f', '40M' => '#4e79a7', '80M' => '#7b61a8'];
 const DEFAULT_COLOR = '#68747d';
 
-$cachePath = QSOMAP_DATA . '/qso_cache.json';
-$backgroundPath = QSOMAP_DATA . '/qrz-background.png';
+$cachePath = stationData('qso_cache.json');
+$backgroundPath = stationData('qrz-background.png');
 
 // Revalidate on every request, answer 304 while neither input has changed.
-$etag = '"' . md5(implode('|', [@filemtime($cachePath), @filemtime($backgroundPath), filemtime(__FILE__)])) . '"';
+$etag = '"' . md5(implode('|', [$call, @filemtime($cachePath), @filemtime($backgroundPath), filemtime(__FILE__)])) . '"';
 header('Cache-Control: public, no-cache, max-age=0');
 header('ETag: ' . $etag);
 if (trim((string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {

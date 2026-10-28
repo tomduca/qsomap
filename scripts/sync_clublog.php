@@ -1,6 +1,6 @@
 <?php
 /**
- * Download QSOs from Clublog into data/qso_data.json.
+ * Download a station's QSOs from Clublog into stations/<CALL>/data/qso_data.json.
  *
  * The first run downloads the whole log; later runs are incremental (from two
  * days before the last successful sync) and merge into the existing file.
@@ -8,7 +8,7 @@
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken();
+useStation(requireCliOrToken());
 set_time_limit(300);
 
 $clublog = loadConfig()['clublog'] ?? [];
@@ -21,8 +21,8 @@ if ($email === '' || $password === '' || $apiKey === '' || $callsign === '') {
     fail('Clublog credentials not configured');
 }
 
-$jsonFile = QSOMAP_DATA . '/qso_data.json';
-$lastSyncFile = QSOMAP_DATA . '/clublog_last_sync.txt';
+$jsonFile = stationData('qso_data.json');
+$lastSyncFile = stationData('clublog_last_sync.txt');
 
 echo "=== Clublog sync: $callsign ===\n";
 
