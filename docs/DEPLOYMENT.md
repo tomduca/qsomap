@@ -175,16 +175,16 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 
 You can run a map for another ham on your hosting (one copy of QSO Map per station, each in its own folder with its own `config.json` and Cron job) without them sending you their passwords. Instead, send them a one-time setup link where they enter their credentials themselves:
 
-1. Upload a copy of QSO Map to a new folder, e.g. `public_html/qsomap-XX1ABC/`, and create its `config.json` with only what you provide: `web.token` and, if you share them, your Clublog `api_key` and your HamQTH account. Leave their callsign, grid and passwords out.
+1. Upload a copy of QSO Map to a new folder, e.g. `public_html/qsomap-XX1ABC/`, and create its `config.json` with only what you provide: `web.token` and, if you share it, your HamQTH account. Leave their callsign, grid and password out. Hosted stations sync from **LoTW only**: leave the `clublog` section out (the daily sync logs `Clublog credentials not configured` and uses LoTW, which is expected).
 2. Create the link:
    - Browser: `https://your-domain.com/qsomap-XX1ABC/scripts/make_setup_link.php?token=YOUR_TOKEN`
    - Terminal: `php scripts/make_setup_link.php`
 
    It is valid for 48 hours by default (`&hours=72` in the browser, or `php scripts/make_setup_link.php 72`; at most 168) and for **one use**. From the terminal it prints only the path (`scripts/setup.php?key=...`): put the instance's URL in front of it.
-3. Send them the link. They open it, enter their callsign, grid and LoTW and/or Clublog credentials, and the page writes them straight into that instance's `config.json`. The LoTW login is checked against LoTW before saving.
-4. When they tell you it is done, run the first sync and generate the background (steps 3 and 4), then add the Cron job (step 5) for that folder.
+3. Send them the link. They open it, enter their callsign, grid and LoTW username and password, and the page writes them straight into that instance's `config.json`. The LoTW login is checked against LoTW before saving.
+4. When they tell you it is done, run the first sync with `sync_lotw.php?token=YOUR_TOKEN` and then `build_cache.php?token=YOUR_TOKEN`, generate the background (step 4), and add the Cron job (step 5) for that folder.
 
-Fields they leave empty keep the value already in `config.json`, so your shared `api_key` and HamQTH account stay in place. Only a hash of the key is stored, in `data/setup_link.json`; the link stops working after a successful save, when it expires, or when you create a new one. The page refuses plain `http://`.
+Fields they leave empty keep the value already in `config.json`, so your shared HamQTH account stays in place. Only a hash of the key is stored, in `data/setup_link.json`; the link stops working after a successful save, when it expires, or when you create a new one. The page refuses plain `http://`.
 
 ### What the LoTW password gives access to
 
@@ -193,7 +193,6 @@ Tell the station owner what they are entrusting to the server:
 - The LoTW **website password** only gives access to the LoTW website: viewing and downloading their QSOs and confirmations, and their account settings. QSO Map only reads.
 - It **cannot sign or upload QSOs**. Uploading to LoTW requires their TQSL certificate and its private key, which never leave their computer, so nobody can fake contacts with this password.
 - Recommend a password they use only for LoTW. Whoever runs the server can technically read `config.json`, so this link avoids sending the password to you by mail or chat, but it does not hide it from the server's administrator. To revoke access at any time they change their LoTW password.
-- If they use Clublog, an *application password* is better still: it is separate from their account password and they can delete it in their Clublog settings.
 
 ## Verification checklist
 

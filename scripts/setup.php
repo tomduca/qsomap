@@ -1,12 +1,13 @@
 <?php
 /**
  * One-time setup page: the station owner opens the link made by
- * make_setup_link.php and enters their own callsign, grid and credentials,
+ * make_setup_link.php and enters their own callsign, grid and LoTW login,
  * which are written straight into config.json. The host never has to receive
  * or type them. The link is consumed on a successful save.
  *
  * Fields left empty keep the current value in config.json, so the host can
- * pre-fill shared settings (web.token, clublog.api_key, hamqth) beforehand.
+ * pre-fill shared settings (web.token, hamqth) beforehand. Hosted stations
+ * sync from LoTW only, so this page does not ask for Clublog credentials.
  */
 
 require __DIR__ . '/common.php';
@@ -29,8 +30,7 @@ if (!setupLinkIsValid($linkFile, $key)) {
 $values = [];
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach (['callsign', 'grid', 'lotw_username', 'lotw_password', 'clublog_email', 'clublog_password',
-              'hamqth_username', 'hamqth_password'] as $field) {
+    foreach (['callsign', 'grid', 'lotw_username', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
         $values[$field] = trim((string)($_POST[$field] ?? ''));
     }
     $values['callsign'] = strtoupper($values['callsign']);
@@ -43,13 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (gridCentre($values['grid']) === null) {
         $errors[] = 'Enter a valid grid (4, 6 or 8 characters, e.g. FF57oc).';
     }
-    if ($values['lotw_password'] === '' && $values['clublog_password'] === '') {
-        $errors[] = 'Enter your LoTW password, a Clublog application password, or both.';
+    if ($values['lotw_password'] === '') {
+        $errors[] = 'Enter your LoTW password.';
     }
-    if ($values['clublog_password'] !== '' && !filter_var($values['clublog_email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Enter the email of your Clublog account.';
-    }
-    if (!$errors && $values['lotw_password'] !== '' && !lotwLoginWorks($values['lotw_username'], $values['lotw_password'])) {
+    if (!$errors && !lotwLoginWorks($values['lotw_username'], $values['lotw_password'])) {
         $errors[] = 'LoTW did not accept that username and password. Check them on lotw.arrl.org and try again.';
     }
 
@@ -58,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         @unlink($linkFile);
         showPage('Setup complete', '<p>Your settings were saved and this link no longer works. '
             . 'The map host will run the first sync; after that your map updates every day.</p>'
-            . '<p>If you ever want to stop, change your LoTW password (or delete the Clublog application password) and the sync stops working.</p>');
+            . '<p>If you ever want to stop, change your LoTW password and the sync stops working.</p>');
     }
 }
 
@@ -100,16 +97,9 @@ function saveConfig(array $values): void {
     };
     $set('map', 'my_callsign', $values['callsign']);
     $set('map', 'my_grid', $values['grid']);
-    if ($values['lotw_password'] !== '') {
-        $set('lotw', 'username', $values['lotw_username']);
-        $set('lotw', 'password', $values['lotw_password']);
-        $config['lotw']['days_back'] = $config['lotw']['days_back'] ?? 3650;
-    }
-    if ($values['clublog_password'] !== '') {
-        $set('clublog', 'email', $values['clublog_email']);
-        $set('clublog', 'password', $values['clublog_password']);
-        $set('clublog', 'callsign', $values['callsign']);
-    }
+    $set('lotw', 'username', $values['lotw_username']);
+    $set('lotw', 'password', $values['lotw_password']);
+    $config['lotw']['days_back'] = $config['lotw']['days_back'] ?? 3650;
     $set('hamqth', 'username', $values['hamqth_username']);
     $set('hamqth', 'password', $values['hamqth_password']);
     writeJson(QSOMAP_ROOT . '/config.json', $config);
@@ -117,7 +107,7 @@ function saveConfig(array $values): void {
 
 function setupForm(string $key, array $values, array $errors): string {
     $value = [];
-    foreach (['callsign', 'grid', 'lotw_username', 'clublog_email', 'hamqth_username'] as $field) {
+    foreach (['callsign', 'grid', 'lotw_username', 'hamqth_username'] as $field) {
         $value[$field] = htmlspecialchars($values[$field] ?? '', ENT_QUOTES);
     }
     $key = htmlspecialchars($key, ENT_QUOTES);
@@ -138,20 +128,13 @@ settings over an encrypted connection: the map host does not need to receive or 
   <fieldset>
     <legend>LoTW</legend>
     <label>Username <input name="lotw_username" value="{$value['lotw_username']}" placeholder="Same as callsign"></label>
-    <label>Password <input type="password" name="lotw_password" autocomplete="new-password"></label>
+    <label>Password <input type="password" name="lotw_password" autocomplete="new-password" required></label>
     <p class="note">The LoTW website password only gives access to the LoTW website: viewing and
     downloading your QSOs and confirmations, and your account settings. It <strong>cannot sign or upload
     QSOs</strong>: that needs your TQSL certificate, which never leaves your computer, so nobody can
     fake contacts with it. We recommend a password you do not use anywhere else. Keep in mind that
     whoever runs this server can technically read the stored password; changing it on LoTW cuts off
     access at any time.</p>
-  </fieldset>
-  <fieldset>
-    <legend>Clublog (optional)</legend>
-    <label>Account email <input type="email" name="clublog_email" value="{$value['clublog_email']}"></label>
-    <label>Application password <input type="password" name="clublog_password" autocomplete="new-password"></label>
-    <p class="note">Use an <em>application password</em> created in your Clublog settings, not your
-    account password; you can delete it there whenever you want.</p>
   </fieldset>
   <fieldset>
     <legend>HamQTH (optional)</legend>
