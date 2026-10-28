@@ -1,10 +1,12 @@
 Options -Indexes
 
 # Never serve credentials, raw data, logs, docs or dotfiles (.env, .git, ...).
-<FilesMatch "^(config\.json|qso_data\.json|lotw_last_sync\.json|setup_link\.json)$|\.(log|lock|tmp|txt|md|sh)$|^\.">
+<FilesMatch "^(config\.json|qso_data\.json|lotw_last_sync\.json|invites\.json)$|\.(log|lock|tmp|txt|md|sh)$|^\.">
     Require all denied
 </FilesMatch>
 RedirectMatch 404 /\.git
+# Station folders hold credentials; also blocked by stations/.htaccess.
+RedirectMatch 404 /stations(/|$)
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
@@ -12,3 +14,10 @@ RedirectMatch 404 /\.git
     Header always unset X-Frame-Options
     Header always set Content-Security-Policy "frame-ancestors *"
 </IfModule>
+
+# The portals handle passwords: never let another site frame them.
+<FilesMatch "^(join|index)\.php$">
+    <IfModule mod_headers.c>
+        Header always set Content-Security-Policy "frame-ancestors 'none'"
+    </IfModule>
+</FilesMatch>

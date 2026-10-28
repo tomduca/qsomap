@@ -1,6 +1,7 @@
 <?php
 /**
- * Download QSOs from LoTW (Logbook of The World) into data/qso_data.json.
+ * Download a station's QSOs from LoTW (Logbook of The World) into
+ * stations/<CALL>/data/qso_data.json.
  *
  * Follows ARRL's guidance for automated downloads: the first run downloads
  * everything (limited by lotw.days_back); later runs only ask for what changed,
@@ -8,12 +9,12 @@
  *   - qso_qsorxsince: QSOs uploaded since the last run, confirmed or not
  *   - qso_qslsince:   new confirmations since the last run, including old QSOs
  * Results are merged into qso_data.json, so LoTW works both as the only source
- * and as a fallback for Clublog. Delete data/lotw_last_sync.json to force a
+ * and as a fallback for Clublog. Delete stations/<CALL>/data/lotw_last_sync.json to force a
  * full download.
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken(true);
+useStation(requireCliOrToken(true));
 set_time_limit(300);
 
 $lotw = loadConfig()['lotw'] ?? [];
@@ -25,8 +26,8 @@ if ($username === '' || $password === '') {
     fail('LoTW credentials not configured');
 }
 
-$jsonFile = QSOMAP_DATA . '/qso_data.json';
-$stateFile = QSOMAP_DATA . '/lotw_last_sync.json';
+$jsonFile = stationData('qso_data.json');
+$stateFile = stationData('lotw_last_sync.json');
 $state = readJson($stateFile) ?? [];
 $incremental = isset($state['qsorx'], $state['qsl']) && is_file($jsonFile);
 

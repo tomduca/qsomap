@@ -14,7 +14,7 @@
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken(true);
+requireCliOrToken(true); // shared by all stations
 
 const CTY_URL = 'https://www.country-files.com/cty/cty.csv';
 const MIN_ENTITIES = 300; // sanity check: a valid file lists about 340

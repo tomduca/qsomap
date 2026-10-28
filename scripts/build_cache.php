@@ -1,6 +1,7 @@
 <?php
 /**
- * Build data/qso_cache.json, the file the maps read, from data/qso_data.json.
+ * Build a station's qso_cache.json, the file the maps read, from its
+ * qso_data.json (both in stations/<CALL>/data/).
  *
  * QSOs without a grid are looked up on HamQTH (if configured) and then
  * Spothole. Grids found in previous runs are reused, so each run only queries
@@ -15,16 +16,16 @@
  * in short web requests: ?max_lookups=N looks up at most N QSOs, starting at
  * the QSO number given by ?offset=. The cache is written after every batch, so
  * the next one reuses its grids; the output ends with "Next offset: X" while
- * lookups remain. setup.php uses this for a new station's first sync.
+ * lookups remain. join.php uses this for a new station's first sync.
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken(true);
+useStation(requireCliOrToken(true));
 set_time_limit(600);
 
 $config = loadConfig();
-$qsoDataFile = QSOMAP_DATA . '/qso_data.json';
-$cacheFile = QSOMAP_DATA . '/qso_cache.json';
+$qsoDataFile = stationData('qso_data.json');
+$cacheFile = stationData('qso_cache.json');
 
 $qsos = readJson($qsoDataFile);
 if ($qsos === null) {
