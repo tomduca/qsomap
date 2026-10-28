@@ -9,7 +9,7 @@
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken();
+requireCliOrToken(true);
 
 const MAP_SIZE = 600;
 

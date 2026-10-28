@@ -15,7 +15,7 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 - **Static map for QRZ.com** (`map-ssb-qrz.php`): 600 × 600 px, HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
 - **Live map image for a GitHub README** (`map-ssb-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
-- **One-time setup link**: host a map for another ham, synced from LoTW, without receiving their password; they enter it in a single-use page that writes them straight into their instance.
+- **One-time setup link**: host a map for another ham, synced from LoTW, without receiving their password; they enter it in a single-use page that saves it into their instance and runs the first sync by itself. One Cron job (`sync_all.sh`) syncs every hosted map, one after the other.
 - **Update notice**: a daily check against this repository's version tags shows a banner, only to the map's owner, when a new version is available.
 - **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
 - **Grid check against DXCC**: grids that do not match the QSO's DXCC entity (per TQSL's grid list, with a one-square tolerance at borders) are dropped and looked up again, so contacts never show in the wrong country.
@@ -62,7 +62,8 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 │   ├── check_update.php                        Daily new-version check
 │   ├── make_setup_link.php, setup.php          One-time setup link for hosted stations
 │   ├── make_world_map.py                       Rebuilds img/world-map-600.png (dev tool)
-│   └── sync_daily.sh                           Cron entry point
+│   ├── sync_daily.sh                           Cron entry point
+│   └── sync_all.sh                             One Cron job for several hosted instances
 ├── data/                                       Generated files (not versioned)
 ├── VERSION                                     Installed version
 └── config.json.example                         Credentials template

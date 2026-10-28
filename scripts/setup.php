@@ -3,7 +3,9 @@
  * One-time setup page: the station owner opens the link made by
  * make_setup_link.php and enters their own callsign, grid and LoTW login,
  * which are written straight into config.json. The host never has to receive
- * or type them. The link is consumed on a successful save.
+ * or type them. The form works once: after a successful save the same link
+ * runs the first sync from the browser for two hours (update_dxcc, sync_lotw,
+ * build_cache in batches, make_background) and can be reopened to resume it.
  *
  * Fields left empty keep the current value in config.json, so the host can
  * pre-fill shared settings (web.token, hamqth) beforehand. Hosted stations
@@ -12,18 +14,23 @@
 
 require __DIR__ . '/common.php';
 
+const FIRST_SYNC_SECONDS = 2 * 3600;
+const LOOKUPS_PER_BATCH = 40; // about 20-30 s per build_cache.php request
+
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store');
 header('Referrer-Policy: no-referrer');
 header('X-Frame-Options: DENY');
 
-$linkFile = QSOMAP_DATA . '/setup_link.json';
 $key = (string)($_POST['key'] ?? $_GET['key'] ?? '');
 
 if (!isHttps()) {
     showPage('HTTPS required', '<p class="error">Open this link with <code>https://</code> so your passwords are encrypted on the way.</p>', 400);
 }
-if (!setupLinkIsValid($linkFile, $key)) {
+if (setupKeyIsValid($key, true)) {
+    showPage('Setting up your map', firstSyncPage($key));
+}
+if (!setupKeyIsValid($key, false)) {
     showPage('Link not valid', '<p class="error">This setup link has expired or was already used. Ask the map host for a new one.</p>', 403);
 }
 
@@ -52,10 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errors) {
         saveConfig($values);
-        @unlink($linkFile);
-        showPage('Setup complete', '<p>Your settings were saved and this link no longer works. '
-            . 'The map host will run the first sync; after that your map updates every day.</p>'
-            . '<p>If you ever want to stop, change your LoTW password and the sync stops working.</p>');
+        // The form is done; the key now only runs the first sync, for a while.
+        writeJson(SETUP_LINK_FILE, ['used' => true, 'expires' => time() + FIRST_SYNC_SECONDS] + readJson(SETUP_LINK_FILE));
+        showPage('Setting up your map', firstSyncPage($key));
     }
 }
 
@@ -65,16 +71,6 @@ function isHttps(): bool {
     return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
         || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true); // local testing
-}
-
-function setupLinkIsValid(string $linkFile, string $key): bool {
-    $link = readJson($linkFile);
-    if ($link === null || $key === '') return false;
-    if ((int)($link['expires'] ?? 0) < time()) {
-        @unlink($linkFile);
-        return false;
-    }
-    return hash_equals((string)($link['hash'] ?? ''), hash('sha256', $key));
 }
 
 /** Ask LoTW for an empty report: it returns ADIF only when the login is right. */
@@ -147,6 +143,77 @@ settings over an encrypted connection: the map host does not need to receive or 
 HTML;
 }
 
+/** Progress page that runs the first-sync scripts one after another. */
+function firstSyncPage(string $key): string {
+    $config = json_encode(['key' => $key, 'batch' => LOOKUPS_PER_BATCH], JSON_HEX_TAG);
+    $script = <<<'JS'
+const steps = [
+  { label: 'Downloading the DXCC list', url: 'update_dxcc.php', optional: true },
+  { label: 'Downloading your QSOs from LoTW (the first time can take a few minutes)', url: 'sync_lotw.php' },
+  { label: 'Finding grids and building your map', url: 'build_cache.php', batches: true },
+  { label: 'Drawing the static map', url: 'make_background.php' },
+];
+const list = document.getElementById('steps');
+const message = document.getElementById('message');
+const items = steps.map(step => list.appendChild(Object.assign(document.createElement('li'), { textContent: step.label })));
+
+async function request(url) {
+  const response = await fetch(url + (url.includes('?') ? '&' : '?') + 'key=' + SETUP.key, { cache: 'no-store' });
+  const text = await response.text();
+  if (response.ok) return text;
+  throw new Error(text.startsWith('Error:') ? text.trim() : 'The server did not answer (HTTP ' + response.status + ').');
+}
+
+async function runStep(step, item) {
+  if (!step.batches) return request(step.url);
+  let offset = 0;
+  for (;;) {
+    const text = await request(step.url + '?max_lookups=' + SETUP.batch + '&offset=' + offset);
+    const next = text.match(/Next offset: (\d+)/);
+    if (!next) return text;
+    offset = Number(next[1]);
+    const left = text.match(/Lookups left for the next batch: (\d+)/);
+    item.dataset.detail = left ? left[1] + ' callsigns left to look up' : '';
+  }
+}
+
+async function run(from) {
+  message.textContent = '';
+  for (let i = from; i < steps.length; i++) {
+    const item = items[i];
+    item.className = 'running';
+    try {
+      await runStep(steps[i], item);
+      item.className = 'done';
+    } catch (error) {
+      if (steps[i].optional) { item.className = 'skipped'; continue; }
+      item.className = 'failed';
+      message.innerHTML = '';
+      message.append(error.message + ' ', Object.assign(document.createElement('button'), {
+        textContent: 'Try again', onclick: () => run(i),
+      }));
+      message.append(Object.assign(document.createElement('p'), {
+        textContent: 'If it keeps failing, close this page: the nightly sync will finish the job.',
+      }));
+      return;
+    }
+    item.dataset.detail = '';
+  }
+  message.innerHTML = '<strong>Your map is ready.</strong> <a href="../map-ssb.html">Open it</a>. '
+    + 'From now on it updates every night. To stop it at any time, change your LoTW password.';
+}
+run(0);
+JS;
+    return <<<HTML
+<p>Your settings were saved. Keep this page open while your map is set up; it takes from one to several
+minutes depending on the size of your log. If you close it, open the same link again to resume.</p>
+<ol id="steps" class="steps"></ol>
+<div id="message" role="status"></div>
+<script>const SETUP = $config;
+$script</script>
+HTML;
+}
+
 function showPage(string $title, string $body, int $status = 200): void {
     http_response_code($status);
     $title = htmlspecialchars($title);
@@ -165,7 +232,14 @@ function showPage(string $title, string $body, int $status = 200): void {
   input { display: block; width: 100%; box-sizing: border-box; padding: .4rem; font: inherit; }
   button { padding: .5rem 1.5rem; font: inherit; }
   .note { font-size: .875rem; color: #555; }
-  .error { color: #b00020; }
+  .error, .failed { color: #b00020; }
+  .steps li { margin: .4rem 0; color: #888; }
+  .steps li.running { color: inherit; font-weight: 600; }
+  .steps li.running::after { content: ' … ' attr(data-detail); font-weight: normal; }
+  .steps li.done { color: inherit; }
+  .steps li.done::before { content: '✓ '; color: #1b7f3b; }
+  .steps li.failed::before { content: '✗ '; }
+  .steps li.skipped::after { content: ' (skipped, will retry tonight)'; }
 </style>
 </head>
 <body>

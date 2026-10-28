@@ -13,7 +13,7 @@
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken();
+requireCliOrToken(true);
 set_time_limit(300);
 
 $lotw = loadConfig()['lotw'] ?? [];

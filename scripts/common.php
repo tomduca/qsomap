@@ -13,11 +13,14 @@ const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
  * Sync scripts handle credentials and call external APIs. They always run from
  * the command line (Cron, terminal); from a browser they require
  * ?token=<web.token from config.json>, and are disabled if no token is set.
+ * The first-sync scripts also accept ?key=<setup link key> for a while after
+ * setup.php saved the station's settings (see setupKeyIsValid()).
  */
-function requireCliOrToken(): void {
+function requireCliOrToken(bool $allowSetupKey = false): void {
     if (PHP_SAPI === 'cli') return;
     header('Content-Type: text/plain; charset=utf-8');
     header('Cache-Control: no-store');
+    if ($allowSetupKey && setupKeyIsValid((string)($_GET['key'] ?? ''), true)) return;
     $expected = (string)(loadConfig(false)['web']['token'] ?? '');
     $given = (string)($_GET['token'] ?? '');
     if (strlen($expected) < 16 || !hash_equals($expected, $given)) {
@@ -25,6 +28,23 @@ function requireCliOrToken(): void {
         echo "Forbidden\n";
         exit(1); // non-zero so sync_daily.sh notices if Cron runs a CGI build of PHP
     }
+}
+
+/** One-time setup link made by make_setup_link.php: {hash, expires, used}. */
+const SETUP_LINK_FILE = QSOMAP_DATA . '/setup_link.json';
+
+/**
+ * Whether $key matches the setup link and it has not expired. Before use it
+ * opens the setup form; once used ($used = true) it only runs the first sync.
+ */
+function setupKeyIsValid(string $key, bool $used): bool {
+    $link = readJson(SETUP_LINK_FILE);
+    if ($link === null || $key === '' || (bool)($link['used'] ?? false) !== $used) return false;
+    if ((int)($link['expires'] ?? 0) < time()) {
+        @unlink(SETUP_LINK_FILE);
+        return false;
+    }
+    return hash_equals((string)($link['hash'] ?? ''), hash('sha256', $key));
 }
 
 /** Report an error and exit non-zero so sync_daily.sh can react. */

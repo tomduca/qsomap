@@ -10,10 +10,16 @@
  * to data/vuccgrids.json (see update_dxcc.php). A grid that does not is dropped
  * and looked up again; if no matching grid is found the QSO has no grid and
  * the maps do not show it.
+ *
+ * From a browser it can run in batches, so a first sync with many lookups fits
+ * in short web requests: ?max_lookups=N looks up at most N QSOs, starting at
+ * the QSO number given by ?offset=. The cache is written after every batch, so
+ * the next one reuses its grids; the output ends with "Next offset: X" while
+ * lookups remain. setup.php uses this for a new station's first sync.
  */
 
 require __DIR__ . '/common.php';
-requireCliOrToken();
+requireCliOrToken(true);
 set_time_limit(600);
 
 $config = loadConfig();
@@ -41,11 +47,16 @@ echo $entityGrids ? "Checking grids against DXCC entities\n" : "data/vuccgrids.j
 $hamqthSession = hamqthLogin($config['hamqth']['username'] ?? '', $config['hamqth']['password'] ?? '');
 echo $hamqthSession ? "HamQTH login OK\n" : "HamQTH not available, using Spothole only\n";
 
+$offset = max(0, (int)($_GET['offset'] ?? 0));
+$maxLookups = PHP_SAPI === 'cli' || !isset($_GET['max_lookups']) ? PHP_INT_MAX : max(1, (int)$_GET['max_lookups']);
+$nextOffset = null; // first QSO left for the next batch
+$remaining = 0;     // QSOs from $nextOffset on that still need a lookup
+
 $stats = ['with_grid' => 0, 'hamqth' => 0, 'spothole' => 0, 'not_found' => 0];
 $rejected = [];
 $processed = [];
 
-foreach ($qsos as $qso) {
+foreach (array_values($qsos) as $index => $qso) {
     $entry = [
         'call' => $qso['CALL'] ?? '',
         'band' => $qso['BAND'] ?? '',
@@ -76,7 +87,16 @@ foreach ($qsos as $qso) {
         $known = $knownGrids[$entry['call'] . '|' . $entry['date'] . '|' . $entry['time']] ?? '';
         $entry['grid'] = $known !== '' && gridMatchesDxcc($known, $entry['dxcc'], $entityGrids) ? $known : '';
     }
-    if ($entry['grid'] === '' && $entry['call'] !== '') {
+    $needsLookup = $entry['grid'] === '' && $entry['call'] !== '';
+    if ($needsLookup && $nextOffset === null
+        && $stats['hamqth'] + $stats['spothole'] + $stats['not_found'] >= $maxLookups) {
+        $nextOffset = $index;
+    }
+    if ($nextOffset !== null || $index < $offset) {
+        if ($needsLookup && $nextOffset !== null) $remaining++;
+        $needsLookup = false;
+    }
+    if ($needsLookup) {
         if ($hamqthSession && $check($grid = (string)lookupGridHamQTH($entry['call'], $hamqthSession), 'HamQTH')) {
             $entry['grid'] = $grid;
             $stats['hamqth']++;
@@ -105,6 +125,10 @@ writeJson($cacheFile, [
 
 echo "QSOs with grid: {$stats['with_grid']} / " . count($processed) . "\n";
 echo "New lookups: HamQTH {$stats['hamqth']}, Spothole {$stats['spothole']}, not found {$stats['not_found']}\n";
+if ($nextOffset !== null) {
+    echo "Lookups left for the next batch: $remaining\n";
+    echo "Next offset: $nextOffset\n";
+}
 if ($rejected) {
     echo 'Grids rejected for not matching the DXCC entity (' . count($rejected) . "):\n  " . implode("\n  ", $rejected) . "\n";
 }

@@ -3,8 +3,9 @@
  * Create a one-time link to setup.php, so a station hosted on someone else's
  * server can enter its own credentials without sending them to the host.
  *
- * Only a hash of the key is stored (data/setup_link.json); the link stops
- * working once used, when it expires, or when a new one is created.
+ * Only a hash of the key is stored (data/setup_link.json); the form stops
+ * working once used, when it expires, or when a new one is created. After the
+ * form is saved the same key runs the first sync for two more hours.
  *
  *   php scripts/make_setup_link.php [hours]        (default 48, max 168)
  *   scripts/make_setup_link.php?token=YOUR_TOKEN&hours=48
@@ -20,7 +21,7 @@ if ($hours < 1 || $hours > 168) {
 
 $key = bin2hex(random_bytes(32));
 $expires = time() + $hours * 3600;
-writeJson(QSOMAP_DATA . '/setup_link.json', ['hash' => hash('sha256', $key), 'expires' => $expires]);
+writeJson(SETUP_LINK_FILE, ['hash' => hash('sha256', $key), 'expires' => $expires, 'used' => false]);
 
 $path = 'scripts/setup.php?key=' . $key;
 if (PHP_SAPI !== 'cli') {

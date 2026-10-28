@@ -173,18 +173,32 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 
 ## 8. Host a map for another station
 
-You can run a map for another ham on your hosting (one copy of QSO Map per station, each in its own folder with its own `config.json` and Cron job) without them sending you their passwords. Instead, send them a one-time setup link where they enter their credentials themselves:
+You can run a map for another ham on your hosting (one copy of QSO Map per station, each in its own folder with its own `config.json`) without them sending you their password. You send them a one-time setup link; they enter their details and the page sets up their map by itself.
 
-1. Upload a copy of QSO Map to a new folder, e.g. `public_html/qsomap-XX1ABC/`, and create its `config.json` with only what you provide: `web.token` and, if you share it, your HamQTH account. Leave their callsign, grid and password out. Hosted stations sync from **LoTW only**: leave the `clublog` section out (the daily sync logs `Clublog credentials not configured` and uses LoTW, which is expected).
+1. Upload a copy of QSO Map to a new folder next to yours, e.g. `public_html/qsomap-XX1ABC/`, and create its `config.json` with only what you provide: `web.token` and, if you share it, your HamQTH account. Leave their callsign, grid and password out. Hosted stations sync from **LoTW only**: leave the `clublog` section out (the daily sync logs `Clublog credentials not configured` and uses LoTW, which is expected).
 2. Create the link:
    - Browser: `https://your-domain.com/qsomap-XX1ABC/scripts/make_setup_link.php?token=YOUR_TOKEN`
    - Terminal: `php scripts/make_setup_link.php`
 
-   It is valid for 48 hours by default (`&hours=72` in the browser, or `php scripts/make_setup_link.php 72`; at most 168) and for **one use**. From the terminal it prints only the path (`scripts/setup.php?key=...`): put the instance's URL in front of it.
-3. Send them the link. They open it, enter their callsign, grid and LoTW username and password, and the page writes them straight into that instance's `config.json`. The LoTW login is checked against LoTW before saving.
-4. When they tell you it is done, run the first sync with `sync_lotw.php?token=YOUR_TOKEN` and then `build_cache.php?token=YOUR_TOKEN`, generate the background (step 4), and add the Cron job (step 5) for that folder.
+   The form is valid for 48 hours by default (`&hours=72` in the browser, or `php scripts/make_setup_link.php 72`; at most 168) and for **one use**. From the terminal it prints only the path (`scripts/setup.php?key=...`): put the instance's URL in front of it.
+3. Send them the link. They enter their callsign, grid and LoTW username and password; the LoTW login is checked against LoTW, and the page writes everything straight into that instance's `config.json`.
+4. The same page then runs the first sync, step by step: DXCC list, LoTW download, grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. At the end it links to their map.
 
-Fields they leave empty keep the value already in `config.json`, so your shared HamQTH account stays in place. Only a hash of the key is stored, in `data/setup_link.json`; the link stops working after a successful save, when it expires, or when you create a new one. The page refuses plain `http://`.
+Nothing is left for you to do if you use the shared Cron job (see *One Cron job for every instance* below); otherwise add a Cron job for the new folder (step 5).
+
+Fields they leave empty keep the value already in `config.json`, so your shared HamQTH account stays in place. Only a hash of the key is stored, in `data/setup_link.json`. After a successful save the form no longer opens; for the next **2 hours** the same link only shows the setup progress and runs the first-sync scripts (`update_dxcc`, `sync_lotw`, `build_cache`, `make_background`), so if they close the page they can open the link again to resume. After that, or when you create a new link, it stops working. The page refuses plain `http://`.
+
+If a step keeps failing (e.g. LoTW is slow to send a large log and the hosting cuts the request), the page offers to try again; if they give up, the nightly sync finishes the job.
+
+### One Cron job for every instance
+
+Instead of one Cron job per folder, use `scripts/sync_all.sh` from any copy (e.g. yours) with the folder that holds all the instances:
+
+```bash
+PHP_BIN=/opt/cpanel/ea-php74/root/usr/bin/php /bin/bash /home/USER/public_html/qsomap/scripts/sync_all.sh /home/USER/public_html
+```
+
+It runs `sync_daily.sh` of every subfolder that has one, **one after the other**, never at the same time, so the server's load is the same as with a single map; only the total time grows. Each instance logs to its own `data/sync.log`. Folders whose station has not opened the setup link yet (no `map.my_callsign` in `config.json`) are skipped. Replace your per-folder Cron job with this one so your own map is not synced twice.
 
 ### What the LoTW password gives access to
 
@@ -200,6 +214,7 @@ Tell the station owner what they are entrusting to the server:
 - [ ] `scripts/sync_daily.sh`, `scripts/common.php` and `data/sync.log` return 403.
 - [ ] `scripts/sync_clublog.php` without `?token=` returns 403.
 - [ ] `scripts/setup.php` without a valid `?key=` returns 403, and `data/setup_link.json` returns 403.
+- [ ] `scripts/sync_lotw.php?key=anything` returns 403.
 - [ ] `data/qso_cache.json` exists and contains QSOs.
 - [ ] `map-ssb.html`, `map-digi.html` and `map-qsl.html` show markers.
 - [ ] `map-ssb-qrz.php` shows the background, points and paths.
