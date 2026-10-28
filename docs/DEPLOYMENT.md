@@ -4,7 +4,7 @@ How to publish QSO Map on shared hosting with cPanel. For a project overview, se
 
 ## 1. Upload the files
 
-Upload the repository contents to a public folder, e.g. `public_html/qsomap/`, using the File Manager, FTP or `git clone`. Any folder name works. You only need the `map-*` pages, `js/`, `css/`, `img/`, `scripts/` and `.htaccess`; `docs/`, the `.md` files and `config.json.example` are not used by the site.
+Upload the repository contents to a public folder, e.g. `public_html/qsomap/`, using the File Manager, FTP or `git clone`. Any folder name works. You only need the `map-*` pages, `js/`, `css/`, `img/`, `scripts/`, `VERSION` and `.htaccess`; `docs/`, the `.md` files and `config.json.example` are not used by the site.
 
 Make sure both `.htaccess` files (root and `scripts/`) are uploaded: some FTP clients hide files that start with a dot.
 
