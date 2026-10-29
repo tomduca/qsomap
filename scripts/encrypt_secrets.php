@@ -38,9 +38,9 @@ if (!is_file($keyFile)) {
     if (insideWebFolder($keyDir)) {
         fail('storage.key_file must be outside the web folder (public_html), so it is never served or copied with QSO Map');
     }
-    if (!function_exists('sodium_crypto_secretbox_keygen')) fail('PHP has no sodium extension');
+    if (!function_exists('openssl_encrypt')) fail('PHP has no OpenSSL extension');
     $old = umask(0077);
-    $written = file_put_contents($keyFile, base64_encode(sodium_crypto_secretbox_keygen()) . "\n", LOCK_EX);
+    $written = file_put_contents($keyFile, base64_encode(random_bytes(32)) . "\n", LOCK_EX);
     umask($old);
     if ($written === false) fail("cannot write $keyFile");
     chmod($keyFile, 0600);

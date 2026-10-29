@@ -21,7 +21,8 @@ define('QSOMAP_STATIONS', storagePath('stations_dir') ?? QSOMAP_ROOT . '/station
 
 /** Credentials in a station's config.json, encrypted when storage.key_file is set. */
 const SECRET_FIELDS = [['lotw', 'password'], ['clublog', 'password'], ['clublog', 'api_key'], ['hamqth', 'password']];
-const SECRET_PREFIX = 'enc:v1:';
+const SECRET_PREFIX = 'enc:v1:';  // then base64 of IV (12 bytes), GCM tag (16 bytes) and ciphertext
+const SECRET_CIPHER = 'aes-256-gcm';
 
 /** Phone modes shown on the SSB maps (CW included); everything else is DIGI. */
 const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
@@ -236,9 +237,9 @@ function secretKey(): ?string {
     if ($key !== null) return $key;
     $file = storagePath('key_file');
     if ($file === null) return null;
-    if (!function_exists('sodium_crypto_secretbox')) fail('storage.key_file is set but PHP has no sodium extension');
+    if (!function_exists('openssl_encrypt')) fail('storage.key_file is set but PHP has no OpenSSL extension');
     $raw = is_readable($file) ? base64_decode(trim((string)file_get_contents($file)), true) : false;
-    if ($raw === false || strlen($raw) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+    if ($raw === false || strlen($raw) !== 32) {
         fail("cannot read the key in storage.key_file ($file): run scripts/encrypt_secrets.php to create it");
     }
     return $key = $raw;
@@ -255,8 +256,10 @@ function encryptSecrets(array $config): array {
     foreach (SECRET_FIELDS as [$section, $field]) {
         $value = $config[$section][$field] ?? '';
         if (!is_string($value) || $value === '' || isEncrypted($value)) continue;
-        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-        $config[$section][$field] = SECRET_PREFIX . base64_encode($nonce . sodium_crypto_secretbox($value, $nonce, $key));
+        $iv = random_bytes(12);
+        $cipher = openssl_encrypt($value, SECRET_CIPHER, $key, OPENSSL_RAW_DATA, $iv, $tag);
+        if ($cipher === false) fail("cannot encrypt $section.$field");
+        $config[$section][$field] = SECRET_PREFIX . base64_encode($iv . $tag . $cipher);
     }
     return $config;
 }
@@ -269,9 +272,9 @@ function decryptSecrets(array $config): array {
         $key = secretKey();
         if ($key === null) fail("$section.$field is encrypted but storage.key_file is not set in config.json");
         $data = base64_decode(substr($value, strlen(SECRET_PREFIX)), true) ?: '';
-        $nonce = substr($data, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-        $cipher = substr($data, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-        $plain = strlen($cipher) >= SODIUM_CRYPTO_SECRETBOX_MACBYTES ? sodium_crypto_secretbox_open($cipher, $nonce, $key) : false;
+        $plain = strlen($data) > 28
+            ? openssl_decrypt(substr($data, 28), SECRET_CIPHER, $key, OPENSSL_RAW_DATA, substr($data, 0, 12), substr($data, 12, 16))
+            : false;
         if ($plain === false) fail("cannot decrypt $section.$field: storage.key_file is not the key it was encrypted with");
         $config[$section][$field] = $plain;
     }

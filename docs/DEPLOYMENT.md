@@ -97,7 +97,7 @@ LoTW, Clublog and HamQTH have no tokens: the sync has to send them the plain pas
 ```
 
 - **stations_dir** moves the station folders out of `public_html`, so no web request can ever reach them, even if an `.htaccess` file is lost or ignored. Absolute path, or relative to the QSO Map folder.
-- **key_file** turns on encryption: passwords and the Clublog API key are stored as `enc:v1:...` (libsodium `secretbox`, built into PHP 7.2+), and the scripts decrypt them when they run. The key file must be outside `public_html`; QSO Map refuses to create it inside.
+- **key_file** turns on encryption: passwords and the Clublog API key are stored as `enc:v1:...` (AES-256-GCM with PHP's OpenSSL extension, present on practically every host), and the scripts decrypt them when they run. The key file must be outside `public_html`; QSO Map refuses to create it inside.
 
 To set it up with the cPanel File Manager (no terminal needed):
 
