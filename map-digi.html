@@ -2,19 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QSO DIGI | QSO Map</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
-    <link rel="stylesheet" href="css/map.css?v=4">
+    <title>FT | QSO Map</title>
+    <!-- The DIGI map was split into RTTY and FT: keep old links working. -->
+    <script>location.replace('map-ft.html' + location.search);</script>
 </head>
-<body data-view="digi">
-    <div id="map-status" class="map-status"><strong>QSO DIGI</strong>Loading...</div>
-    <nav class="map-status map-nav"><a href="map-ssb.html">SSB</a><a href="map-digi.html">DIGI</a><a href="map-qsl.html">QSL LoTW</a></nav>
-    <div id="map"></div>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-providers@2.0.0/leaflet-providers.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/overlapping-marker-spiderfier-leaflet@0.2.6/dist/oms.min.js"></script>
-    <script src="js/dxcc.js?v=2"></script>
-    <script src="js/map.js?v=16"></script>
+<body>
+    <p><a href="map-ft.html">The digital map moved to map-ft.html</a></p>
 </body>
 </html>

@@ -77,7 +77,7 @@ function esc(string $value): string {
     return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
 }
 
-// One point per callsign + grid + band, phone/CW QSOs only.
+// One point per callsign + grid + band, phone QSOs only.
 $groups = [];
 foreach ($cache['qsos'] ?? [] as $qso) {
     if (!in_array(strtoupper((string)($qso['mode'] ?? '')), PHONE_MODES, true)) continue;

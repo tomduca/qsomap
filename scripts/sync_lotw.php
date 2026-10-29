@@ -20,7 +20,7 @@ set_time_limit(300);
 $lotw = loadConfig()['lotw'] ?? [];
 $username = $lotw['username'] ?? '';
 $password = $lotw['password'] ?? '';
-$daysBack = (int)($lotw['days_back'] ?? 3650);
+$daysBack = (int)($lotw['days_back'] ?? 1825); // 5 years
 
 if ($username === '' || $password === '') {
     fail('LoTW credentials not configured');

@@ -1,17 +1,28 @@
 /**
  * Interactive QSO map (Leaflet). The view is chosen by <body data-view>:
- *   ssb  - phone and CW QSOs
- *   digi - digital modes
- *   qsl  - confirmed QSOs (QSL_RCVD = Y)
+ *   ssb  - phone QSOs (SSB, AM, FM)
+ *   cw   - CW
+ *   rtty - RTTY
+ *   ft   - FT8 and FT4
+ *   qsl  - confirmed QSOs in any mode (QSL_RCVD = Y)
+ * Other modes (PSK, JT65...) only appear on the QSL map once confirmed.
  * The station is the bare callsign in the query string (map-ssb.html?LU2MET);
  * without one, cache.php serves the installation's default station. Data
  * comes from cache.php, i.e. the station's qso_cache.json built by
  * scripts/build_cache.php.
  */
 (() => {
-    const view = document.body.dataset.view || 'ssb';
-    const viewNames = { ssb: 'QSO SSB', digi: 'QSO DIGI', qsl: 'QSL LoTW' };
-    const phoneModes = new Set(['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW']);
+    // Pages and their modes, in the order of the navigation links. A QSO
+    // matches on MODE or SUBMODE (FT4 is logged as MFSK with SUBMODE FT4).
+    const views = {
+        ssb: { name: 'SSB', page: 'map-ssb.html', modes: ['SSB', 'USB', 'LSB', 'FM', 'AM'] },
+        cw: { name: 'CW', page: 'map-cw.html', modes: ['CW'] },
+        rtty: { name: 'RTTY', page: 'map-rtty.html', modes: ['RTTY'] },
+        ft: { name: 'FT', page: 'map-ft.html', modes: ['FT8', 'FT4'] },
+        qsl: { name: 'QSL LoTW', page: 'map-qsl.html', modes: null }
+    };
+    const view = views[document.body.dataset.view] ? document.body.dataset.view : 'ssb';
+    const repositoryUrl = 'https://github.com/tomduca/qsomap';
     const bandColors = {
         '10M': '#e45756',
         '15M': '#f28e2b',
@@ -23,6 +34,7 @@
     const stationCall = [...new URLSearchParams(location.search)]
         .find(([name, value]) => value === '' && /^(?=.*\d)(?=.*[a-z])[a-z0-9]{3,10}$/i.test(name))?.[0].toUpperCase() || '';
     const stationQuery = stationCall ? '?' + stationCall : '';
+    let stationName = stationCall;
 
     function escapeHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, character => ({
@@ -58,10 +70,9 @@
     }
 
     function isIncluded(qso) {
-        const mode = String(qso.mode || '').toUpperCase();
-        if (view === 'ssb') return phoneModes.has(mode);
-        if (view === 'digi') return !phoneModes.has(mode);
-        return String(qso.qsl_rcvd || '').toUpperCase() === 'Y';
+        const modes = views[view].modes;
+        if (!modes) return String(qso.qsl_rcvd || '').toUpperCase() === 'Y';
+        return [qso.mode, qso.submode].some(mode => modes.includes(String(mode || '').toUpperCase()));
     }
 
     function bandColor(band) {
@@ -133,7 +144,7 @@
     }
 
     function setStatus(message, isError = false) {
-        status.innerHTML = '<strong>' + viewNames[view] + '</strong><span class="' + (isError ? 'error' : '') + '">'
+        status.innerHTML = '<strong>' + escapeHtml((stationName + ' ' + views[view].name).trim()) + '</strong><span class="' + (isError ? 'error' : '') + '">'
             + escapeHtml(message) + '</span>';
     }
 
@@ -198,7 +209,10 @@
     async function start() {
         setStatus('Loading QSOs...');
         const dxccUpdates = loadDxccUpdates();
-        document.querySelectorAll('.map-nav a').forEach(link => { link.search = stationQuery; });
+        document.querySelector('.map-nav').innerHTML = Object.values(views)
+            .map(item => '<a href="' + item.page + stationQuery + '"' + (item === views[view] ? ' aria-current="page"' : '') + '>'
+                + escapeHtml(item.name) + '</a>').join('')
+            + '<a class="map-credit" href="' + repositoryUrl + '" target="_blank" rel="noopener">QSO Map on GitHub</a>';
         const response = await fetch('cache.php' + (stationQuery || '?') + '&v=' + Date.now());
         if (response.status === 404) throw new Error(stationCall ? 'Unknown station ' + stationCall + ', or its map is not ready yet' : 'No station selected');
         if (!response.ok) throw new Error('Could not load the map data');
@@ -207,7 +221,8 @@
         const station = cache.station || {};
         const qthPosition = gridCentre(station.grid);
         if (!qthPosition) throw new Error('Invalid QTH grid: set map.my_grid and rebuild the cache');
-        document.title = viewNames[view] + ' | ' + (station.callsign || 'QSO Map');
+        stationName = String(station.callsign || stationName);
+        document.title = (stationName + ' ' + views[view].name).trim() + ' | QSO Map';
 
         const map = L.map('map', { minZoom: 2, maxZoom: 17 });
         L.tileLayer.provider('Esri.NatGeoWorldMap', { maxZoom: 17 }).addTo(map);

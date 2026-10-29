@@ -24,8 +24,8 @@ const SECRET_FIELDS = [['lotw', 'password'], ['clublog', 'password'], ['clublog'
 const SECRET_PREFIX = 'enc:v1:';  // then base64 of IV (12 bytes), GCM tag (16 bytes) and ciphertext
 const SECRET_CIPHER = 'aes-256-gcm';
 
-/** Phone modes shown on the SSB maps (CW included); everything else is DIGI. */
-const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
+/** Phone modes shown on the static SSB maps (QRZ.com, GitHub), as on map-ssb.html. */
+const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM'];
 
 /** Invites from the admin portal and setups in progress, keyed by callsign. */
 const INVITES_FILE = QSOMAP_DATA . '/invites.json';

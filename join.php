@@ -14,61 +14,67 @@
 
 require __DIR__ . '/scripts/common.php';
 require __DIR__ . '/scripts/portal.php';
+require __DIR__ . '/scripts/join_texts.php';
 
 const MAX_ATTEMPTS = 5;
 const FIRST_SYNC_SECONDS = 2 * 3600;
 const LOOKUPS_PER_BATCH = 40; // about 20-30 s per build_cache.php request
+const DEFAULT_YEARS = 5;      // how far back the first LoTW download goes
+const MAX_YEARS = 25;         // LoTW started in 2003
 
 portalHeaders();
+$lang = language();
 
 if (!isHttps()) {
-    showPage('HTTPS required', '<p class="error">Open this page with <code>https://</code> so your passwords are encrypted on the way.</p>', 400);
+    joinPage(t('https_title'), '<p class="error">' . t('https_text') . '</p>', 400);
 }
 // Encryption is on but its key was not created: passwords could not be stored.
 $keyFile = storagePath('key_file');
 if ($keyFile !== null && !is_readable($keyFile)) {
-    showPage('Not available', '<p class="error">This page is not ready yet: please tell the map manager.</p>', 503);
+    joinPage(t('unavailable_title'), '<p class="error">' . t('unavailable_text') . '</p>', 503);
 }
 
 $key = (string)($_GET['key'] ?? '');
 if ($key !== '') {
     $call = inviteByKey($key, 'sync');
     if ($call === null) {
-        showPage('Link expired', '<p>This setup page has expired. If your map was created, it keeps updating every night; ask the map manager if something is missing.</p>', 403);
+        joinPage(t('expired_title'), '<p>' . t('expired_text') . '</p>', 403);
     }
-    showPage("Setting up the map of $call", firstSyncPage($key, $call));
+    joinPage(t('sync_title', $call), firstSyncPage($key, $call));
 }
 
 $values = [];
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach (['callsign', 'code', 'grid', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
+    foreach (['callsign', 'code', 'grid', 'years', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
         $values[$field] = trim((string)($_POST[$field] ?? ''));
     }
     $call = normalizeCall($values['callsign']);
     $grid = strtoupper(substr($values['grid'], 0, 4)) . strtolower(substr($values['grid'], 4));
 
-    if ($call === null) $errors[] = 'Enter your callsign without prefixes or suffixes (e.g. LU9XYZ, not LU9XYZ/P).';
-    if (!preg_match('/^\d{6}$/', $values['code'])) $errors[] = 'Enter the 6-digit code you received.';
-    if (gridCentre($grid) === null) $errors[] = 'Enter a valid grid (4, 6 or 8 characters, e.g. FF57oc).';
-    if ($values['lotw_password'] === '') $errors[] = 'Enter your LoTW password.';
-    if (($values['hamqth_username'] === '') !== ($values['hamqth_password'] === '')) {
-        $errors[] = 'Enter both your HamQTH username and password, or leave both empty.';
+    if ($call === null) $errors[] = t('error_callsign');
+    if (!preg_match('/^\d{6}$/', $values['code'])) $errors[] = t('error_code_format');
+    if (gridCentre($grid) === null) $errors[] = t('error_grid');
+    if (!ctype_digit($values['years']) || (int)$values['years'] < 1 || (int)$values['years'] > MAX_YEARS) {
+        $errors[] = t('error_years', MAX_YEARS);
     }
-    if (empty($_POST['public_ok'])) $errors[] = 'Confirm that your map will be public.';
+    if ($values['lotw_password'] === '') $errors[] = t('error_lotw_password');
+    if (($values['hamqth_username'] === '') !== ($values['hamqth_password'] === '')) {
+        $errors[] = t('error_hamqth');
+    }
+    if (empty($_POST['public_ok'])) $errors[] = t('error_public');
 
     if (!$errors) {
         $codeOk = checkCode($call, $values['code']);
         if (!$codeOk) {
-            $errors[] = 'The callsign and code do not match an active invite. After ' . MAX_ATTEMPTS
-                . ' failed attempts the code stops working; ask the map manager for a new one if needed.';
+            $errors[] = t('error_code', MAX_ATTEMPTS);
         } elseif (!lotwLoginWorks($call, $values['lotw_password'])) {
             countFailedAttempt($call, 'LoTW login rejected');
-            $errors[] = "LoTW did not accept the username $call with that password. Check it on lotw.arrl.org and try again.";
+            $errors[] = t('error_lotw_login', $call);
         } else {
             $newKey = createStation($call, $grid, $values);
             if ($newKey === null) {
-                $errors[] = 'The invite expired while saving. Ask the map manager for a new code.';
+                $errors[] = t('error_invite_expired');
             } else {
                 header('Location: join.php?key=' . $newKey, true, 303);
                 exit;
@@ -77,7 +83,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-showPage('Create your QSO map', joinForm($values, $errors));
+joinPage(t('form_title'), joinForm($values, $errors));
+
+/**
+ * Language of the page: ?lang=en|es (remembered in a cookie, so it survives
+ * the form post and the redirect to the first sync page), English by default.
+ */
+function language(): string {
+    static $lang = null;
+    if ($lang !== null) return $lang;
+    $asked = (string)($_GET['lang'] ?? '');
+    if (isset(TEXTS[$asked])) {
+        setcookie('qsomap_lang', $asked, ['expires' => time() + 365 * 86400, 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
+        return $lang = $asked;
+    }
+    $saved = (string)($_COOKIE['qsomap_lang'] ?? '');
+    return $lang = isset(TEXTS[$saved]) ? $saved : 'en';
+}
+
+/** Text $id in the page language, with sprintf() arguments. Plain texts are HTML-escaped by the caller. */
+function t(string $id, ...$args): string {
+    return vsprintf(TEXTS[language()][$id] ?? TEXTS['en'][$id], $args);
+}
+
+/** showPage() with the language switch in the top corner (same page, other language). */
+function joinPage(string $title, string $body, int $status = 200): void {
+    $other = language() === 'en' ? 'es' : 'en';
+    $query = array_merge($_GET, ['lang' => $other]);
+    $switch = '<a class="lang-switch" href="join.php?' . h(http_build_query($query)) . '" title="' . h(t('switch_title'))
+        . '" lang="' . $other . '">' . strtoupper($other) . '</a>';
+    showPage($title, $switch . $body, $status, '36rem', language());
+}
 
 /** Whether $code is right for $call's invite; a wrong one counts as a failed attempt. */
 function checkCode(string $call, string $code): bool {
@@ -125,7 +161,7 @@ function createStation(string $call, string $grid, array $values): ?string {
     $existed = stationExists($call);
     $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
     $config['map'] = ['my_callsign' => $call, 'my_grid' => $grid];
-    $config['lotw'] = ['username' => $call, 'password' => $values['lotw_password'], 'days_back' => $config['lotw']['days_back'] ?? 3650];
+    $config['lotw'] = ['username' => $call, 'password' => $values['lotw_password'], 'days_back' => (int)round((int)$values['years'] * 365.25)];
     if ($values['hamqth_username'] !== '') {
         $config['hamqth'] = ['username' => $values['hamqth_username'], 'password' => $values['hamqth_password']];
     }
@@ -151,42 +187,40 @@ function lotwLoginWorks(string $username, string $password): bool {
 function joinForm(array $values, array $errors): string {
     $v = [];
     foreach (['callsign', 'code', 'grid', 'hamqth_username'] as $field) $v[$field] = h($values[$field] ?? '');
+    $v['years'] = h($values['years'] ?? (string)DEFAULT_YEARS);
+    $maxYears = MAX_YEARS;
+    $defaultYears = DEFAULT_YEARS;
     $html = '';
     foreach ($errors as $error) $html .= '<p class="error">' . h($error) . '</p>';
+    $text = fn(string $id, ...$args) => t($id, ...$args);
     return $html . <<<HTML
-<p>Enter the code the map manager sent you to create your QSO map. Your details go straight from your
-browser to this server over an encrypted connection: the manager does not need to receive or type them.</p>
+<p>{$text('intro')}</p>
 <form method="post" autocomplete="off">
   <fieldset>
-    <legend>Invite</legend>
-    <label>Callsign <input name="callsign" value="{$v['callsign']}" placeholder="LU9XYZ" required></label>
-    <label>6-digit code <input name="code" value="{$v['code']}" inputmode="numeric" maxlength="6" required></label>
+    <legend>{$text('invite')}</legend>
+    <label>{$text('callsign')} <input name="callsign" value="{$v['callsign']}" placeholder="LU9XYZ" required></label>
+    <label>{$text('code')} <input name="code" value="{$v['code']}" inputmode="numeric" maxlength="6" required></label>
   </fieldset>
   <fieldset>
-    <legend>Station</legend>
-    <label>Grid <input name="grid" value="{$v['grid']}" placeholder="FF57oc" required></label>
+    <legend>{$text('station')}</legend>
+    <label>{$text('grid')} <input name="grid" value="{$v['grid']}" placeholder="FF57oc" required></label>
   </fieldset>
   <fieldset>
     <legend>LoTW</legend>
-    <p class="note">Your LoTW username must be your callsign.</p>
-    <label>LoTW website password <input type="password" name="lotw_password" autocomplete="new-password" required></label>
-    <p class="note">This password only gives access to the LoTW website: viewing and downloading your QSOs and
-    confirmations, and your account settings. It <strong>cannot sign or upload QSOs</strong>: that needs your TQSL
-    certificate, which never leaves your computer, so nobody can fake contacts with it. The map only reads.
-    Use a password you do not use anywhere else. Whoever runs this server can technically read the stored
-    password; to cut off access at any time, change it on LoTW.</p>
+    <p class="note">{$text('lotw_username')}</p>
+    <label>{$text('years')} <input type="number" name="years" value="{$v['years']}" min="1" max="{$maxYears}" required></label>
+    <p class="note">{$text('years_note', $defaultYears)}</p>
+    <label>{$text('lotw_password')} <input type="password" name="lotw_password" autocomplete="new-password" required></label>
+    <p class="note">{$text('lotw_note')}</p>
   </fieldset>
   <fieldset>
-    <legend>HamQTH (optional, strongly recommended)</legend>
-    <p class="warning">LoTW only includes the other station's grid for <strong>confirmed</strong> QSOs. For all the
-    others the map looks up the grid by callsign; with a free <a href="https://www.hamqth.com/" target="_blank"
-    rel="noopener">HamQTH</a> account many more of your QSOs show up on the map.</p>
-    <label>HamQTH username <input name="hamqth_username" value="{$v['hamqth_username']}"></label>
-    <label>HamQTH password <input type="password" name="hamqth_password" autocomplete="new-password"></label>
+    <legend>{$text('hamqth')}</legend>
+    <p class="warning">{$text('hamqth_note')}</p>
+    <label>{$text('hamqth_username')} <input name="hamqth_username" value="{$v['hamqth_username']}"></label>
+    <label>{$text('hamqth_password')} <input type="password" name="hamqth_password" autocomplete="new-password"></label>
   </fieldset>
-  <label><input type="checkbox" name="public_ok" value="1" required> I understand that my map, with the callsigns,
-  dates, bands and modes of my QSOs, will be <strong>public</strong> on this website.</label>
-  <p><button type="submit">Create my map</button></p>
+  <label><input type="checkbox" name="public_ok" value="1" required> {$text('public')}</label>
+  <p><button type="submit">{$text('submit')}</button></p>
 </form>
 HTML;
 }
@@ -196,12 +230,15 @@ function firstSyncPage(string $key, string $call): string {
     $base = instanceUrl();
     $steps = [];
     if (!is_file(QSOMAP_DATA . '/vuccgrids.json')) {
-        $steps[] = ['label' => 'Downloading the DXCC list', 'url' => 'update_dxcc.php', 'optional' => true];
+        $steps[] = ['label' => t('step_dxcc'), 'url' => 'update_dxcc.php', 'optional' => true];
     }
-    $steps[] = ['label' => 'Downloading your QSOs from LoTW (the first time can take a few minutes)', 'url' => 'sync_lotw.php'];
-    $steps[] = ['label' => 'Finding grids and building your map', 'url' => 'build_cache.php', 'batches' => true];
-    $steps[] = ['label' => 'Drawing the static map', 'url' => 'make_background.php'];
-    $setup = json_encode(['key' => $key, 'batch' => LOOKUPS_PER_BATCH, 'steps' => $steps], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
+    $steps[] = ['label' => t('step_lotw'), 'url' => 'sync_lotw.php'];
+    $steps[] = ['label' => t('step_cache'), 'url' => 'build_cache.php', 'batches' => true];
+    $steps[] = ['label' => t('step_background'), 'url' => 'make_background.php'];
+    $texts = [];
+    foreach (['js_no_answer', 'js_left', 'js_retry', 'js_nightly', 'js_skipped'] as $id) $texts[$id] = t($id);
+    $setup = json_encode(['key' => $key, 'batch' => LOOKUPS_PER_BATCH, 'steps' => $steps, 'text' => $texts], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
+    $text = fn(string $id, ...$args) => t($id, ...$args);
     $embed = embedCodes($base, $call);
     $qrz = h($embed['qrz']);
     $github = h($embed['github']);
@@ -216,7 +253,7 @@ async function request(url) {
   const response = await fetch('scripts/' + url + (url.includes('?') ? '&' : '?') + 'key=' + SETUP.key, { cache: 'no-store' });
   const text = await response.text();
   if (response.ok) return text;
-  throw new Error(text.startsWith('Error:') ? text.trim() : 'The server did not answer (HTTP ' + response.status + ').');
+  throw new Error(text.startsWith('Error:') ? text.trim() : SETUP.text.js_no_answer.replace('%s', response.status));
 }
 
 async function runStep(step, item) {
@@ -228,7 +265,7 @@ async function runStep(step, item) {
     if (!next) return text;
     offset = Number(next[1]);
     const left = text.match(/Lookups left for the next batch: (\d+)/);
-    item.dataset.detail = left ? left[1] + ' callsigns left to look up' : '';
+    item.dataset.detail = left ? SETUP.text.js_left.replace('%s', left[1]) : '';
   }
 }
 
@@ -241,13 +278,13 @@ async function run(from) {
       await runStep(steps[i], item);
       item.className = 'done';
     } catch (error) {
-      if (steps[i].optional) { item.className = 'skipped'; continue; }
+      if (steps[i].optional) { item.className = 'skipped'; item.dataset.skipped = SETUP.text.js_skipped; continue; }
       item.className = 'failed';
       message.append(error.message + ' ', Object.assign(document.createElement('button'), {
-        textContent: 'Try again', onclick: () => run(i),
+        textContent: SETUP.text.js_retry, onclick: () => run(i),
       }));
       message.append(Object.assign(document.createElement('p'), {
-        textContent: 'If it keeps failing, close this page: the nightly sync will finish the job.',
+        textContent: SETUP.text.js_nightly,
       }));
       return;
     }
@@ -258,19 +295,18 @@ async function run(from) {
 run(0);
 JS;
     return <<<HTML
-<p>Your settings were saved. Keep this page open while your map is set up; it takes from one to several
-minutes depending on the size of your log. If you close it, open this same page again within two hours to resume.</p>
+<p>{$text('sync_intro')}</p>
 <ol id="steps" class="steps"></ol>
 <div id="message" role="status"></div>
 <div id="done" hidden>
-  <p><strong>Your map is ready:</strong> <a href="$mapUrl" target="_blank" rel="noopener">$mapUrl</a>.
-  From now on it updates every night. To stop it at any time, change your LoTW password.</p>
-  <label>To show the map on your QRZ.com page, paste this in your biography (HTML mode):
+  <p>{$text('done', $mapUrl)}</p>
+  <label>{$text('embed_qrz')}
     <textarea rows="3" readonly onclick="this.select()">$qrz</textarea></label>
-  <label>To show it in a GitHub README:
+  <label>{$text('embed_github')}
     <textarea rows="2" readonly onclick="this.select()">$github</textarea></label>
 </div>
 <script>const SETUP = $setup;
 $script</script>
 HTML;
 }
+

@@ -62,6 +62,7 @@ foreach (array_values($qsos) as $index => $qso) {
         'call' => $qso['CALL'] ?? '',
         'band' => $qso['BAND'] ?? '',
         'mode' => $qso['MODE'] ?? '',
+        'submode' => $qso['SUBMODE'] ?? '',
         'freq' => isset($qso['FREQ']) ? (float)$qso['FREQ'] : null,
         'date' => $qso['QSO_DATE'] ?? '',
         'time' => $qso['TIME_ON'] ?? '',

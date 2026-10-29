@@ -4,7 +4,7 @@
 
 This repository started as a fork of [QSO Map](https://git.ianrenton.com/ian/qsomap.git) by **Ian Renton (M0TRT)**, released under [The Unlicense](https://unlicense.org). It contributed the ideas of plotting QSOs on a map from Maidenhead grids, showing the home station with a path to each contact, and generating a data cache for the viewer.
 
-The current version is a rewrite: the viewer, Maidenhead conversions, great-circle lines, SSB/DIGI/QSL filters, server-side sync and the static QRZ map were implemented for this project. It does not load any code from the original project.
+The current version is a rewrite: the viewer, Maidenhead conversions, great-circle lines, mode and QSL filters, server-side sync and the static QRZ map were implemented for this project. It does not load any code from the original project.
 
 ## Libraries
 

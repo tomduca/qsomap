@@ -22,7 +22,7 @@ The maps take the station's callsign in the query string; one set of pages serve
 
 | Page | URL |
 | --- | --- |
-| Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-digi.html`, `map-qsl.html`) |
+| Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-cw.html`, `map-rtty.html`, `map-ft.html` for FT8/FT4, and `map-qsl.html` for confirmed QSOs in any mode) |
 | Static map for QRZ.com | `https://your-domain.com/qsomap/map-ssb-qrz.php?LU9XYZ` |
 | Image for a GitHub README | `https://your-domain.com/qsomap/map-ssb-github.php?LU9XYZ` |
 
@@ -59,7 +59,7 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 ```json
 {
   "map":     { "my_callsign": "LU2MET", "my_grid": "FF57oc" },
-  "lotw":    { "username": "LU2MET", "password": "...", "days_back": 3650 },
+  "lotw":    { "username": "LU2MET", "password": "...", "days_back": 1825 },
   "clublog": { "email": "...", "password": "...", "api_key": "...", "callsign": "LU2MET" },
   "hamqth":  { "username": "...", "password": "..." }
 }
@@ -67,7 +67,7 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 
 - **map:** the station's callsign (as the folder name, upper case, no `/P`) and grid (4, 6 or 8 characters).
 - **Clublog:** `password` is an *application password* created in your Clublog settings, not your account password. `api_key` can be requested at [clublog.org/need_api.php](https://clublog.org/need_api.php).
-- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section. `days_back` limits how far back the first download goes; later runs are incremental.
+- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section. `days_back` limits how far back the first download goes: **1825 days (5 years) by default**. More years means a longer first sync, since every new QSO needs a grid lookup; later runs are incremental. Changing it later has no effect unless you force a full download (see Troubleshooting).
 - **HamQTH:** optional but recommended. Without it, missing grids are looked up on Spothole only.
 
 To check that the configs are not reachable, open `https://your-domain.com/qsomap/config.json` (must return **403**) and `https://your-domain.com/qsomap/stations/LU2MET/config.json` (must return **403** or **404**).
@@ -274,7 +274,7 @@ As a safety net, the portal refuses to work if the server reports no logged-in u
 
 1. In `admin/`, enter the station's base callsign (`LU9XYZ`, not `LU9XYZ/P`) and press *Create code*. The portal shows a 6-digit code **once**, with a message ready to send.
 2. Send that message to the station (e.g. by WhatsApp). The code works only together with that callsign, for 48 hours and one use; after 5 failed attempts (wrong code, or a LoTW login that fails) it is cancelled. Create a new one if needed.
-3. The station opens `join.php` and enters its callsign, the code, its grid, its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public.
+3. The station opens `join.php` and enters its callsign, the code, its grid, how many years of QSOs to load (5 by default, up to 25; the form warns that with many QSOs the setup takes many minutes), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
    - The **LoTW username must be the callsign**, and the login is checked against LoTW before saving: only the owner of that LoTW account can create the map for that callsign, even if someone else gets hold of the code.
    - **HamQTH** is optional but strongly recommended on the form: LoTW only gives the grid of confirmed QSOs, so with HamQTH lookups many more QSOs show up. Their HamQTH account is used only for their map, as yours is only for yours.
 4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download, grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
@@ -318,7 +318,7 @@ Until it runs, the maps show *No station selected*.
 - [ ] `scripts/sync_clublog.php` without `?token=` returns 403, and `scripts/sync_lotw.php?key=anything` returns 403.
 - [ ] `admin/` asks for a user and password, and shows no *Storage* warning (see [Protecting stored passwords](#protecting-stored-passwords)).
 - [ ] With `key_file` set, the stations' `config.json` show `enc:v1:` instead of passwords, and you have a copy of the key file.
-- [ ] `map-ssb.html?LU2MET`, `map-digi.html?LU2MET` and `map-qsl.html?LU2MET` show markers, and the SSB/DIGI/QSL links keep the callsign.
+- [ ] `map-ssb.html?LU2MET`, `map-cw.html`, `map-rtty.html`, `map-ft.html` and `map-qsl.html` (each with `?LU2MET`) show markers, the box shows `LU2MET SSB` (and so on), and the mode links keep the callsign.
 - [ ] `map-ssb-qrz.php?LU2MET` shows the background, points and paths.
 - [ ] `map-ssb-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.
 - [ ] Cron ran and added a `CALL: sync complete` line per station to `data/sync.log`.
