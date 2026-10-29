@@ -92,6 +92,21 @@ function lastSyncResult(string $call): string {
     return $result ?: 'never';
 }
 
+/** Warnings about where and how the stations' passwords are stored. */
+function storageNotes(): string {
+    $notes = [];
+    if (insideWebFolder(QSOMAP_STATIONS)) {
+        $notes[] = 'The station folders are inside the web folder, protected only by <code>.htaccess</code>. '
+            . 'Move them out and set <code>storage.stations_dir</code> in <code>config.json</code>.';
+    }
+    if (storagePath('key_file') === null) {
+        $notes[] = 'Passwords are stored unencrypted. Set <code>storage.key_file</code> in <code>config.json</code> '
+            . 'and run <code>scripts/encrypt_secrets.php</code>.';
+    }
+    return $notes ? '<div class="warning"><p><strong>Storage</strong> (see docs/DEPLOYMENT.md, "Protecting stored passwords"):</p><ul><li>'
+        . implode('</li><li>', $notes) . '</li></ul></div>' : '';
+}
+
 function portalPage(array $flash, string $csrf): string {
     $base = instanceUrl(1);
     $csrf = h($csrf);
@@ -152,6 +167,8 @@ function portalPage(array $flash, string $csrf): string {
     }
     $html .= '<h2>Stations</h2>' . ($rows ? '<div class="table-wrap"><table><tr><th>Station</th><th>Sources</th><th>Map</th><th>Last sync</th><th>Links</th><th></th></tr>'
         . $rows . '</table></div>' : '<p class="note">No stations yet.</p>');
+
+    $html .= storageNotes();
 
     $events = array_slice(@file(QSOMAP_DATA . '/events.log', FILE_IGNORE_NEW_LINES) ?: [], -40);
     $html .= '<h2>Recent events</h2>' . ($events ? '<pre>' . h(implode("\n", array_reverse($events))) . '</pre>' : '<p class="note">None yet.</p>');

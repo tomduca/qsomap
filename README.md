@@ -10,9 +10,9 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 
 ## Features
 
-- **Three interactive views** (Leaflet): `map-ssb.html` (phone and CW), `map-digi.html` (digital modes) and `map-qsl.html` (confirmed QSOs).
+- **Five interactive views** (Leaflet), one per mode: `map-ssb.html` (phone: SSB, AM, FM), `map-cw.html`, `map-rtty.html`, `map-ft.html` (FT8 and FT4) and `map-qsl.html` (confirmed QSOs in any mode). Other modes (PSK, JT65...) appear only on the QSL map once confirmed. The old `map-digi.html` redirects to `map-ft.html`.
 - Markers colored by band, short-path great-circle lines, and popups with date, frequency, mode, DXCC entity and POTA/SOTA references (`SIG`/`SIG_INFO`).
-- **Static map for QRZ.com** (`map-ssb-qrz.php`): 600 × 600 px, HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
+- **Static map for QRZ.com** (`map-ssb-qrz.php`, phone QSOs as on the SSB view): 600 × 600 px, HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
 - **Live map image for a GitHub README** (`map-ssb-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
 - **Several stations per installation**: the same pages serve every station by callsign (`map-ssb.html?LU9XYZ`, `map-ssb-qrz.php?LU9XYZ`), each with its own settings and data; one Cron job syncs them one after the other.
@@ -49,7 +49,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 ## Project structure
 
 ```text
-├── map-ssb.html, map-digi.html, map-qsl.html   Interactive views
+├── map-ssb/cw/rtty/ft/qsl.html                 Interactive views (map-digi.html redirects to map-ft.html)
 ├── map-ssb-qrz.php                             Static map for QRZ
 ├── map-ssb-github.php                          Same map as an SVG image, for GitHub
 ├── cache.php, background.php                   A station's map data and background, by callsign
@@ -113,6 +113,7 @@ The full guide (portals, QRZ iframe, GitHub README image, verification checklist
 ## Security
 
 - Credentials live only in each station's `stations/<CALL>/config.json`, git-ignored and never served (`stations/.htaccess` plus a rule in the root `.htaccess`). No credential is shared between stations. The repository only ships templates with placeholder values.
+- Optionally (`storage` in `config.json`), the station folders live outside `public_html` and their passwords are encrypted (AES-256-GCM), with the key in a file outside `public_html`. This protects against leaked copies of the configs (a lost `.htaccess`, a commit, a backup of the site), not against someone in control of the hosting account, since the sync must be able to decrypt them ([details](docs/DEPLOYMENT.md#protecting-stored-passwords)).
 - The admin portal relies on the web server's password protection (cPanel *Directory Privacy*) and refuses to work without it; its forms carry a CSRF token. Invites are a 6-digit code bound to one callsign, stored hashed, valid 48 hours, one use, cancelled after 5 failed attempts; the LoTW username must be the callsign and is checked against LoTW. Every invite, failed attempt and station change is logged to `data/events.log`, without secrets.
 - The scripts in `scripts/` run from the CLI (Cron), or from a browser only with `?token=` matching `web.token`, compared in constant time (`hash_equals`). With no token configured, web access is disabled. `common.php` and `sync_daily.sh` are never reachable from the web.
 - `.htaccess` denies `config.json`, `invites.json`, the raw log (`qso_data.json`), logs, `.txt`/`.md`/`.sh` files and dotfiles, and disables directory listings.

@@ -2,5 +2,9 @@
   "web": {
     "token": ""
   },
-  "default_station": "YOUR_CALLSIGN"
+  "default_station": "YOUR_CALLSIGN",
+  "storage": {
+    "stations_dir": "",
+    "key_file": ""
+  }
 }

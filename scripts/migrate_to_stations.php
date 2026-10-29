@@ -35,7 +35,7 @@ foreach (STATION_FILES as $file) {
         fail("cannot move data/$file");
     }
 }
-writeJson(QSOMAP_STATIONS . "/$call/config.json", $station);
+writeStationConfig($call, $station);
 
 writeJson(QSOMAP_ROOT . '/config.json', ['default_station' => $call] + array_diff_key($root, $station));
 

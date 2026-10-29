@@ -22,7 +22,7 @@ The maps take the station's callsign in the query string; one set of pages serve
 
 | Page | URL |
 | --- | --- |
-| Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-digi.html`, `map-qsl.html`) |
+| Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-cw.html`, `map-rtty.html`, `map-ft.html` for FT8/FT4, and `map-qsl.html` for confirmed QSOs in any mode) |
 | Static map for QRZ.com | `https://your-domain.com/qsomap/map-ssb-qrz.php?LU9XYZ` |
 | Image for a GitHub README | `https://your-domain.com/qsomap/map-ssb-github.php?LU9XYZ` |
 
@@ -52,13 +52,14 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 
 - **web.token:** enables running the scripts from a browser (step 3). Use at least 16 random characters, e.g. from a password manager, letters and digits only so it needs no URL escaping. If left empty, the scripts can only be run from Cron or a terminal.
 - **default_station:** the station shown when a map URL has no callsign. Optional.
+- **storage:** optional, recommended once everything works: keeps the station folders out of the web folder and encrypts the stored passwords. See [Protecting stored passwords](#protecting-stored-passwords).
 
 **Your own station.** Either invite yourself through the portal (step 8; LoTW only), or create `stations/YOUR_CALLSIGN/config.json` by hand from `docs/station-config.example.json`, which also allows Clublog:
 
 ```json
 {
   "map":     { "my_callsign": "LU2MET", "my_grid": "FF57oc" },
-  "lotw":    { "username": "LU2MET", "password": "...", "days_back": 3650 },
+  "lotw":    { "username": "LU2MET", "password": "...", "days_back": 1825 },
   "clublog": { "email": "...", "password": "...", "api_key": "...", "callsign": "LU2MET" },
   "hamqth":  { "username": "...", "password": "..." }
 }
@@ -66,7 +67,7 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 
 - **map:** the station's callsign (as the folder name, upper case, no `/P`) and grid (4, 6 or 8 characters).
 - **Clublog:** `password` is an *application password* created in your Clublog settings, not your account password. `api_key` can be requested at [clublog.org/need_api.php](https://clublog.org/need_api.php).
-- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section. `days_back` limits how far back the first download goes; later runs are incremental.
+- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section. `days_back` limits how far back the first download goes: **1825 days (5 years) by default**. More years means a longer first sync, since every new QSO needs a grid lookup; later runs are incremental. Changing it later has no effect unless you force a full download (see Troubleshooting).
 - **HamQTH:** optional but recommended. Without it, missing grids are looked up on Spothole only.
 
 To check that the configs are not reachable, open `https://your-domain.com/qsomap/config.json` (must return **403**) and `https://your-domain.com/qsomap/stations/LU2MET/config.json` (must return **403** or **404**).
@@ -79,6 +80,44 @@ A station without a `clublog` section syncs from LoTW: the daily sync tries Club
 - LoTW includes the other station's grid only for confirmed QSOs; unconfirmed ones get their grid from HamQTH/Spothole (the station's registered home grid, which may differ from where it operated).
 
 Following ARRL's guidance for automated downloads, only the first LoTW sync downloads everything. Later runs ask only for QSOs uploaded since the last run (`qso_qsorxsince`) and for new confirmations (`qso_qslsince`, which also catches old QSOs confirmed recently), using the timestamps LoTW returns. They are stored in `stations/<CALL>/data/lotw_last_sync.json`.
+
+### Protecting stored passwords
+
+LoTW, Clublog and HamQTH have no tokens: the sync has to send them the plain password every night, so the server must be able to read it. Two settings in the root `config.json` reduce what can leak:
+
+```json
+{
+  "web": { "token": "..." },
+  "default_station": "LU2MET",
+  "storage": {
+    "stations_dir": "/home/USER/qsomap-private/qsomap/stations",
+    "key_file": "/home/USER/qsomap-private/qsomap.key"
+  }
+}
+```
+
+- **stations_dir** moves the station folders out of `public_html`, so no web request can ever reach them, even if an `.htaccess` file is lost or ignored. Absolute path, or relative to the QSO Map folder.
+- **key_file** turns on encryption: passwords and the Clublog API key are stored as `enc:v1:...` (AES-256-GCM with PHP's OpenSSL extension, present on practically every host), and the scripts decrypt them when they run. The key file must be outside `public_html`; QSO Map refuses to create it inside.
+
+To set it up with the cPanel File Manager (no terminal needed):
+
+1. Create a folder next to `public_html`, not inside it, e.g. `/home/USER/qsomap-private/qsomap/`. Your home path (`/home/USER`) is shown in the File Manager's sidebar.
+2. Move the `stations` folder of the installation into it, and right away add `storage.stations_dir` to `config.json`. Do it outside the Cron time; maps show *Unknown station* in between.
+3. Add `storage.key_file` and open `https://your-domain.com/qsomap/scripts/encrypt_secrets.php?token=YOUR_TOKEN`. It creates the key (permissions 600) and encrypts the passwords of every station.
+4. **Download a copy of the key file** and keep it somewhere safe, e.g. in your password manager. Without it the stored passwords cannot be read, and every station must be invited again.
+5. Open `admin/`: the *Storage* warning must be gone. Check a map and the next night's `data/sync.log`.
+
+From then on `join.php` stores new passwords encrypted, and the daily sync encrypts any password you type into a `config.json` by hand. If the key file is missing while configs hold encrypted values, the sync stops with an error instead of creating a new key: restore your copy. Each installation (e.g. `qsomap2` and `qsomap3`) needs its own `stations_dir`; they may share the key file or use one each.
+
+What this protects, and what it does not:
+
+| Leak | Protected? |
+| --- | --- |
+| An `.htaccess` lost or ignored, a config downloaded from the web | Yes (not reachable, and encrypted) |
+| A config committed to GitHub or sent by mistake | Yes, as long as the key file is not with it |
+| A zip or backup of `public_html` | Yes, neither the stations nor the key are in it |
+| A full backup of the hosting account | No, it holds the key too: treat it as confidential |
+| Someone with your cPanel login, or a flaw that runs code on the account | No: they can read the key just like the sync. Turn on two-factor authentication in cPanel (*Security → Two-Factor Authentication*). |
 
 ## 3. First sync of a station you set up by hand
 
@@ -235,7 +274,7 @@ As a safety net, the portal refuses to work if the server reports no logged-in u
 
 1. In `admin/`, enter the station's base callsign (`LU9XYZ`, not `LU9XYZ/P`) and press *Create code*. The portal shows a 6-digit code **once**, with a message ready to send.
 2. Send that message to the station (e.g. by WhatsApp). The code works only together with that callsign, for 48 hours and one use; after 5 failed attempts (wrong code, or a LoTW login that fails) it is cancelled. Create a new one if needed.
-3. The station opens `join.php` and enters its callsign, the code, its grid, its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public.
+3. The station opens `join.php` and enters its callsign, the code, its grid, how many years of QSOs to load (5 by default, up to 25; the form warns that with many QSOs the setup takes many minutes), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
    - The **LoTW username must be the callsign**, and the login is checked against LoTW before saving: only the owner of that LoTW account can create the map for that callsign, even if someone else gets hold of the code.
    - **HamQTH** is optional but strongly recommended on the form: LoTW only gives the grid of confirmed QSOs, so with HamQTH lookups many more QSOs show up. Their HamQTH account is used only for their map, as yours is only for yours.
 4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download, grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
@@ -259,7 +298,7 @@ Tell the station owner what they are entrusting to the server:
 
 - The LoTW **website password** only gives access to the LoTW website: viewing and downloading their QSOs and confirmations, and their account settings. QSO Map only reads.
 - It **cannot sign or upload QSOs**. Uploading to LoTW requires their TQSL certificate and its private key, which never leave their computer, so nobody can fake contacts with this password.
-- Recommend a password they use only for LoTW. Whoever runs the server can technically read the station's `config.json`, so the portal avoids sending the password to you by mail or chat, but it does not hide it from the server's administrator. To revoke access at any time they change their LoTW password.
+- Recommend a password they use only for LoTW. Whoever runs the server can technically read it, even when encrypted (the key is on the same server), so the portal avoids sending the password to you by mail or chat, but it does not hide it from the server's administrator. To revoke access at any time they change their LoTW password.
 - All stations' files are read by the same hosting account. A security flaw in any script, or a leaked hosting login, would expose every station's passwords at once, not just one. That is why each station should use passwords it uses nowhere else.
 
 ## Upgrading from version 1 (one station per installation)
@@ -277,8 +316,9 @@ Until it runs, the maps show *No station selected*.
 - [ ] `stations/LU2MET/config.json` and `data/invites.json` return 403 or 404.
 - [ ] `scripts/sync_daily.sh`, `scripts/common.php` and `data/sync.log` return 403.
 - [ ] `scripts/sync_clublog.php` without `?token=` returns 403, and `scripts/sync_lotw.php?key=anything` returns 403.
-- [ ] `admin/` asks for a user and password.
-- [ ] `map-ssb.html?LU2MET`, `map-digi.html?LU2MET` and `map-qsl.html?LU2MET` show markers, and the SSB/DIGI/QSL links keep the callsign.
+- [ ] `admin/` asks for a user and password, and shows no *Storage* warning (see [Protecting stored passwords](#protecting-stored-passwords)).
+- [ ] With `key_file` set, the stations' `config.json` show `enc:v1:` instead of passwords, and you have a copy of the key file.
+- [ ] `map-ssb.html?LU2MET`, `map-cw.html`, `map-rtty.html`, `map-ft.html` and `map-qsl.html` (each with `?LU2MET`) show markers, the box shows `LU2MET SSB` (and so on), and the mode links keep the callsign.
 - [ ] `map-ssb-qrz.php?LU2MET` shows the background, points and paths.
 - [ ] `map-ssb-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.
 - [ ] Cron ran and added a `CALL: sync complete` line per station to `data/sync.log`.

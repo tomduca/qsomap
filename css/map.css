@@ -84,6 +84,19 @@ body {
     bottom: 14px;
 }
 
+.map-nav .map-credit {
+    display: block;
+    margin-top: 4px;
+    color: #5b6b70;
+    font-size: 12px;
+}
+
+.map-nav a[aria-current] {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+
 .update-banner {
     position: fixed;
     z-index: 1100;
