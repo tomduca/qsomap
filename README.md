@@ -2,9 +2,9 @@
 
 A web map of an amateur radio station's contacts (QSOs). It downloads the log from **Clublog** or **LoTW**, places each contact by its Maidenhead grid and draws the great-circle path from the home QTH. One installation can serve several stations, e.g. a radio club's members. Built for shared PHP hosting (cPanel): no database, no build step.
 
-**Live demo (LU2MET):** [interactive SSB map](https://lu2met.ar/qsomap2/map-ssb.html) · [static map for QRZ.com](https://lu2met.ar/qsomap2/map-ssb-qrz.php)
+**Live demo (LU2MET):** [interactive SSB map](https://lu2met.ar/qsomap/map-ssb.html) · [static map for QRZ.com](https://lu2met.ar/qsomap/map-ssb-qrz.php)
 
-[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap2/map-ssb-github.php)](https://lu2met.ar/qsomap2/map-ssb.html)
+[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap/map-ssb-github.php)](https://lu2met.ar/qsomap/map-ssb.html)
 
 *LU2MET static map, updated daily by `map-ssb-github.php`. Click the image to open the live interactive map.*
 
