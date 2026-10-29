@@ -24,6 +24,11 @@ portalHeaders();
 if (!isHttps()) {
     showPage('HTTPS required', '<p class="error">Open this page with <code>https://</code> so your passwords are encrypted on the way.</p>', 400);
 }
+// Encryption is on but its key was not created: passwords could not be stored.
+$keyFile = storagePath('key_file');
+if ($keyFile !== null && !is_readable($keyFile)) {
+    showPage('Not available', '<p class="error">This page is not ready yet: please tell the map manager.</p>', 503);
+}
 
 $key = (string)($_GET['key'] ?? '');
 if ($key !== '') {
@@ -125,7 +130,7 @@ function createStation(string $call, string $grid, array $values): ?string {
         $config['hamqth'] = ['username' => $values['hamqth_username'], 'password' => $values['hamqth_password']];
     }
     if (!is_dir(QSOMAP_STATIONS . "/$call/data")) mkdir(QSOMAP_STATIONS . "/$call/data", 0755, true);
-    writeJson(QSOMAP_STATIONS . "/$call/config.json", $config);
+    writeStationConfig($call, $config);
     logEvent(($existed ? 'station updated: ' : 'station created: ') . $call
         . ($values['hamqth_username'] !== '' ? ' (with HamQTH)' : ' (without HamQTH)'));
     return $key;

@@ -9,11 +9,19 @@
  *   stations/<CALL>/data/         its QSOs, map cache, background and sync log
  * data/ keeps what all stations share (DXCC lists, update check, invites,
  * event log). Nothing under stations/ is reachable from the web.
+ *
+ * The root config.json can move the station folders out of the web folder
+ * (storage.stations_dir) and turn on encryption of the stored passwords
+ * (storage.key_file, a key kept outside the web folder; see secretKey()).
  */
 
 define('QSOMAP_ROOT', dirname(__DIR__));
 define('QSOMAP_DATA', QSOMAP_ROOT . '/data');
-define('QSOMAP_STATIONS', QSOMAP_ROOT . '/stations');
+define('QSOMAP_STATIONS', storagePath('stations_dir') ?? QSOMAP_ROOT . '/stations');
+
+/** Credentials in a station's config.json, encrypted when storage.key_file is set. */
+const SECRET_FIELDS = [['lotw', 'password'], ['clublog', 'password'], ['clublog', 'api_key'], ['hamqth', 'password']];
+const SECRET_PREFIX = 'enc:v1:';
 
 /** Phone modes shown on the SSB maps (CW included); everything else is DIGI. */
 const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM', 'CW'];
@@ -60,6 +68,23 @@ function fail(string $message): void {
 /** The root config.json (manager settings), or [] if missing. */
 function rootConfig(): array {
     return readJson(QSOMAP_ROOT . '/config.json') ?? [];
+}
+
+/** storage.<$name> from the root config.json as an absolute path, or null if unset. */
+function storagePath(string $name): ?string {
+    $path = trim((string)(rootConfig()['storage'][$name] ?? ''));
+    if ($path === '') return null;
+    return rtrim($path[0] === '/' ? $path : QSOMAP_ROOT . '/' . $path, '/');
+}
+
+/** Whether $path is inside this installation or the site's web folder (public_html). */
+function insideWebFolder(string $path): bool {
+    $path = rtrim($path, '/') . '/';
+    foreach ([QSOMAP_ROOT, $_SERVER['DOCUMENT_ROOT'] ?? ''] as $web) {
+        $web = $web !== '' ? realpath($web) : false;
+        if ($web !== false && strpos($path, rtrim($web, '/') . '/') === 0) return true;
+    }
+    return preg_match('#/(public_html|www|htdocs)/#', $path) === 1;
 }
 
 /**
@@ -191,6 +216,65 @@ function loadConfig(bool $required = true): array {
         return ['web' => $root['web'] ?? []];
     }
     $config['web'] = $root['web'] ?? [];
+    return decryptSecrets($config);
+}
+
+/** Write a station's config.json, encrypting its passwords when a key is set. */
+function writeStationConfig(string $call, array $config): void {
+    writeJson(QSOMAP_STATIONS . "/$call/config.json", encryptSecrets($config));
+}
+
+/**
+ * The 32-byte key from storage.key_file, or null if encryption is off. The
+ * file holds the key in base64 and must live outside the web folder: it only
+ * protects the passwords if a copy of the configs (a backup, a commit, an
+ * .htaccess that failed) does not include it. scripts/encrypt_secrets.php
+ * creates it.
+ */
+function secretKey(): ?string {
+    static $key = null;
+    if ($key !== null) return $key;
+    $file = storagePath('key_file');
+    if ($file === null) return null;
+    if (!function_exists('sodium_crypto_secretbox')) fail('storage.key_file is set but PHP has no sodium extension');
+    $raw = is_readable($file) ? base64_decode(trim((string)file_get_contents($file)), true) : false;
+    if ($raw === false || strlen($raw) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+        fail("cannot read the key in storage.key_file ($file): run scripts/encrypt_secrets.php to create it");
+    }
+    return $key = $raw;
+}
+
+function isEncrypted($value): bool {
+    return is_string($value) && strncmp($value, SECRET_PREFIX, strlen(SECRET_PREFIX)) === 0;
+}
+
+/** Encrypt the plain-text passwords of a station config (no change without a key). */
+function encryptSecrets(array $config): array {
+    $key = secretKey();
+    if ($key === null) return $config;
+    foreach (SECRET_FIELDS as [$section, $field]) {
+        $value = $config[$section][$field] ?? '';
+        if (!is_string($value) || $value === '' || isEncrypted($value)) continue;
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $config[$section][$field] = SECRET_PREFIX . base64_encode($nonce . sodium_crypto_secretbox($value, $nonce, $key));
+    }
+    return $config;
+}
+
+/** Decrypt the passwords of a station config; plain-text ones are kept as they are. */
+function decryptSecrets(array $config): array {
+    foreach (SECRET_FIELDS as [$section, $field]) {
+        $value = $config[$section][$field] ?? '';
+        if (!isEncrypted($value)) continue;
+        $key = secretKey();
+        if ($key === null) fail("$section.$field is encrypted but storage.key_file is not set in config.json");
+        $data = base64_decode(substr($value, strlen(SECRET_PREFIX)), true) ?: '';
+        $nonce = substr($data, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $cipher = substr($data, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $plain = strlen($cipher) >= SODIUM_CRYPTO_SECRETBOX_MACBYTES ? sodium_crypto_secretbox_open($cipher, $nonce, $key) : false;
+        if ($plain === false) fail("cannot decrypt $section.$field: storage.key_file is not the key it was encrypted with");
+        $config[$section][$field] = $plain;
+    }
     return $config;
 }
 

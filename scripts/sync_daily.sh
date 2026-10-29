@@ -5,12 +5,12 @@
 # Usage: /bin/bash /path/to/qsomap/scripts/sync_daily.sh [CALL]
 #   CALL: sync only that station (default: all of them)
 # Set PHP_BIN if the PHP CLI is not on Cron's PATH (e.g. PHP_BIN=/usr/local/bin/php).
-# Shared steps log to data/sync.log, each station to stations/<CALL>/data/sync.log.
+# Shared steps log to data/sync.log, each station to stations/<CALL>/data/sync.log
+# (or the folder set in storage.stations_dir of config.json).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 DATA_DIR="$ROOT_DIR/data"
-STATIONS_DIR="$ROOT_DIR/stations"
 LOGFILE="$DATA_DIR/sync.log"
 PHP_BIN="${PHP_BIN:-php}"
 ONLY_STATION="$(echo "${1:-}" | tr '[:lower:]' '[:upper:]')"
@@ -38,10 +38,23 @@ status=0
         exit 1
     fi
 
+    STATIONS_DIR="$("$PHP_BIN" -r 'require $argv[1]; echo QSOMAP_STATIONS;' "$SCRIPT_DIR/common.php")"
+    if [ -z "$STATIONS_DIR" ]; then
+        echo "Error: cannot read the stations folder from config.json"
+        echo "=== Sync FAILED ==="
+        echo
+        exit 1
+    fi
+
     # Installations from before version 2 kept one station in config.json and
     # data/: move it to stations/<CALL>/ once.
     if ! ls "$STATIONS_DIR"/*/config.json >/dev/null 2>&1 && grep -q '"my_callsign"' "$ROOT_DIR/config.json" 2>/dev/null; then
         "$PHP_BIN" "$SCRIPT_DIR/migrate_to_stations.php" || echo "Migration to stations/ failed"
+    fi
+
+    # Encrypt passwords typed into a station's config.json by hand.
+    if grep -q '"key_file"' "$ROOT_DIR/config.json" 2>/dev/null; then
+        "$PHP_BIN" "$SCRIPT_DIR/encrypt_secrets.php" || echo "Encrypting stored passwords failed"
     fi
 
     # Refresh the DXCC list and grids once a month; the stamp is only written on
@@ -82,7 +95,7 @@ for config in "$STATIONS_DIR"/*/config.json; do
     if [ "$station_status" -eq 0 ]; then
         echo "$call: sync complete" >> "$LOGFILE"
     else
-        echo "$call: sync FAILED (see stations/$call/data/sync.log)" >> "$LOGFILE"
+        echo "$call: sync FAILED (see $STATIONS_DIR/$call/data/sync.log)" >> "$LOGFILE"
         status=1
     fi
 done
