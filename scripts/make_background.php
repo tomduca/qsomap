@@ -5,7 +5,8 @@
  *
  * The base planisphere (img/world-map-600.png, Web Mercator, centred on
  * Greenwich) is shifted horizontally so the station's QTH ends up in the
- * centre. Run it once at install time and again only if map.my_grid changes.
+ * centre. sync_daily.sh runs it when the image is missing or older than the
+ * station's config.json (e.g. after map.my_grid changes).
  * Requires the PHP GD extension.
  */
 
@@ -18,6 +19,10 @@ $grid = (string)(loadConfig()['map']['my_grid'] ?? '');
 $qth = gridCentre($grid);
 if ($qth === null) {
     fail("invalid or missing map.my_grid in config.json: '$grid'");
+}
+
+if (!function_exists('imagecreatefrompng')) {
+    fail('PHP has no GD extension (needed for the map background): enable it in cPanel, Select PHP Version');
 }
 
 $sourcePath = QSOMAP_ROOT . '/img/world-map-600.png';
