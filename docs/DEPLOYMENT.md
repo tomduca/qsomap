@@ -153,7 +153,7 @@ PHP_BIN=/usr/local/bin/php bash scripts/sync_daily.sh LU2MET
 
 ## 4. Generate the static map background
 
-`map-ssb-qrz.php` uses a 600 × 600 px background with the station's QTH in the center. Generate it once, and again only if `map.my_grid` changes:
+`map-ssb-qrz.php` uses a 600 × 600 px background with the station's QTH in the center. The daily sync creates it when it is missing and recreates it when the station's `config.json` changes (e.g. a new `map.my_grid`). To create it right away:
 
 - Browser: `https://your-domain.com/qsomap/scripts/make_background.php?token=YOUR_TOKEN&station=LU2MET`
 - Terminal: `QSOMAP_STATION=LU2MET php scripts/make_background.php`
@@ -332,7 +332,7 @@ Until it runs, the maps show *No station selected*.
 | "Invalid QTH grid" | `map.my_grid` is missing or malformed in the station's config; fix it and run `build_cache.php` for that station again. |
 | `Clublog download failed` in a station's log | Wrong credentials or API key. If LoTW is configured, it is used as a fallback. |
 | `Clublog credentials not configured` in a station's log | Expected for LoTW-only stations, e.g. those created through the portal. |
-| The QRZ or GitHub map has no background | The station's `qrz-background.png` is missing: run `make_background.php` for it. |
+| The QRZ or GitHub map has no background | The station's `qrz-background.png` is missing. The next daily sync creates it; to do it now, run `make_background.php` for that station (step 4). If it fails with *no GD extension*, enable GD for the web PHP version too. |
 | `config.json` downloads in the browser | The host ignores `.htaccess` (`AllowOverride`) or it was not uploaded. Ask your provider before going further. |
 | Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole, or their grid does not match their DXCC entity (listed in the station's `sync.log`, see *Grid check*). They are retried on every sync. |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |

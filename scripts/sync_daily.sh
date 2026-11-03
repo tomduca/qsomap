@@ -1,7 +1,8 @@
 #!/bin/bash
 # Daily sync, meant for Cron: shared data first (DXCC list, update check), then
 # every station one after the other: Clublog (LoTW as fallback), then its map
-# cache. Stations never sync at the same time, so the load is that of one map.
+# cache and, if missing or older than its config, its static map background.
+# Stations never sync at the same time, so the load is that of one map.
 # Usage: /bin/bash /path/to/qsomap/scripts/sync_daily.sh [CALL]
 #   CALL: sync only that station (default: all of them)
 # Set PHP_BIN if the PHP CLI is not on Cron's PATH (e.g. PHP_BIN=/usr/local/bin/php).
@@ -83,6 +84,13 @@ for config in "$STATIONS_DIR"/*/config.json; do
             "$PHP_BIN" "$SCRIPT_DIR/sync_lotw.php" || station_status=1
         fi
         "$PHP_BIN" "$SCRIPT_DIR/build_cache.php" || station_status=1
+        # Static map background: create it if the portal's first sync did not
+        # (page closed, browser step failed), and again after the grid changes
+        # (the station's config.json is newer than the image).
+        background="$STATIONS_DIR/$call/data/qrz-background.png"
+        if [ ! -s "$background" ] || [ "$config" -nt "$background" ]; then
+            "$PHP_BIN" "$SCRIPT_DIR/make_background.php" || station_status=1
+        fi
         if [ "$station_status" -eq 0 ]; then
             echo "=== Sync complete ==="
         else
