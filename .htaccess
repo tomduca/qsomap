@@ -10,7 +10,7 @@ RedirectMatch 404 /stations(/|$)
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
-    # map-ssb-qrz.php is embedded in QRZ.com via iframe, so framing is allowed.
+    # map-qrz.php (and its old name map-ssb-qrz.php) is embedded in QRZ.com via iframe, so framing is allowed.
     Header always unset X-Frame-Options
     Header always set Content-Security-Policy "frame-ancestors *"
 </IfModule>

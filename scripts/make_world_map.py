@@ -3,7 +3,7 @@ Build img/world-map-600.png, the base planisphere used by make_background.php,
 from public-domain Natural Earth data (https://www.naturalearthdata.com/).
 
 Output: 600x600 px, Web Mercator (+/-85.05 deg), centred on Greenwich, the
-projection map-ssb-qrz.php and map-ssb-github.php draw on.
+projection map-qrz.php and map-github.php draw on.
 
 Inputs (download and unzip first):
   NE1_50M_SR_W.tif   https://naciscdn.org/naturalearth/50m/raster/NE1_50M_SR_W.zip

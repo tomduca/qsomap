@@ -1,7 +1,8 @@
 {
   "map": {
     "my_callsign": "YOUR_CALLSIGN",
-    "my_grid": "YOUR_GRID"
+    "my_grid": "YOUR_GRID",
+    "static_mode": "ssb"
   },
   "lotw": {
     "username": "YOUR_CALLSIGN",

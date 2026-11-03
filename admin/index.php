@@ -1,8 +1,8 @@
 <?php
 /**
  * Manager portal: create invites for new stations, see and cancel pending
- * ones, list the stations with their status, delete a station, and read the
- * event log.
+ * ones, list the stations with their status, choose what each static map
+ * shows, delete a station, and read the event log.
  *
  * The folder must be password-protected by the web server (cPanel →
  * Directory Privacy, i.e. HTTP Basic auth). The page refuses to work if the
@@ -45,6 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'cancel') {
         withInvites(function (array &$invites) use ($call): void { unset($invites[$call]); });
         logEvent("invite for $call cancelled by $user");
+    } elseif ($action === 'static_mode' && stationExists($call) && isset(MAP_VIEWS[(string)($_POST['view'] ?? '')])) {
+        $view = (string)$_POST['view'];
+        setStaticView($call, $view);
+        logEvent("static map of $call set to " . MAP_VIEWS[$view]['name'] . ", by $user");
+        $_SESSION['flash'] = ['message' => "The static map of $call now shows " . MAP_VIEWS[$view]['name'] . '.'];
     } elseif ($action === 'delete' && stationExists($call)) {
         deleteStation($call);
         logEvent("station deleted: $call, by $user");
@@ -67,6 +72,13 @@ function createInvite(string $call, string $user): array {
     });
     logEvent("invite created for $call by $user" . (stationExists($call) ? ' (existing station)' : ''));
     return ['call' => $call, 'code' => $code, 'expires' => $expires];
+}
+
+/** Set map.static_mode in a station's config.json, keeping everything else. */
+function setStaticView(string $call, string $view): void {
+    $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
+    $config['map']['static_mode'] = $view;
+    writeStationConfig($call, $config);
 }
 
 /** Remove stations/<CALL>/ with its config (credentials included) and data. */
@@ -132,7 +144,7 @@ function portalPage(array $flash, string $csrf): string {
     $html .= '<h2>New invite</h2><form method="post"><input type="hidden" name="csrf" value="' . $csrf . '">'
         . '<input type="hidden" name="action" value="invite"><label>Callsign of the station (no /P or prefixes)'
         . '<input name="callsign" placeholder="LU9XYZ" required></label><button>Create code</button></form>'
-        . '<p class="note">Inviting an existing station lets its owner update the grid or passwords; its QSOs are kept.</p>';
+        . '<p class="note">Inviting an existing station lets its owner update the grid, passwords or static map; its QSOs are kept.</p>';
 
     $rows = '';
     foreach (readJson(INVITES_FILE) ?? [] as $call => $invite) {
@@ -154,18 +166,22 @@ function portalPage(array $flash, string $csrf): string {
             ($config['lotw']['password'] ?? '') !== '' ? 'LoTW' : '',
             ($config['hamqth']['username'] ?? '') !== '' ? 'HamQTH' : '',
         ]));
+        $view = staticView($config);
         $embed = embedCodes($base, $call);
+        $viewForm = '<form method="post" class="inline"><input type="hidden" name="csrf" value="' . $csrf . '">'
+            . '<input type="hidden" name="action" value="static_mode"><input type="hidden" name="callsign" value="' . h($call) . '">'
+            . viewSelect('view', $view) . '<button>Save</button></form>';
         $rows .= '<tr><td><strong>' . h($call) . '</strong>' . ($call === $default ? ' (default)' : '') . '<br>'
             . h($config['map']['my_grid'] ?? '') . '</td><td>' . h($sources) . '</td><td>'
             . (int)($cache['total_qsos'] ?? 0) . ' QSOs<br><span class="note">' . h($cache['generated'] ?? 'no map yet') . '</span></td><td>'
-            . h(lastSyncResult($call)) . '</td><td><a href="' . h("$base/map-ssb.html?$call") . '" target="_blank" rel="noopener">Map</a> · '
-            . '<a href="' . h("$base/map-ssb-qrz.php?$call") . '" target="_blank" rel="noopener">QRZ</a>'
+            . h(lastSyncResult($call)) . '</td><td>' . $viewForm . '</td><td><a href="' . h("$base/" . MAP_VIEWS[$view]['page'] . "?$call") . '" target="_blank" rel="noopener">Map</a> · '
+            . '<a href="' . h("$base/map-qrz.php?$call") . '" target="_blank" rel="noopener">QRZ</a>'
             . '<details><summary>Embed codes</summary><textarea rows="4" readonly onclick="this.select()">' . h($embed['qrz'] . "\n\n" . $embed['github'])
             . '</textarea></details></td><td>'
             . $form('delete', $call, 'Delete', "Delete $call? Its settings, passwords and QSOs are removed from this server. This cannot be undone.")
             . '</td></tr>';
     }
-    $html .= '<h2>Stations</h2>' . ($rows ? '<div class="table-wrap"><table><tr><th>Station</th><th>Sources</th><th>Map</th><th>Last sync</th><th>Links</th><th></th></tr>'
+    $html .= '<h2>Stations</h2>' . ($rows ? '<div class="table-wrap"><table><tr><th>Station</th><th>Sources</th><th>Map</th><th>Last sync</th><th>Static map</th><th>Links</th><th></th></tr>'
         . $rows . '</table></div>' : '<p class="note">No stations yet.</p>');
 
     $html .= storageNotes();

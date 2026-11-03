@@ -21,13 +21,27 @@ function h(?string $value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-/** Embed codes for a station's static maps (QRZ.com iframe, GitHub README image). */
+/**
+ * Embed codes for a station's static maps (QRZ.com iframe, GitHub README
+ * image). Both follow the station's static view when it changes: the iframe
+ * links to its interactive page itself, the GitHub image through map.php.
+ */
 function embedCodes(string $baseUrl, string $call): array {
     return [
         'qrz' => '<iframe align="top" frameborder="0" height="600" scrolling="no" src="'
-            . "$baseUrl/map-ssb-qrz.php?$call" . '" width="600"></iframe>',
-        'github' => "[![$call SSB map]($baseUrl/map-ssb-github.php?$call)]($baseUrl/map-ssb.html?$call)",
+            . "$baseUrl/map-qrz.php?$call" . '" width="600"></iframe>',
+        'github' => "[![$call QSO map]($baseUrl/map-github.php?$call)]($baseUrl/map.php?$call)",
     ];
+}
+
+/** <select> of the views a static map can show, with $selected chosen. */
+function viewSelect(string $name, string $selected, array $labels = []): string {
+    $html = '<select name="' . h($name) . '">';
+    foreach (MAP_VIEWS as $view => $info) {
+        $html .= '<option value="' . $view . '"' . ($view === $selected ? ' selected' : '') . '>'
+            . h($labels[$view] ?? $info['name']) . '</option>';
+    }
+    return $html . '</select>';
 }
 
 function showPage(string $title, string $body, int $status = 200, string $width = '36rem', string $lang = 'en'): void {
@@ -47,7 +61,7 @@ function showPage(string $title, string $body, int $status = 200, string $width 
   a { color: #6cc4cf; }
   fieldset { border: 1px solid #3a4248; border-radius: 6px; margin: 0 0 1rem; }
   label { display: block; margin: .5rem 0; }
-  input[type=text], input[type=password], input[type=number], input:not([type]), textarea { display: block; width: 100%; box-sizing: border-box; padding: .4rem; font: inherit; color: inherit; background: #1f2529; border: 1px solid #3a4248; border-radius: 4px; }
+  input[type=text], input[type=password], input[type=number], input:not([type]), select, textarea { display: block; width: 100%; box-sizing: border-box; padding: .4rem; font: inherit; color: inherit; background: #1f2529; border: 1px solid #3a4248; border-radius: 4px; }
   textarea { font: 13px/1.4 ui-monospace, monospace; }
   button { padding: .4rem 1.2rem; font: inherit; color: #e6e8ea; background: #2c353b; border: 1px solid #4a555c; border-radius: 4px; cursor: pointer; }
   button:hover { background: #36424a; }
@@ -59,6 +73,7 @@ function showPage(string $title, string $body, int $status = 200, string $width 
   .error, .failed { color: #ff7b7b; }
   .code { font: 700 2rem ui-monospace, monospace; letter-spacing: .2em; }
   .inline { display: inline; }
+  .inline select { display: inline-block; width: auto; margin-right: .3rem; }
   .steps li { margin: .4rem 0; color: #7d878d; }
   .steps li.running { color: inherit; font-weight: 600; }
   .steps li.running::after { content: ' … ' attr(data-detail); font-weight: normal; }

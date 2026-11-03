@@ -1,7 +1,7 @@
 <?php
 /**
  * Generate a station's qrz-background.png (in stations/<CALL>/data/), the
- * 600x600 world map behind map-ssb-qrz.php and map-ssb-github.php.
+ * 600x600 world map behind map-qrz.php and map-github.php.
  *
  * The base planisphere (img/world-map-600.png, Web Mercator, centred on
  * Greenwich) is shifted horizontally so the station's QTH ends up in the
