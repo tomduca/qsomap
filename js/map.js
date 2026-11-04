@@ -224,7 +224,17 @@
         stationName = String(station.callsign || stationName);
         document.title = (stationName + ' ' + views[view].name).trim() + ' | QSO Map';
 
-        const map = L.map('map', { minZoom: 2, maxZoom: 17 });
+        // Zooming out stops when the whole world (pole to pole, ±85° in Web
+        // Mercator) fits the height of the window; the map does not scroll
+        // above or below it. Tiles are 256 px, twice as tall per zoom level.
+        const worldFitZoom = () => Math.max(0, Math.log2(document.getElementById('map').clientHeight / 256));
+        const map = L.map('map', {
+            minZoom: worldFitZoom(),
+            maxZoom: 17,
+            maxBounds: [[-85.06, -100000], [85.06, 100000]],
+            maxBoundsViscosity: 1,
+        });
+        map.on('resize', () => map.setMinZoom(worldFitZoom()));
         L.tileLayer.provider('Esri.NatGeoWorldMap', { maxZoom: 17 }).addTo(map);
         const oms = new OverlappingMarkerSpiderfier(map, { nearbyDistance: 20, keepSpiderfied: true });
         L.circleMarker(qthPosition, { radius: 4, color: '#18343a', fillColor: '#f3c969', fillOpacity: 1, weight: 1 })

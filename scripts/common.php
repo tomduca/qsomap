@@ -24,8 +24,20 @@ const SECRET_FIELDS = [['lotw', 'password'], ['clublog', 'password'], ['clublog'
 const SECRET_PREFIX = 'enc:v1:';  // then base64 of IV (12 bytes), GCM tag (16 bytes) and ciphertext
 const SECRET_CIPHER = 'aes-256-gcm';
 
-/** Phone modes shown on the static SSB maps (QRZ.com, GitHub), as on map-ssb.html. */
-const PHONE_MODES = ['SSB', 'USB', 'LSB', 'FM', 'AM'];
+/**
+ * Views of the map, as in js/map.js: name, interactive page and the modes a
+ * QSO matches on MODE or SUBMODE (null: confirmed QSOs in any mode). Each
+ * station's static map (QRZ.com, GitHub) shows one of them, map.static_mode
+ * in its config.json, SSB by default.
+ */
+const MAP_VIEWS = [
+    'ssb' => ['name' => 'SSB', 'page' => 'map-ssb.html', 'modes' => ['SSB', 'USB', 'LSB', 'FM', 'AM']],
+    'cw' => ['name' => 'CW', 'page' => 'map-cw.html', 'modes' => ['CW']],
+    'rtty' => ['name' => 'RTTY', 'page' => 'map-rtty.html', 'modes' => ['RTTY']],
+    'ft' => ['name' => 'FT8/FT4', 'page' => 'map-ft.html', 'modes' => ['FT8', 'FT4']],
+    'qsl' => ['name' => 'QSL LoTW', 'page' => 'map-qsl.html', 'modes' => null],
+];
+const DEFAULT_STATIC_VIEW = 'ssb';
 
 /** Invites from the admin portal and setups in progress, keyed by callsign. */
 const INVITES_FILE = QSOMAP_DATA . '/invites.json';
@@ -435,6 +447,22 @@ function gridCentre(string $grid): ?array {
         }
     }
     return [$lat - 90 + $latSize / 2, $lon - 180 + $lonSize / 2];
+}
+
+/** The view shown on a station's static map, from its (raw or loaded) config. */
+function staticView(array $config): string {
+    $view = strtolower((string)($config['map']['static_mode'] ?? ''));
+    return isset(MAP_VIEWS[$view]) ? $view : DEFAULT_STATIC_VIEW;
+}
+
+/** Whether a map cache QSO belongs to $view (same rule as js/map.js). */
+function qsoInView(array $qso, string $view): bool {
+    $modes = MAP_VIEWS[$view]['modes'];
+    if ($modes === null) return strtoupper((string)($qso['qsl_rcvd'] ?? '')) === 'Y';
+    foreach (['mode', 'submode'] as $field) {
+        if (in_array(strtoupper((string)($qso[$field] ?? '')), $modes, true)) return true;
+    }
+    return false;
 }
 
 /** Wrap a longitude into [-180, 180). */

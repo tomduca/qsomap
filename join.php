@@ -46,7 +46,7 @@ if ($key !== '') {
 $values = [];
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach (['callsign', 'code', 'grid', 'years', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
+    foreach (['callsign', 'code', 'grid', 'static_mode', 'years', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
         $values[$field] = trim((string)($_POST[$field] ?? ''));
     }
     $call = normalizeCall($values['callsign']);
@@ -55,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($call === null) $errors[] = t('error_callsign');
     if (!preg_match('/^\d{6}$/', $values['code'])) $errors[] = t('error_code_format');
     if (gridCentre($grid) === null) $errors[] = t('error_grid');
+    if (!isset(MAP_VIEWS[$values['static_mode']])) $errors[] = t('error_static_mode');
     if (!ctype_digit($values['years']) || (int)$values['years'] < 1 || (int)$values['years'] > MAX_YEARS) {
         $errors[] = t('error_years', MAX_YEARS);
     }
@@ -160,7 +161,7 @@ function createStation(string $call, string $grid, array $values): ?string {
 
     $existed = stationExists($call);
     $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
-    $config['map'] = ['my_callsign' => $call, 'my_grid' => $grid];
+    $config['map'] = ['my_callsign' => $call, 'my_grid' => $grid, 'static_mode' => $values['static_mode']];
     $config['lotw'] = ['username' => $call, 'password' => $values['lotw_password'], 'days_back' => (int)round((int)$values['years'] * 365.25)];
     if ($values['hamqth_username'] !== '') {
         $config['hamqth'] = ['username' => $values['hamqth_username'], 'password' => $values['hamqth_password']];
@@ -190,6 +191,7 @@ function joinForm(array $values, array $errors): string {
     $v['years'] = h($values['years'] ?? (string)DEFAULT_YEARS);
     $maxYears = MAX_YEARS;
     $defaultYears = DEFAULT_YEARS;
+    $views = viewSelect('static_mode', $values['static_mode'] ?? DEFAULT_STATIC_VIEW, ['ssb' => t('view_ssb'), 'qsl' => t('view_qsl')]);
     $html = '';
     foreach ($errors as $error) $html .= '<p class="error">' . h($error) . '</p>';
     $text = fn(string $id, ...$args) => t($id, ...$args);
@@ -204,6 +206,8 @@ function joinForm(array $values, array $errors): string {
   <fieldset>
     <legend>{$text('station')}</legend>
     <label>{$text('grid')} <input name="grid" value="{$v['grid']}" placeholder="FF57oc" required></label>
+    <label>{$text('static_mode')} $views</label>
+    <p class="note">{$text('static_mode_note')}</p>
   </fieldset>
   <fieldset>
     <legend>LoTW</legend>
@@ -239,10 +243,11 @@ function firstSyncPage(string $key, string $call): string {
     foreach (['js_no_answer', 'js_left', 'js_retry', 'js_nightly', 'js_skipped'] as $id) $texts[$id] = t($id);
     $setup = json_encode(['key' => $key, 'batch' => LOOKUPS_PER_BATCH, 'steps' => $steps, 'text' => $texts], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
     $text = fn(string $id, ...$args) => t($id, ...$args);
+    $view = staticView(readJson(QSOMAP_STATIONS . "/$call/config.json") ?? []);
     $embed = embedCodes($base, $call);
     $qrz = h($embed['qrz']);
     $github = h($embed['github']);
-    $mapUrl = h("$base/map-ssb.html?$call");
+    $mapUrl = h("$base/" . MAP_VIEWS[$view]['page'] . "?$call");
     $script = <<<'JS'
 const steps = SETUP.steps;
 const list = document.getElementById('steps');

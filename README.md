@@ -2,21 +2,21 @@
 
 A web map of an amateur radio station's contacts (QSOs). It downloads the log from **Clublog** or **LoTW**, places each contact by its Maidenhead grid and draws the great-circle path from the home QTH. One installation can serve several stations, e.g. a radio club's members. Built for shared PHP hosting (cPanel): no database, no build step.
 
-**Live demo (LU2MET):** [interactive SSB map](https://lu2met.ar/qsomap/map-ssb.html) · [static map for QRZ.com](https://lu2met.ar/qsomap/map-ssb-qrz.php)
+**Live demo (LU2MET):** [interactive SSB map](https://lu2met.ar/qsomap/map-ssb.html) · [static map for QRZ.com](https://lu2met.ar/qsomap/map-qrz.php)
 
-[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap/map-ssb-github.php)](https://lu2met.ar/qsomap/map-ssb.html)
+[![LU2MET SSB map: locations worked from Argentina, with great-circle paths colored by band](https://lu2met.ar/qsomap/map-github.php)](https://lu2met.ar/qsomap/map-ssb.html)
 
-*LU2MET static map, updated daily by `map-ssb-github.php`. Click the image to open the live interactive map.*
+*LU2MET static map, updated daily by `map-github.php`. Click the image to open the live interactive map.*
 
 ## Features
 
 - **Five interactive views** (Leaflet), one per mode: `map-ssb.html` (phone: SSB, AM, FM), `map-cw.html`, `map-rtty.html`, `map-ft.html` (FT8 and FT4) and `map-qsl.html` (confirmed QSOs in any mode). Other modes (PSK, JT65...) appear only on the QSL map once confirmed. The old `map-digi.html` redirects to `map-ft.html`.
 - Markers colored by band, short-path great-circle lines, and popups with date, frequency, mode, DXCC entity and POTA/SOTA references (`SIG`/`SIG_INFO`).
-- **Static map for QRZ.com** (`map-ssb-qrz.php`, phone QSOs as on the SSB view): 600 × 600 px, HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
-- **Live map image for a GitHub README** (`map-ssb-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
+- **Static map for QRZ.com** (`map-qrz.php`): 600 × 600 px, showing one view chosen per station (SSB by default, or CW, RTTY, FT8/FT4 or confirmed QSOs), with its name and number of locations; HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
+- **Live map image for a GitHub README** (`map-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
-- **Several stations per installation**: the same pages serve every station by callsign (`map-ssb.html?LU9XYZ`, `map-ssb-qrz.php?LU9XYZ`), each with its own settings and data; one Cron job syncs them one after the other.
-- **Portals to host other stations**: the manager creates a 6-digit invite for a callsign in `admin/` (protected by cPanel's Directory Privacy); the station enters it in `join.php` with its own LoTW password (checked against LoTW, username must be the callsign), the map is set up automatically and the page hands over the QRZ.com embed code. The manager never receives anyone's password.
+- **Several stations per installation**: the same pages serve every station by callsign (`map-ssb.html?LU9XYZ`, `map-qrz.php?LU9XYZ`), each with its own settings and data; one Cron job syncs them one after the other.
+- **Portals to host other stations**: the manager creates a 6-digit invite for a callsign in `admin/` (protected by cPanel's Directory Privacy); the station enters it in `join.php` with its own LoTW password and the mode of its static map (checked against LoTW, username must be the callsign), the map is set up automatically and the page hands over the QRZ.com embed code. The manager never receives anyone's password.
 - **Update notice**: a daily check against this repository's version tags shows a banner, only to the map's owner, when a new version is available.
 - **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
 - **Grid check against DXCC**: grids that do not match the QSO's DXCC entity (per TQSL's grid list, with a one-square tolerance at borders) are dropped and looked up again, so contacts never show in the wrong country.
@@ -29,8 +29,8 @@ flowchart LR
     LW[LoTW] -.->|sync_lotw.php<br/>fallback| D
     D -->|build_cache.php<br/>+ HamQTH / Spothole| C[(qso_cache.json)]
     C -->|cache.php| I[map-ssb / digi / qsl.html]
-    C --> Q[map-ssb-qrz.php]
-    C --> G[map-ssb-github.php]
+    C --> Q[map-qrz.php]
+    C --> G[map-github.php]
     B[img/world-map-600.png] -->|make_background.php| P[qrz-background.png]
     P --> Q
     P --> G
@@ -40,7 +40,7 @@ Each station's files live in `stations/<CALL>/data/` (`qso_data.json`, `qso_cach
 
 1. `scripts/sync_daily.sh` (Cron) downloads each station's QSOs into its `qso_data.json`, one station at a time.
 2. `scripts/build_cache.php` normalizes the data, fills in missing grids and writes `qso_cache.json`, the only file the maps read. It also stores the station's callsign and grid.
-3. The interactive maps load the cache in the browser through `cache.php?CALL`. `map-ssb-qrz.php` reads it on the server and projects each point onto a background generated once with the QTH centered (equirectangular longitude, Web Mercator latitude).
+3. The interactive maps load the cache in the browser through `cache.php?CALL`. `map-qrz.php` reads it on the server, keeps the QSOs of the station's static view and projects each point onto a background generated once with the QTH centered (equirectangular longitude, Web Mercator latitude).
 
 ## Stack
 
@@ -50,11 +50,12 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 
 ```text
 ├── map-ssb/cw/rtty/ft/qsl.html                 Interactive views (map-digi.html redirects to map-ft.html)
-├── map-ssb-qrz.php                             Static map for QRZ
-├── map-ssb-github.php                          Same map as an SVG image, for GitHub
+├── map-qrz.php                                 Static map for QRZ (map-ssb-qrz.php: old URL, still works)
+├── map-github.php                              Same map as an SVG image, for GitHub (old: map-ssb-github.php)
+├── map.php                                     Redirects to the interactive view of a station's static map mode
 ├── cache.php, background.php                   A station's map data and background, by callsign
 ├── join.php                                    Public portal: an invited station sets up its map
-├── admin/index.php                             Manager portal: invites, stations, event log
+├── admin/index.php                             Manager portal: invites, stations, static map mode, event log
 ├── js/map.js                                   Interactive map logic
 ├── js/dxcc.js                                  DXCC entity catalog (base list)
 ├── css/map.css
@@ -62,6 +63,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 ├── scripts/                                    Sync scripts (CLI, or browser with token)
 │   ├── common.php                              Stations, config, invites, ADIF parser, grids, HTTP
 │   ├── portal.php                              Page helpers for the two portals
+│   ├── static_map.php                          Shared data and projection of the static maps
 │   ├── sync_clublog.php, sync_lotw.php         QSO download
 │   ├── build_cache.php                         Cache + grid lookups
 │   ├── make_background.php                     Static map background

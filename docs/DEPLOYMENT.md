@@ -23,8 +23,10 @@ The maps take the station's callsign in the query string; one set of pages serve
 | Page | URL |
 | --- | --- |
 | Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-cw.html`, `map-rtty.html`, `map-ft.html` for FT8/FT4, and `map-qsl.html` for confirmed QSOs in any mode) |
-| Static map for QRZ.com | `https://your-domain.com/qsomap/map-ssb-qrz.php?LU9XYZ` |
-| Image for a GitHub README | `https://your-domain.com/qsomap/map-ssb-github.php?LU9XYZ` |
+| Static map for QRZ.com | `https://your-domain.com/qsomap/map-qrz.php?LU9XYZ` |
+| Image for a GitHub README | `https://your-domain.com/qsomap/map-github.php?LU9XYZ` |
+
+Until version 2.0 the static maps were `map-ssb-qrz.php` and `map-ssb-github.php`; those URLs still work and show the same maps.
 
 Without a callsign they show `default_station`, so your own map keeps short URLs.
 
@@ -153,7 +155,7 @@ PHP_BIN=/usr/local/bin/php bash scripts/sync_daily.sh LU2MET
 
 ## 4. Generate the static map background
 
-`map-ssb-qrz.php` uses a 600 × 600 px background with the station's QTH in the center. The daily sync creates it when it is missing and recreates it when the station's `config.json` changes (e.g. a new `map.my_grid`). To create it right away:
+`map-qrz.php` uses a 600 × 600 px background with the station's QTH in the center. The daily sync creates it when it is missing and recreates it when the station's `config.json` changes (e.g. a new `map.my_grid`). To create it right away:
 
 - Browser: `https://your-domain.com/qsomap/scripts/make_background.php?token=YOUR_TOKEN&station=LU2MET`
 - Terminal: `QSOMAP_STATION=LU2MET php scripts/make_background.php`
@@ -242,20 +244,22 @@ To update, upload the new files over the old ones, keeping `config.json`, `data/
 In the QRZ biography editor (HTML mode), add a square iframe with the station's callsign:
 
 ```html
-<iframe align="top" frameborder="0" height="600" scrolling="no" src="https://your-domain.com/qsomap/map-ssb-qrz.php?LU2MET" width="600"></iframe>
+<iframe align="top" frameborder="0" height="600" scrolling="no" src="https://your-domain.com/qsomap/map-qrz.php?LU2MET" width="600"></iframe>
 ```
 
-Stations created through the portal get this code at the end of their setup, and the admin portal shows it for every station. QRZ may cache the iframe: if it still shows an old version after a change, add or bump a `v` value (e.g. `?LU2MET&v=2`). The PHP already sends no-cache headers and adds a unique parameter to the background URL. Clicking the map opens the interactive SSB view in a new tab.
+Stations created through the portal get this code at the end of their setup, and the admin portal shows it for every station. QRZ may cache the iframe: if it still shows an old version after a change, add or bump a `v` value (e.g. `?LU2MET&v=2`). The PHP already sends no-cache headers and adds a unique parameter to the background URL. Clicking the map opens the interactive view of the same mode in a new tab (e.g. `map-cw.html?LU2MET` for a CW static map).
+
+The static map shows one view: SSB (phone: SSB, AM, FM) by default, CW, RTTY, FT8/FT4, or QSOs confirmed in LoTW in any mode. The box in the corner names it, with the number of locations. Stations created through the portal choose it on the form; you can change it for any station in the *Stations* table of `admin/` (column *Static map*), or by hand with `map.static_mode` (`ssb`, `cw`, `rtty`, `ft` or `qsl`) in its `config.json`. The embed codes do not change.
 
 ## 7. Show the map in a GitHub README
 
-GitHub strips iframes from READMEs, so use `map-ssb-github.php` instead: it draws the same map as a self-contained SVG image (background included) and links it to the interactive view:
+GitHub strips iframes from READMEs, so use `map-github.php` instead: it draws the same map as a self-contained SVG image (background included) and links it to `map.php`, which opens the interactive view of the station's static map mode:
 
 ```markdown
-[![SSB map](https://your-domain.com/qsomap/map-ssb-github.php?LU2MET)](https://your-domain.com/qsomap/map-ssb.html?LU2MET)
+[![LU2MET QSO map](https://your-domain.com/qsomap/map-github.php?LU2MET)](https://your-domain.com/qsomap/map.php?LU2MET)
 ```
 
-GitHub serves remote images through its own cache (camo). The PHP sends `Cache-Control: no-cache` and an `ETag` that changes whenever the station's map cache or background is rebuilt, so the README picks up each daily sync. The image has no tooltips or clicks of its own; the link opens the interactive map.
+GitHub serves remote images through its own cache (camo). The PHP sends `Cache-Control: no-cache` and an `ETag` that changes whenever the station's map cache, background or settings change, so the README picks up each daily sync and a new static map mode. The image has no tooltips or clicks of its own; the link opens the interactive map.
 
 ## 8. Host maps for other stations (portals)
 
@@ -274,7 +278,7 @@ As a safety net, the portal refuses to work if the server reports no logged-in u
 
 1. In `admin/`, enter the station's base callsign (`LU9XYZ`, not `LU9XYZ/P`) and press *Create code*. The portal shows a 6-digit code **once**, with a message ready to send.
 2. Send that message to the station (e.g. by WhatsApp). The code works only together with that callsign, for 48 hours and one use; after 5 failed attempts (wrong code, or a LoTW login that fails) it is cancelled. Create a new one if needed.
-3. The station opens `join.php` and enters its callsign, the code, its grid, how many years of QSOs to load (5 by default, up to 25; the form warns that with many QSOs the setup takes many minutes), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
+3. The station opens `join.php` and enters its callsign, the code, its grid, which QSOs its static map shows (SSB by default; CW, RTTY, FT8/FT4 or confirmed in LoTW), how many years of QSOs to load (5 by default, up to 25; the form warns that with many QSOs the setup takes many minutes), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
    - The **LoTW username must be the callsign**, and the login is checked against LoTW before saving: only the owner of that LoTW account can create the map for that callsign, even if someone else gets hold of the code.
    - **HamQTH** is optional but strongly recommended on the form: LoTW only gives the grid of confirmed QSOs, so with HamQTH lookups many more QSOs show up. Their HamQTH account is used only for their map, as yours is only for yours.
 4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download, grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
@@ -282,7 +286,7 @@ As a safety net, the portal refuses to work if the server reports no logged-in u
 
 Nothing is left for you to do: the daily Cron job (step 5) picks up the new station. Stations created through the portal sync from **LoTW only**; the daily sync logs `Clublog credentials not configured` and uses LoTW, which is expected.
 
-Inviting an existing station lets its owner change the grid or passwords; its QSOs are kept. The code is stored hashed in `data/invites.json`, and the pages refuse plain `http://`.
+Inviting an existing station lets its owner change the grid, passwords or static map mode; its QSOs are kept. The code is stored hashed in `data/invites.json`, and the pages refuse plain `http://`.
 
 ### Delete a station
 
@@ -306,7 +310,7 @@ Tell the station owner what they are entrusting to the server:
 Version 2 keeps each station in `stations/<CALL>/`. To upgrade, upload the new files over the old ones, keeping `config.json` and `data/`. The next daily sync (or `scripts/migrate_to_stations.php?token=YOUR_TOKEN`, to do it right away) moves your station once:
 
 - its `map`, `lotw`, `clublog` (with `api_key`) and `hamqth` settings go to `stations/<CALL>/config.json`, and its QSOs, map cache, sync state and background to `stations/<CALL>/data/`;
-- the root `config.json` keeps `web` and gets `"default_station": "<CALL>"`, so your existing URLs (`map-ssb.html`, `map-ssb-qrz.php` in QRZ, `map-ssb-github.php`) keep working.
+- the root `config.json` keeps `web` and gets `"default_station": "<CALL>"`, so your existing URLs (`map-ssb.html`, `map-ssb-qrz.php` in QRZ, `map-ssb-github.php`) keep working; since 2.1 the static maps are also at `map-qrz.php` and `map-github.php`.
 
 Until it runs, the maps show *No station selected*.
 
@@ -319,8 +323,9 @@ Until it runs, the maps show *No station selected*.
 - [ ] `admin/` asks for a user and password, and shows no *Storage* warning (see [Protecting stored passwords](#protecting-stored-passwords)).
 - [ ] With `key_file` set, the stations' `config.json` show `enc:v1:` instead of passwords, and you have a copy of the key file.
 - [ ] `map-ssb.html?LU2MET`, `map-cw.html`, `map-rtty.html`, `map-ft.html` and `map-qsl.html` (each with `?LU2MET`) show markers, the box shows `LU2MET SSB` (and so on), and the mode links keep the callsign.
-- [ ] `map-ssb-qrz.php?LU2MET` shows the background, points and paths.
-- [ ] `map-ssb-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.
+- [ ] `map-qrz.php?LU2MET` shows the background, points and paths, and its box names the station's static map mode.
+- [ ] Changing that mode in `admin/` changes the points and the box of `map-qrz.php?LU2MET`; the old `map-ssb-qrz.php?LU2MET` shows the same.
+- [ ] `map-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.
 - [ ] Cron ran and added a `CALL: sync complete` line per station to `data/sync.log`.
 
 ## Troubleshooting
