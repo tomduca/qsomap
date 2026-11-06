@@ -123,7 +123,8 @@ function rankingSection(string $base, string $csrf): string {
         $codes .= '<iframe src="' . $url . '" width="480" height="' . ($mode === 'each' ? 1600 : 700) . '" frameborder="0"></iframe>' . "\n\n";
     }
     return $html . '<p><a href="' . h("$base/ranking.php") . '" target="_blank" rel="noopener">Open the ranking</a> '
-        . '(add <code>&amp;band=20M</code> for one band, <code>&amp;lang=en|es</code> for the language)</p>'
+        . '(add <code>&amp;band=20M</code> for one band, <code>&amp;lang=en|es</code> for the language, <code>&amp;theme=light|dark</code> '
+        . 'to fix the colors: by default they follow the light or dark theme of the device, so add <code>&amp;theme=light</code> on a light page such as QRZ.com)</p>'
         . '<details><summary>Embed codes (all modes in one table, one per mode, then each mode separately)</summary><textarea rows="9" readonly onclick="this.select()">'
         . h(rtrim($codes)) . '</textarea></details>';
 }

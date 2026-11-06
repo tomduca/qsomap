@@ -8,6 +8,7 @@
  *   ranking.php?mode=each          one table per mode someone has entities in
  *   &band=20M                      one band instead of all of them
  *   &lang=es                       Spanish or English (default: set in admin/)
+ *   &theme=light|dark              fixed colors (default: the device's light or dark theme)
  *
  * Positions count current entities only; confirmed deleted entities are shown
  * next to the total and explained in a footnote. Each callsign opens that
@@ -109,9 +110,10 @@ $bands = rankingBands($stations, $modes);
 if ($band !== 'all' && !in_array($band, $bands, true)) $bands[] = $band;
 
 $title = $settings['title'] !== '' ? $settings['title'] : $text['default_title'];
-// Same page in the other language, keeping the mode and band.
+$theme = in_array($_GET['theme'] ?? '', ['light', 'dark'], true) ? $_GET['theme'] : '';
+// Same page in the other language, keeping the mode, band and theme.
 $otherLang = $lang === 'es' ? 'en' : 'es';
-$switchUrl = 'ranking.php?' . http_build_query(['mode' => $mode, 'band' => $band, 'lang' => $otherLang]);
+$switchUrl = 'ranking.php?' . http_build_query(array_filter(['mode' => $mode, 'band' => $band, 'lang' => $otherLang, 'theme' => $theme]));
 $bandName = fn(string $band): string => $band === 'all' ? $text['all_bands'] : strtolower($band);
 $hasDeleted = false;
 $tables = [];
@@ -122,31 +124,35 @@ foreach ($modes as $tableMode) {
 }
 ?>
 <!doctype html>
-<html lang="<?= $lang ?>">
+<html lang="<?= $lang ?>"<?= $theme !== '' ? ' data-theme="' . $theme . '"' : '' ?>>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= esc($title) ?></title>
 <style>
-:root { color-scheme: light; }
-body { position: relative; margin: 0; padding: 12px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #111; background: #fff; }
-h1 { font-size: 18px; margin: 0 0 2px; }
+/* Light by default, dark when the device prefers it; ?theme=light|dark fixes one. */
+:root { color-scheme: light; --text: #111; --muted: #555; --bg: #fff; --line: #ddd; --line-strong: #999; --link: #0645ad; --button: #333; --button-hover: #eee; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; --text: #e6e8ea; --muted: #9aa4aa; --bg: #15191c; --line: #2f373c; --line-strong: #5a656c; --link: #6cc4cf; --button: #c9d0d4; --button-hover: #2c353b; }
+}
+:root[data-theme="dark"] { color-scheme: dark; --text: #e6e8ea; --muted: #9aa4aa; --bg: #15191c; --line: #2f373c; --line-strong: #5a656c; --link: #6cc4cf; --button: #c9d0d4; --button-hover: #2c353b; }
+body { position: relative; margin: 0; padding: 12px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: var(--text); background: var(--bg); }
+h1 { font-size: 18px; margin: 0 0 2px; padding-right: 48px; }
 h2 { font-size: 16px; margin: 18px 0 6px; }
 p { margin: 4px 0; }
-.subtitle, .note { color: #555; font-size: 12px; }
+.subtitle, .note { color: var(--muted); font-size: 12px; }
 form { margin: 8px 0 0; }
 label { display: inline-block; margin: 0 12px 4px 0; }
 select, button { font: inherit; }
 table { border-collapse: collapse; width: 100%; max-width: 480px; }
-th, td { padding: 4px 8px; border-bottom: 1px solid #ddd; text-align: left; }
-th { border-bottom: 2px solid #999; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+th { border-bottom: 2px solid var(--line-strong); }
 td.position, th.position { width: 3em; }
 td.entities, th.entities { text-align: right; white-space: nowrap; }
-a { color: #0645ad; text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
-h1 { padding-right: 48px; }
-.lang-switch { position: absolute; top: 12px; right: 12px; padding: 1px 6px; border: 1px solid #999; border-radius: 3px; color: #333; font-size: 12px; font-weight: bold; }
-.lang-switch:hover { background: #eee; text-decoration: none; }
+.lang-switch { position: absolute; top: 12px; right: 12px; padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 3px; color: var(--button); font-size: 12px; font-weight: bold; }
+.lang-switch:hover { background: var(--button-hover); text-decoration: none; }
 .credit { margin-top: 12px; }
 </style>
 </head>
@@ -156,6 +162,9 @@ h1 { padding-right: 48px; }
 <p class="subtitle"><?= esc($text['subtitle']) ?></p>
 <form method="get">
     <input type="hidden" name="lang" value="<?= esc($lang) ?>">
+<?php if ($theme !== ''): ?>
+    <input type="hidden" name="theme" value="<?= $theme ?>">
+<?php endif; ?>
     <label><?= esc($text['mode']) ?>
         <select name="mode" onchange="this.form.submit()">
             <option value="all"><?= esc($text['all_modes']) ?></option>
