@@ -311,11 +311,11 @@ Tell the station owner what they are entrusting to the server:
 `ranking.php` ranks the stations by DXCC entities confirmed in LoTW, one plain table per mode, to embed with an iframe on QRZ.com, a blog or the club's website.
 
 - **Turn it on** in the *Club ranking* section of `admin/`: tick the box, optionally set a title (e.g. the club's name) and the default language, and save. While it is off, `ranking.php` answers 404 and the nightly sync downloads nothing extra.
-- **Modes:** Phone (SSB, AM, FM), CW, RTTY and FT8/FT4. `ranking.php?mode=phone|cw|rtty|ft8` shows one; `mode=all` (the default) shows the four tables on one page. Every table can show all bands or one band, chosen from the menu at the top (or `&band=20M`). `&lang=en|es` overrides the default language.
+- **Modes:** by default (`mode=all`) one table with each station's entities confirmed in **any mode**, each entity counted once as in DXCC Mixed (PSK and other modes included). `mode=phone|cw|rtty|ft8` shows one mode: Phone (SSB, AM, FM), CW, RTTY or FT8/FT4. `mode=each` shows one table per mode on one page. Two menus at the top choose the mode (all modes, each mode separately, or one) and the band (all, or one; also `&band=20M`), in any combination. They only offer the modes and bands some station has confirmed entities in: if nobody has RTTY, there is no RTTY option or table (an embed that asks for `mode=rtty` still shows its empty table). `&lang=en|es` overrides the default language.
 - **What counts:** every QSO confirmed in LoTW, whatever its grid (QSOs without a grid, or with one dropped by the grid check, are not on the map but do count). Nothing comes from Clublog, not even for stations synced from it. A station's position counts current DXCC entities only; confirmed **deleted** entities are shown next to the total as `(+3*)`, with a footnote. Equal totals share the position (1, 1, 3), and stations with no entity in that mode or band are not listed.
-- **Links:** each callsign opens that station's interactive map of the mode (`map-ssb.html`, `map-cw.html`, `map-rtty.html` or `map-ft.html`) in a new tab.
+- **Links:** each callsign opens that station's interactive map of the mode (`map-ssb.html`, `map-cw.html`, `map-rtty.html` or `map-ft.html`; `map-qsl.html`, its confirmed QSOs, from the all-modes table) in a new tab.
 - **Leaving a station out:** in the *Stations* table of `admin/`, the *Ranking* column shows its totals and a *Leave out* button (it sets `ranking.opt_out` in its `config.json`; *Show in ranking* undoes it). It takes effect right away.
-- **Embed codes** for each mode and for the four together are in the *Club ranking* section once it is on, e.g.:
+- **Embed codes** for all modes, each mode, and each mode separately are in the *Club ranking* section once it is on, e.g.:
 
   ```html
   <iframe src="https://your-domain.com/qsomap/ranking.php?mode=cw&lang=es" width="480" height="700" frameborder="0"></iframe>

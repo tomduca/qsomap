@@ -28,6 +28,14 @@ const RANKING_MODES = [
 ];
 
 /**
+ * Key of the all-modes totals in dxcc_counts.json: entities confirmed in any
+ * mode, PSK and others included, each counted once (as DXCC Mixed). Its
+ * callsign links open the map of QSOs confirmed in LoTW.
+ */
+const RANKING_MIXED = 'mixed';
+const RANKING_MIXED_VIEW = 'qsl';
+
+/**
  * Deleted DXCC entities (ADIF specification, DXCC_Entity_Code enumeration,
  * column "Deleted"). They are confirmed and shown, but do not count for the
  * position. ARRL has not deleted an entity since 2010; new ones are current.
@@ -44,6 +52,13 @@ const BAND_ORDER = [
     '8M', '6M', '5M', '4M', '2M', '1.25M', '70CM', '33CM', '23CM', '13CM', '9CM', '6CM', '3CM',
     '1.25CM', '6MM', '4MM', '2.5MM', '2MM', '1MM', 'SUBMM',
 ];
+
+/**
+ * Format of dxcc_counts.json. Bump it when dxccCounts() changes: totals of an
+ * older format are recounted from lotw_confirmed.json the next time the
+ * ranking is shown, so no station has to sync again.
+ */
+const COUNTS_VERSION = 2;
 
 /** Fields kept from each LoTW confirmation: enough to count entities by mode and band. */
 const CONFIRMED_FIELDS = ['CALL', 'QSO_DATE', 'TIME_ON', 'BAND', 'MODE', 'SUBMODE', 'DXCC', 'QSL_RCVD'];
@@ -100,19 +115,21 @@ function storeLotwConfirmations(array $confirmations): int {
 
 /**
  * Entities confirmed per ranking mode and band ('all' = every band), as
- * [current, deleted] counts. Code 0 (no entity, e.g. /MM) is ignored.
+ * [current, deleted] counts, plus RANKING_MIXED for any mode. Code 0 (no
+ * entity, e.g. /MM) is ignored.
  */
 function dxccCounts(array $confirmed): array {
     $deleted = array_flip(DELETED_DXCC);
     $sets = [];
     foreach ($confirmed as $qso) {
-        $mode = rankingMode($qso);
         $code = (int)($qso['DXCC'] ?? 0);
-        if ($mode === null || $code <= 0) continue;
+        if ($code <= 0) continue;
+        $mode = rankingMode($qso);
         $kind = isset($deleted[$code]) ? 1 : 0;
         $band = strtoupper(trim((string)($qso['BAND'] ?? '')));
         foreach ($band !== '' ? ['all', $band] : ['all'] as $key) {
-            $sets[$mode][$key][$kind][$code] = true;
+            $sets[RANKING_MIXED][$key][$kind][$code] = true;
+            if ($mode !== null) $sets[$mode][$key][$kind][$code] = true;
         }
     }
     $counts = [];
@@ -121,7 +138,7 @@ function dxccCounts(array $confirmed): array {
             $counts[$mode][$band] = [count($kinds[0] ?? []), count($kinds[1] ?? [])];
         }
     }
-    return ['generated' => date('Y-m-d H:i:s'), 'modes' => $counts];
+    return ['version' => COUNTS_VERSION, 'generated' => date('Y-m-d H:i:s'), 'modes' => $counts];
 }
 
 /**
@@ -149,7 +166,15 @@ function rankingStations(): array {
     foreach (stationList() as $call) {
         $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
         if (rankingOptOut($config)) continue;
-        $counts = readJson(QSOMAP_STATIONS . "/$call/data/dxcc_counts.json");
+        $file = QSOMAP_STATIONS . "/$call/data/dxcc_counts.json";
+        $counts = readJson($file);
+        if ($counts !== null && ($counts['version'] ?? 1) < COUNTS_VERSION) {
+            $confirmed = readJson(QSOMAP_STATIONS . "/$call/data/lotw_confirmed.json");
+            if ($confirmed !== null) {
+                $counts = dxccCounts($confirmed);
+                writeJson($file, $counts);
+            }
+        }
         if ($counts !== null) $stations[$call] = $counts['modes'] ?? [];
     }
     return $stations;

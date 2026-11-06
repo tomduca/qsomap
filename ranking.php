@@ -3,15 +3,19 @@
  * Club ranking: DXCC entities confirmed in LoTW per station, as plain tables
  * meant to be embedded with an iframe (QRZ.com, a blog, any web page).
  *
+ *   ranking.php                    one table of entities in any mode (default; also mode=all)
  *   ranking.php?mode=cw            one mode: phone, cw, rtty or ft8 (FT8/FT4)
- *   ranking.php?mode=all           the four modes, one table each (default)
+ *   ranking.php?mode=each          one table per mode someone has entities in
  *   &band=20M                      one band instead of all of them
  *   &lang=es                       Spanish or English (default: set in admin/)
+ *   &theme=light|dark              fixed colors (default: the device's light or dark theme)
  *
  * Positions count current entities only; confirmed deleted entities are shown
  * next to the total and explained in a footnote. Each callsign opens that
- * station's interactive map of the mode. The page needs no JavaScript: the
- * band menu submits itself when scripts run and has a button otherwise. The
+ * station's interactive map of the mode (the map of confirmed QSOs for the
+ * all-modes table). The mode and band menus only offer
+ * what the stations have confirmed. The page needs no JavaScript: the menus
+ * submit themselves when scripts run and have a button otherwise. The
  * manager turns the ranking on in admin/; while it is off this answers 404.
  */
 
@@ -23,6 +27,9 @@ const RANKING_TEXTS = [
         'subtitle' => 'DXCC entities confirmed in LoTW',
         'all_bands' => 'All bands',
         'band' => 'Band',
+        'all_modes' => 'All modes',
+        'each_mode' => 'Each mode separately',
+        'mode' => 'Mode',
         'show' => 'Show',
         'position' => '#',
         'callsign' => 'Callsign',
@@ -31,12 +38,17 @@ const RANKING_TEXTS = [
         'deleted_note' => '* Confirmed deleted DXCC entities; they do not count for the position.',
         'source' => 'Data from LoTW, updated every night. Click a callsign to open its map.',
         'off' => 'The ranking is not available.',
+        'switch' => 'Ver en español',
+        'credit' => 'Developed by %s',
     ],
     'es' => [
         'default_title' => 'Ranking DXCC',
         'subtitle' => 'Entidades DXCC confirmadas en LoTW',
         'all_bands' => 'Todas las bandas',
         'band' => 'Banda',
+        'all_modes' => 'Todos los modos',
+        'each_mode' => 'Cada modo por separado',
+        'mode' => 'Modo',
         'show' => 'Ver',
         'position' => '#',
         'callsign' => 'Indicativo',
@@ -45,9 +57,12 @@ const RANKING_TEXTS = [
         'deleted_note' => '* Entidades DXCC borradas (deleted) confirmadas; no cuentan para el puesto.',
         'source' => 'Datos de LoTW, actualizados cada noche. Haz clic en un indicativo para ver su mapa.',
         'off' => 'El ranking no está disponible.',
+        'switch' => 'View in English',
+        'credit' => 'Desarrollado por %s',
     ],
 ];
 const MODE_ALIASES = ['ssb' => 'phone', 'ft' => 'ft8'];
+const REPOSITORY_URL = 'https://github.com/tomduca/qsomap';
 
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, max-age=0');
@@ -67,18 +82,38 @@ if (!$settings['enabled']) {
     exit;
 }
 
+$stations = rankingStations();
+// Modes in the menu: those some station has a current entity in. A mode
+// asked for in the URL (e.g. an embed) is kept even while it is empty.
+$modeOptions = array_values(array_filter(array_keys(RANKING_MODES), function (string $option) use ($stations): bool {
+    foreach ($stations as $counts) {
+        if (($counts[$option]['all'][0] ?? 0) > 0) return true;
+    }
+    return false;
+}));
+// mode: 'all' (one table, any mode), 'each' (a table per mode) or one mode.
 $mode = strtolower((string)($_GET['mode'] ?? 'all'));
 $mode = MODE_ALIASES[$mode] ?? $mode;
-$modes = isset(RANKING_MODES[$mode]) ? [$mode] : array_keys(RANKING_MODES);
-if (count($modes) > 1) $mode = 'all';
+if (isset(RANKING_MODES[$mode])) {
+    $modes = [$mode];
+    $modeOptions = array_values(array_intersect(array_keys(RANKING_MODES), array_merge($modeOptions, [$mode])));
+} elseif ($mode === 'each') {
+    $modes = $modeOptions;
+} else {
+    $mode = 'all';
+    $modes = [RANKING_MIXED];
+}
 $band = strtoupper(trim((string)($_GET['band'] ?? '')));
 if (!preg_match('/^(\d+(\.\d+)?(M|CM|MM)|SUBMM)$/', $band)) $band = 'all';
 
-$stations = rankingStations();
 $bands = rankingBands($stations, $modes);
 if ($band !== 'all' && !in_array($band, $bands, true)) $bands[] = $band;
 
 $title = $settings['title'] !== '' ? $settings['title'] : $text['default_title'];
+$theme = in_array($_GET['theme'] ?? '', ['light', 'dark'], true) ? $_GET['theme'] : '';
+// Same page in the other language, keeping the mode, band and theme.
+$otherLang = $lang === 'es' ? 'en' : 'es';
+$switchUrl = 'ranking.php?' . http_build_query(array_filter(['mode' => $mode, 'band' => $band, 'lang' => $otherLang, 'theme' => $theme]));
 $bandName = fn(string $band): string => $band === 'all' ? $text['all_bands'] : strtolower($band);
 $hasDeleted = false;
 $tables = [];
@@ -89,35 +124,56 @@ foreach ($modes as $tableMode) {
 }
 ?>
 <!doctype html>
-<html lang="<?= $lang ?>">
+<html lang="<?= $lang ?>"<?= $theme !== '' ? ' data-theme="' . $theme . '"' : '' ?>>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= esc($title) ?></title>
 <style>
-:root { color-scheme: light; }
-body { margin: 0; padding: 12px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #111; background: #fff; }
-h1 { font-size: 18px; margin: 0 0 2px; }
+/* Light by default, dark when the device prefers it; ?theme=light|dark fixes one. */
+:root { color-scheme: light; --text: #111; --muted: #555; --bg: #fff; --line: #ddd; --line-strong: #999; --link: #0645ad; --button: #333; --button-hover: #eee; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; --text: #e6e8ea; --muted: #9aa4aa; --bg: #15191c; --line: #2f373c; --line-strong: #5a656c; --link: #6cc4cf; --button: #c9d0d4; --button-hover: #2c353b; }
+}
+:root[data-theme="dark"] { color-scheme: dark; --text: #e6e8ea; --muted: #9aa4aa; --bg: #15191c; --line: #2f373c; --line-strong: #5a656c; --link: #6cc4cf; --button: #c9d0d4; --button-hover: #2c353b; }
+body { position: relative; margin: 0; padding: 12px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: var(--text); background: var(--bg); }
+h1 { font-size: 18px; margin: 0 0 2px; padding-right: 48px; }
 h2 { font-size: 16px; margin: 18px 0 6px; }
 p { margin: 4px 0; }
-.subtitle, .note { color: #555; font-size: 12px; }
+.subtitle, .note { color: var(--muted); font-size: 12px; }
 form { margin: 8px 0 0; }
+label { display: inline-block; margin: 0 12px 4px 0; }
 select, button { font: inherit; }
 table { border-collapse: collapse; width: 100%; max-width: 480px; }
-th, td { padding: 4px 8px; border-bottom: 1px solid #ddd; text-align: left; }
-th { border-bottom: 2px solid #999; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+th { border-bottom: 2px solid var(--line-strong); }
 td.position, th.position { width: 3em; }
 td.entities, th.entities { text-align: right; white-space: nowrap; }
-a { color: #0645ad; text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
+.lang-switch { position: absolute; top: 12px; right: 12px; padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 3px; color: var(--button); font-size: 12px; font-weight: bold; }
+.lang-switch:hover { background: var(--button-hover); text-decoration: none; }
+.credit { margin-top: 12px; }
 </style>
 </head>
 <body>
+<a class="lang-switch" href="<?= esc($switchUrl) ?>" title="<?= esc($text['switch']) ?>" lang="<?= $otherLang ?>"><?= strtoupper($otherLang) ?></a>
 <h1><?= esc($title) ?></h1>
 <p class="subtitle"><?= esc($text['subtitle']) ?></p>
 <form method="get">
-    <input type="hidden" name="mode" value="<?= esc($mode) ?>">
     <input type="hidden" name="lang" value="<?= esc($lang) ?>">
+<?php if ($theme !== ''): ?>
+    <input type="hidden" name="theme" value="<?= $theme ?>">
+<?php endif; ?>
+    <label><?= esc($text['mode']) ?>
+        <select name="mode" onchange="this.form.submit()">
+            <option value="all"><?= esc($text['all_modes']) ?></option>
+            <option value="each"<?= $mode === 'each' ? ' selected' : '' ?>><?= esc($text['each_mode']) ?></option>
+<?php foreach ($modeOptions as $option): ?>
+            <option value="<?= $option ?>"<?= $option === $mode ? ' selected' : '' ?>><?= esc(RANKING_MODES[$option][$lang]) ?></option>
+<?php endforeach; ?>
+        </select>
+    </label>
     <label><?= esc($text['band']) ?>
         <select name="band" onchange="this.form.submit()">
             <option value="all"><?= esc($text['all_bands']) ?></option>
@@ -128,15 +184,19 @@ a:hover { text-decoration: underline; }
     </label>
     <noscript><button><?= esc($text['show']) ?></button></noscript>
 </form>
+<?php if (!$tables): ?>
+<p class="note"><?= esc($text['empty']) ?></p>
+<?php endif; ?>
 <?php foreach ($tables as $tableMode => $rows): ?>
-<h2><?= esc(RANKING_MODES[$tableMode][$lang]) ?> · <?= esc($bandName($band)) ?></h2>
+<?php $mapPage = MAP_VIEWS[$tableMode === RANKING_MIXED ? RANKING_MIXED_VIEW : RANKING_MODES[$tableMode]['view']]['page']; ?>
+<h2><?= esc($tableMode === RANKING_MIXED ? $text['all_modes'] : RANKING_MODES[$tableMode][$lang]) ?> · <?= esc($bandName($band)) ?></h2>
 <?php if (!$rows): ?>
 <p class="note"><?= esc($text['empty']) ?></p>
 <?php else: ?>
 <table>
     <tr><th class="position"><?= esc($text['position']) ?></th><th><?= esc($text['callsign']) ?></th><th class="entities"><?= esc($text['entities']) ?></th></tr>
 <?php foreach ($rows as $row): ?>
-    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc(MAP_VIEWS[RANKING_MODES[$tableMode]['view']]['page'] . '?' . $row['call']) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
+    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc($mapPage . '?' . $row['call']) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
 <?php endforeach; ?>
 </table>
 <?php endif; ?>
@@ -145,5 +205,6 @@ a:hover { text-decoration: underline; }
 <p class="note"><?= esc($text['deleted_note']) ?></p>
 <?php endif; ?>
 <p class="note"><?= esc($text['source']) ?></p>
+<p class="note credit"><?= sprintf(esc($text['credit']), '<a href="' . REPOSITORY_URL . '" target="_blank" rel="noopener">LU2MET</a>') ?></p>
 </body>
 </html>

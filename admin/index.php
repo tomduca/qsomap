@@ -110,7 +110,7 @@ function rankingSection(string $base, string $csrf): string {
     $html = '<h2>Club ranking</h2><form method="post"><input type="hidden" name="csrf" value="' . $csrf . '">'
         . '<input type="hidden" name="action" value="ranking_settings">'
         . '<label><input type="checkbox" name="enabled" value="1"' . ($settings['enabled'] ? ' checked' : '') . '> '
-        . 'Show the ranking of DXCC entities confirmed in LoTW (Phone, CW, RTTY, FT8/FT4)</label>'
+        . 'Show the ranking of DXCC entities confirmed in LoTW (all modes, Phone, CW, RTTY, FT8/FT4)</label>'
         . '<label>Title (e.g. the club name; empty: "DXCC ranking")<input name="title" maxlength="80" value="' . h($settings['title']) . '"></label>'
         . '<label>Default language<select name="lang">' . $languages . '</select></label>'
         . '<button>Save</button></form>'
@@ -118,13 +118,14 @@ function rankingSection(string $base, string $csrf): string {
         . 'download their LoTW confirmations in the nightly sync while the ranking is on. Leave a station out with the <em>Ranking</em> column below.</p>';
     if (!$settings['enabled']) return $html;
     $codes = '';
-    foreach (array_merge(array_keys(RANKING_MODES), ['all']) as $mode) {
+    foreach (array_merge(['all'], array_keys(RANKING_MODES), ['each']) as $mode) {
         $url = "$base/ranking.php?mode=$mode&lang={$settings['lang']}";
-        $codes .= '<iframe src="' . $url . '" width="480" height="' . ($mode === 'all' ? 1600 : 700) . '" frameborder="0"></iframe>' . "\n\n";
+        $codes .= '<iframe src="' . $url . '" width="480" height="' . ($mode === 'each' ? 1600 : 700) . '" frameborder="0"></iframe>' . "\n\n";
     }
     return $html . '<p><a href="' . h("$base/ranking.php") . '" target="_blank" rel="noopener">Open the ranking</a> '
-        . '(add <code>&amp;band=20M</code> for one band, <code>&amp;lang=en|es</code> for the language)</p>'
-        . '<details><summary>Embed codes (one per mode, then all of them)</summary><textarea rows="9" readonly onclick="this.select()">'
+        . '(add <code>&amp;band=20M</code> for one band, <code>&amp;lang=en|es</code> for the language, <code>&amp;theme=light|dark</code> '
+        . 'to fix the colors: by default they follow the light or dark theme of the device, so add <code>&amp;theme=light</code> on a light page such as QRZ.com)</p>'
+        . '<details><summary>Embed codes (all modes in one table, one per mode, then each mode separately)</summary><textarea rows="9" readonly onclick="this.select()">'
         . h(rtrim($codes)) . '</textarea></details>';
 }
 
@@ -133,6 +134,8 @@ function rankingCell(string $call, array $config, string $csrf): string {
     $counts = readJson(QSOMAP_STATIONS . "/$call/data/dxcc_counts.json");
     $optOut = rankingOptOut($config);
     $totals = [];
+    $all = $counts['modes'][RANKING_MIXED]['all'][0] ?? 0;
+    if ($all > 0) $totals[] = "All $all";
     foreach (RANKING_MODES as $mode => $info) {
         $current = $counts['modes'][$mode]['all'][0] ?? 0;
         if ($current > 0) $totals[] = ($mode === 'phone' ? 'Phone' : $info['en']) . " $current";
