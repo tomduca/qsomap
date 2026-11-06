@@ -37,6 +37,8 @@ const RANKING_TEXTS = [
         'deleted_note' => '* Confirmed deleted DXCC entities; they do not count for the position.',
         'source' => 'Data from LoTW, updated every night. Click a callsign to open its map.',
         'off' => 'The ranking is not available.',
+        'switch' => 'Ver en español',
+        'credit' => 'Developed by %s',
     ],
     'es' => [
         'default_title' => 'Ranking DXCC',
@@ -54,9 +56,12 @@ const RANKING_TEXTS = [
         'deleted_note' => '* Entidades DXCC borradas (deleted) confirmadas; no cuentan para el puesto.',
         'source' => 'Datos de LoTW, actualizados cada noche. Haz clic en un indicativo para ver su mapa.',
         'off' => 'El ranking no está disponible.',
+        'switch' => 'View in English',
+        'credit' => 'Desarrollado por %s',
     ],
 ];
 const MODE_ALIASES = ['ssb' => 'phone', 'ft' => 'ft8'];
+const REPOSITORY_URL = 'https://github.com/tomduca/qsomap';
 
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, max-age=0');
@@ -104,6 +109,9 @@ $bands = rankingBands($stations, $modes);
 if ($band !== 'all' && !in_array($band, $bands, true)) $bands[] = $band;
 
 $title = $settings['title'] !== '' ? $settings['title'] : $text['default_title'];
+// Same page in the other language, keeping the mode and band.
+$otherLang = $lang === 'es' ? 'en' : 'es';
+$switchUrl = 'ranking.php?' . http_build_query(['mode' => $mode, 'band' => $band, 'lang' => $otherLang]);
 $bandName = fn(string $band): string => $band === 'all' ? $text['all_bands'] : strtolower($band);
 $hasDeleted = false;
 $tables = [];
@@ -121,7 +129,7 @@ foreach ($modes as $tableMode) {
 <title><?= esc($title) ?></title>
 <style>
 :root { color-scheme: light; }
-body { margin: 0; padding: 12px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #111; background: #fff; }
+body { position: relative; margin: 0; padding: 12px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #111; background: #fff; }
 h1 { font-size: 18px; margin: 0 0 2px; }
 h2 { font-size: 16px; margin: 18px 0 6px; }
 p { margin: 4px 0; }
@@ -136,9 +144,14 @@ td.position, th.position { width: 3em; }
 td.entities, th.entities { text-align: right; white-space: nowrap; }
 a { color: #0645ad; text-decoration: none; }
 a:hover { text-decoration: underline; }
+h1 { padding-right: 48px; }
+.lang-switch { position: absolute; top: 12px; right: 12px; padding: 1px 6px; border: 1px solid #999; border-radius: 3px; color: #333; font-size: 12px; font-weight: bold; }
+.lang-switch:hover { background: #eee; text-decoration: none; }
+.credit { margin-top: 12px; }
 </style>
 </head>
 <body>
+<a class="lang-switch" href="<?= esc($switchUrl) ?>" title="<?= esc($text['switch']) ?>" lang="<?= $otherLang ?>"><?= strtoupper($otherLang) ?></a>
 <h1><?= esc($title) ?></h1>
 <p class="subtitle"><?= esc($text['subtitle']) ?></p>
 <form method="get">
@@ -183,5 +196,6 @@ a:hover { text-decoration: underline; }
 <p class="note"><?= esc($text['deleted_note']) ?></p>
 <?php endif; ?>
 <p class="note"><?= esc($text['source']) ?></p>
+<p class="note credit"><?= sprintf(esc($text['credit']), '<a href="' . REPOSITORY_URL . '" target="_blank" rel="noopener">LU2MET</a>') ?></p>
 </body>
 </html>
