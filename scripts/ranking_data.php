@@ -28,6 +28,14 @@ const RANKING_MODES = [
 ];
 
 /**
+ * Key of the all-modes totals in dxcc_counts.json: entities confirmed in any
+ * mode, PSK and others included, each counted once (as DXCC Mixed). Its
+ * callsign links open the map of QSOs confirmed in LoTW.
+ */
+const RANKING_MIXED = 'mixed';
+const RANKING_MIXED_VIEW = 'qsl';
+
+/**
  * Deleted DXCC entities (ADIF specification, DXCC_Entity_Code enumeration,
  * column "Deleted"). They are confirmed and shown, but do not count for the
  * position. ARRL has not deleted an entity since 2010; new ones are current.
@@ -100,19 +108,21 @@ function storeLotwConfirmations(array $confirmations): int {
 
 /**
  * Entities confirmed per ranking mode and band ('all' = every band), as
- * [current, deleted] counts. Code 0 (no entity, e.g. /MM) is ignored.
+ * [current, deleted] counts, plus RANKING_MIXED for any mode. Code 0 (no
+ * entity, e.g. /MM) is ignored.
  */
 function dxccCounts(array $confirmed): array {
     $deleted = array_flip(DELETED_DXCC);
     $sets = [];
     foreach ($confirmed as $qso) {
-        $mode = rankingMode($qso);
         $code = (int)($qso['DXCC'] ?? 0);
-        if ($mode === null || $code <= 0) continue;
+        if ($code <= 0) continue;
+        $mode = rankingMode($qso);
         $kind = isset($deleted[$code]) ? 1 : 0;
         $band = strtoupper(trim((string)($qso['BAND'] ?? '')));
         foreach ($band !== '' ? ['all', $band] : ['all'] as $key) {
-            $sets[$mode][$key][$kind][$code] = true;
+            $sets[RANKING_MIXED][$key][$kind][$code] = true;
+            if ($mode !== null) $sets[$mode][$key][$kind][$code] = true;
         }
     }
     $counts = [];

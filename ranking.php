@@ -3,14 +3,16 @@
  * Club ranking: DXCC entities confirmed in LoTW per station, as plain tables
  * meant to be embedded with an iframe (QRZ.com, a blog, any web page).
  *
+ *   ranking.php                    one table of entities in any mode (default; also mode=all)
  *   ranking.php?mode=cw            one mode: phone, cw, rtty or ft8 (FT8/FT4)
- *   ranking.php?mode=all           every mode someone has entities in, one table each (default)
+ *   ranking.php?mode=each          one table per mode someone has entities in
  *   &band=20M                      one band instead of all of them
  *   &lang=es                       Spanish or English (default: set in admin/)
  *
  * Positions count current entities only; confirmed deleted entities are shown
  * next to the total and explained in a footnote. Each callsign opens that
- * station's interactive map of the mode. The mode and band menus only offer
+ * station's interactive map of the mode (the map of confirmed QSOs for the
+ * all-modes table). The mode and band menus only offer
  * what the stations have confirmed. The page needs no JavaScript: the menus
  * submit themselves when scripts run and have a button otherwise. The
  * manager turns the ranking on in admin/; while it is off this answers 404.
@@ -25,6 +27,7 @@ const RANKING_TEXTS = [
         'all_bands' => 'All bands',
         'band' => 'Band',
         'all_modes' => 'All modes',
+        'each_mode' => 'Each mode separately',
         'mode' => 'Mode',
         'show' => 'Show',
         'position' => '#',
@@ -41,6 +44,7 @@ const RANKING_TEXTS = [
         'all_bands' => 'Todas las bandas',
         'band' => 'Banda',
         'all_modes' => 'Todos los modos',
+        'each_mode' => 'Cada modo por separado',
         'mode' => 'Modo',
         'show' => 'Ver',
         'position' => '#',
@@ -81,14 +85,17 @@ $modeOptions = array_values(array_filter(array_keys(RANKING_MODES), function (st
     }
     return false;
 }));
+// mode: 'all' (one table, any mode), 'each' (a table per mode) or one mode.
 $mode = strtolower((string)($_GET['mode'] ?? 'all'));
 $mode = MODE_ALIASES[$mode] ?? $mode;
 if (isset(RANKING_MODES[$mode])) {
     $modes = [$mode];
     $modeOptions = array_values(array_intersect(array_keys(RANKING_MODES), array_merge($modeOptions, [$mode])));
+} elseif ($mode === 'each') {
+    $modes = $modeOptions;
 } else {
     $mode = 'all';
-    $modes = $modeOptions;
+    $modes = [RANKING_MIXED];
 }
 $band = strtoupper(trim((string)($_GET['band'] ?? '')));
 if (!preg_match('/^(\d+(\.\d+)?(M|CM|MM)|SUBMM)$/', $band)) $band = 'all';
@@ -139,6 +146,7 @@ a:hover { text-decoration: underline; }
     <label><?= esc($text['mode']) ?>
         <select name="mode" onchange="this.form.submit()">
             <option value="all"><?= esc($text['all_modes']) ?></option>
+            <option value="each"<?= $mode === 'each' ? ' selected' : '' ?>><?= esc($text['each_mode']) ?></option>
 <?php foreach ($modeOptions as $option): ?>
             <option value="<?= $option ?>"<?= $option === $mode ? ' selected' : '' ?>><?= esc(RANKING_MODES[$option][$lang]) ?></option>
 <?php endforeach; ?>
@@ -158,14 +166,15 @@ a:hover { text-decoration: underline; }
 <p class="note"><?= esc($text['empty']) ?></p>
 <?php endif; ?>
 <?php foreach ($tables as $tableMode => $rows): ?>
-<h2><?= esc(RANKING_MODES[$tableMode][$lang]) ?> · <?= esc($bandName($band)) ?></h2>
+<?php $mapPage = MAP_VIEWS[$tableMode === RANKING_MIXED ? RANKING_MIXED_VIEW : RANKING_MODES[$tableMode]['view']]['page']; ?>
+<h2><?= esc($tableMode === RANKING_MIXED ? $text['all_modes'] : RANKING_MODES[$tableMode][$lang]) ?> · <?= esc($bandName($band)) ?></h2>
 <?php if (!$rows): ?>
 <p class="note"><?= esc($text['empty']) ?></p>
 <?php else: ?>
 <table>
     <tr><th class="position"><?= esc($text['position']) ?></th><th><?= esc($text['callsign']) ?></th><th class="entities"><?= esc($text['entities']) ?></th></tr>
 <?php foreach ($rows as $row): ?>
-    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc(MAP_VIEWS[RANKING_MODES[$tableMode]['view']]['page'] . '?' . $row['call']) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
+    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc($mapPage . '?' . $row['call']) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
 <?php endforeach; ?>
 </table>
 <?php endif; ?>
