@@ -53,6 +53,13 @@ const BAND_ORDER = [
     '1.25CM', '6MM', '4MM', '2.5MM', '2MM', '1MM', 'SUBMM',
 ];
 
+/**
+ * Format of dxcc_counts.json. Bump it when dxccCounts() changes: totals of an
+ * older format are recounted from lotw_confirmed.json the next time the
+ * ranking is shown, so no station has to sync again.
+ */
+const COUNTS_VERSION = 2;
+
 /** Fields kept from each LoTW confirmation: enough to count entities by mode and band. */
 const CONFIRMED_FIELDS = ['CALL', 'QSO_DATE', 'TIME_ON', 'BAND', 'MODE', 'SUBMODE', 'DXCC', 'QSL_RCVD'];
 
@@ -131,7 +138,7 @@ function dxccCounts(array $confirmed): array {
             $counts[$mode][$band] = [count($kinds[0] ?? []), count($kinds[1] ?? [])];
         }
     }
-    return ['generated' => date('Y-m-d H:i:s'), 'modes' => $counts];
+    return ['version' => COUNTS_VERSION, 'generated' => date('Y-m-d H:i:s'), 'modes' => $counts];
 }
 
 /**
@@ -159,7 +166,15 @@ function rankingStations(): array {
     foreach (stationList() as $call) {
         $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
         if (rankingOptOut($config)) continue;
-        $counts = readJson(QSOMAP_STATIONS . "/$call/data/dxcc_counts.json");
+        $file = QSOMAP_STATIONS . "/$call/data/dxcc_counts.json";
+        $counts = readJson($file);
+        if ($counts !== null && ($counts['version'] ?? 1) < COUNTS_VERSION) {
+            $confirmed = readJson(QSOMAP_STATIONS . "/$call/data/lotw_confirmed.json");
+            if ($confirmed !== null) {
+                $counts = dxccCounts($confirmed);
+                writeJson($file, $counts);
+            }
+        }
         if ($counts !== null) $stations[$call] = $counts['modes'] ?? [];
     }
     return $stations;
