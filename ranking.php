@@ -4,14 +4,15 @@
  * meant to be embedded with an iframe (QRZ.com, a blog, any web page).
  *
  *   ranking.php?mode=cw            one mode: phone, cw, rtty or ft8 (FT8/FT4)
- *   ranking.php?mode=all           the four modes, one table each (default)
+ *   ranking.php?mode=all           every mode someone has entities in, one table each (default)
  *   &band=20M                      one band instead of all of them
  *   &lang=es                       Spanish or English (default: set in admin/)
  *
  * Positions count current entities only; confirmed deleted entities are shown
  * next to the total and explained in a footnote. Each callsign opens that
- * station's interactive map of the mode. The page needs no JavaScript: the
- * band menu submits itself when scripts run and has a button otherwise. The
+ * station's interactive map of the mode. The mode and band menus only offer
+ * what the stations have confirmed. The page needs no JavaScript: the menus
+ * submit themselves when scripts run and have a button otherwise. The
  * manager turns the ranking on in admin/; while it is off this answers 404.
  */
 
@@ -23,6 +24,8 @@ const RANKING_TEXTS = [
         'subtitle' => 'DXCC entities confirmed in LoTW',
         'all_bands' => 'All bands',
         'band' => 'Band',
+        'all_modes' => 'All modes',
+        'mode' => 'Mode',
         'show' => 'Show',
         'position' => '#',
         'callsign' => 'Callsign',
@@ -37,6 +40,8 @@ const RANKING_TEXTS = [
         'subtitle' => 'Entidades DXCC confirmadas en LoTW',
         'all_bands' => 'Todas las bandas',
         'band' => 'Banda',
+        'all_modes' => 'Todos los modos',
+        'mode' => 'Modo',
         'show' => 'Ver',
         'position' => '#',
         'callsign' => 'Indicativo',
@@ -67,14 +72,27 @@ if (!$settings['enabled']) {
     exit;
 }
 
+$stations = rankingStations();
+// Modes in the menu: those some station has a current entity in. A mode
+// asked for in the URL (e.g. an embed) is kept even while it is empty.
+$modeOptions = array_values(array_filter(array_keys(RANKING_MODES), function (string $option) use ($stations): bool {
+    foreach ($stations as $counts) {
+        if (($counts[$option]['all'][0] ?? 0) > 0) return true;
+    }
+    return false;
+}));
 $mode = strtolower((string)($_GET['mode'] ?? 'all'));
 $mode = MODE_ALIASES[$mode] ?? $mode;
-$modes = isset(RANKING_MODES[$mode]) ? [$mode] : array_keys(RANKING_MODES);
-if (count($modes) > 1) $mode = 'all';
+if (isset(RANKING_MODES[$mode])) {
+    $modes = [$mode];
+    $modeOptions = array_values(array_intersect(array_keys(RANKING_MODES), array_merge($modeOptions, [$mode])));
+} else {
+    $mode = 'all';
+    $modes = $modeOptions;
+}
 $band = strtoupper(trim((string)($_GET['band'] ?? '')));
 if (!preg_match('/^(\d+(\.\d+)?(M|CM|MM)|SUBMM)$/', $band)) $band = 'all';
 
-$stations = rankingStations();
 $bands = rankingBands($stations, $modes);
 if ($band !== 'all' && !in_array($band, $bands, true)) $bands[] = $band;
 
@@ -102,6 +120,7 @@ h2 { font-size: 16px; margin: 18px 0 6px; }
 p { margin: 4px 0; }
 .subtitle, .note { color: #555; font-size: 12px; }
 form { margin: 8px 0 0; }
+label { display: inline-block; margin: 0 12px 4px 0; }
 select, button { font: inherit; }
 table { border-collapse: collapse; width: 100%; max-width: 480px; }
 th, td { padding: 4px 8px; border-bottom: 1px solid #ddd; text-align: left; }
@@ -116,8 +135,15 @@ a:hover { text-decoration: underline; }
 <h1><?= esc($title) ?></h1>
 <p class="subtitle"><?= esc($text['subtitle']) ?></p>
 <form method="get">
-    <input type="hidden" name="mode" value="<?= esc($mode) ?>">
     <input type="hidden" name="lang" value="<?= esc($lang) ?>">
+    <label><?= esc($text['mode']) ?>
+        <select name="mode" onchange="this.form.submit()">
+            <option value="all"><?= esc($text['all_modes']) ?></option>
+<?php foreach ($modeOptions as $option): ?>
+            <option value="<?= $option ?>"<?= $option === $mode ? ' selected' : '' ?>><?= esc(RANKING_MODES[$option][$lang]) ?></option>
+<?php endforeach; ?>
+        </select>
+    </label>
     <label><?= esc($text['band']) ?>
         <select name="band" onchange="this.form.submit()">
             <option value="all"><?= esc($text['all_bands']) ?></option>
@@ -128,6 +154,9 @@ a:hover { text-decoration: underline; }
     </label>
     <noscript><button><?= esc($text['show']) ?></button></noscript>
 </form>
+<?php if (!$tables): ?>
+<p class="note"><?= esc($text['empty']) ?></p>
+<?php endif; ?>
 <?php foreach ($tables as $tableMode => $rows): ?>
 <h2><?= esc(RANKING_MODES[$tableMode][$lang]) ?> · <?= esc($bandName($band)) ?></h2>
 <?php if (!$rows): ?>
