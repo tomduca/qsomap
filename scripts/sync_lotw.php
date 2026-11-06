@@ -5,8 +5,9 @@
  * lotw_confirmed.json for the club ranking (see ranking_data.php).
  *
  * Follows ARRL's guidance for automated downloads: the first run downloads
- * the whole log; later runs only ask for what changed, using the timestamps
- * LoTW returns in each report header:
+ * the whole log (since FULL_SINCE: without a date LoTW only returns what is
+ * new since the account's previous query); later runs only ask for what
+ * changed, using the timestamps LoTW returns in each report header:
  *   - qso_qsorxsince: QSOs uploaded since the last run, confirmed or not
  *   - qso_qslsince:   new confirmations since the last run, including old QSOs
  * Results are merged into qso_data.json, so LoTW works both as the only source
@@ -23,6 +24,8 @@
 require __DIR__ . '/ranking_data.php';
 useStation(requireCliOrToken(true));
 set_time_limit(900);
+
+const FULL_SINCE = '1900-01-01';
 
 $confirmationsOnly = PHP_SAPI === 'cli' && in_array('--confirmations-only', $argv ?? [], true);
 $lotw = loadConfig()['lotw'] ?? [];
@@ -62,7 +65,8 @@ if ($incremental) {
     $confirmationsSince = ['qso_qslsince' => $state['qsl']];
 } else {
     echo "=== LoTW full $what: $username (whole log, this can take several minutes) ===\n";
-    $uploadsSince = $confirmationsSince = [];
+    $uploadsSince = ['qso_qsorxsince' => FULL_SINCE];
+    $confirmationsSince = ['qso_qslsince' => FULL_SINCE];
 }
 
 $uploads = $confirmationsOnly ? null : lotwReport($query + ['qso_qsl' => 'no'] + $uploadsSince);
