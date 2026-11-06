@@ -2,6 +2,8 @@
 # Daily sync, meant for Cron: shared data first (DXCC list, update check), then
 # every station one after the other: Clublog (LoTW as fallback), then its map
 # cache and, if missing or older than its config, its static map background.
+# While the club ranking is on, stations synced from Clublog also download
+# their LoTW confirmations, the only source of the ranking.
 # Stations never sync at the same time, so the load is that of one map.
 # Usage: /bin/bash /path/to/qsomap/scripts/sync_daily.sh [CALL]
 #   CALL: sync only that station (default: all of them)
@@ -69,6 +71,9 @@ status=0
     "$PHP_BIN" "$SCRIPT_DIR/check_update.php" || echo "Update check failed, will retry tomorrow"
 } >> "$LOGFILE" 2>&1 || exit 1
 
+RANKING_ON=0
+"$PHP_BIN" -r 'require $argv[1]; exit(rankingSettings()["enabled"] ? 0 : 1);' "$SCRIPT_DIR/ranking_data.php" 2>/dev/null && RANKING_ON=1
+
 for config in "$STATIONS_DIR"/*/config.json; do
     [ -f "$config" ] || continue
     call="$(basename "$(dirname "$config")")"
@@ -82,6 +87,9 @@ for config in "$STATIONS_DIR"/*/config.json; do
         if ! "$PHP_BIN" "$SCRIPT_DIR/sync_clublog.php"; then
             echo "Clublog sync failed, falling back to LoTW..."
             "$PHP_BIN" "$SCRIPT_DIR/sync_lotw.php" || station_status=1
+        elif [ "$RANKING_ON" -eq 1 ]; then
+            # The map comes from Clublog; the ranking only counts LoTW confirmations.
+            "$PHP_BIN" "$SCRIPT_DIR/sync_lotw.php" --confirmations-only || echo "LoTW confirmations for the ranking failed, will retry tomorrow"
         fi
         "$PHP_BIN" "$SCRIPT_DIR/build_cache.php" || station_status=1
         # Static map background: create it if the portal's first sync did not

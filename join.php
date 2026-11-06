@@ -19,8 +19,6 @@ require __DIR__ . '/scripts/join_texts.php';
 const MAX_ATTEMPTS = 5;
 const FIRST_SYNC_SECONDS = 2 * 3600;
 const LOOKUPS_PER_BATCH = 40; // about 20-30 s per build_cache.php request
-const DEFAULT_YEARS = 5;      // how far back the first LoTW download goes
-const MAX_YEARS = 25;         // LoTW started in 2003
 
 portalHeaders();
 $lang = language();
@@ -46,7 +44,7 @@ if ($key !== '') {
 $values = [];
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach (['callsign', 'code', 'grid', 'static_mode', 'years', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
+    foreach (['callsign', 'code', 'grid', 'static_mode', 'lotw_password', 'hamqth_username', 'hamqth_password'] as $field) {
         $values[$field] = trim((string)($_POST[$field] ?? ''));
     }
     $call = normalizeCall($values['callsign']);
@@ -56,9 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!preg_match('/^\d{6}$/', $values['code'])) $errors[] = t('error_code_format');
     if (gridCentre($grid) === null) $errors[] = t('error_grid');
     if (!isset(MAP_VIEWS[$values['static_mode']])) $errors[] = t('error_static_mode');
-    if (!ctype_digit($values['years']) || (int)$values['years'] < 1 || (int)$values['years'] > MAX_YEARS) {
-        $errors[] = t('error_years', MAX_YEARS);
-    }
     if ($values['lotw_password'] === '') $errors[] = t('error_lotw_password');
     if (($values['hamqth_username'] === '') !== ($values['hamqth_password'] === '')) {
         $errors[] = t('error_hamqth');
@@ -162,7 +157,7 @@ function createStation(string $call, string $grid, array $values): ?string {
     $existed = stationExists($call);
     $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
     $config['map'] = ['my_callsign' => $call, 'my_grid' => $grid, 'static_mode' => $values['static_mode']];
-    $config['lotw'] = ['username' => $call, 'password' => $values['lotw_password'], 'days_back' => (int)round((int)$values['years'] * 365.25)];
+    $config['lotw'] = ['username' => $call, 'password' => $values['lotw_password']];
     if ($values['hamqth_username'] !== '') {
         $config['hamqth'] = ['username' => $values['hamqth_username'], 'password' => $values['hamqth_password']];
     }
@@ -188,9 +183,6 @@ function lotwLoginWorks(string $username, string $password): bool {
 function joinForm(array $values, array $errors): string {
     $v = [];
     foreach (['callsign', 'code', 'grid', 'hamqth_username'] as $field) $v[$field] = h($values[$field] ?? '');
-    $v['years'] = h($values['years'] ?? (string)DEFAULT_YEARS);
-    $maxYears = MAX_YEARS;
-    $defaultYears = DEFAULT_YEARS;
     $views = viewSelect('static_mode', $values['static_mode'] ?? DEFAULT_STATIC_VIEW, ['ssb' => t('view_ssb'), 'qsl' => t('view_qsl')]);
     $html = '';
     foreach ($errors as $error) $html .= '<p class="error">' . h($error) . '</p>';
@@ -212,8 +204,7 @@ function joinForm(array $values, array $errors): string {
   <fieldset>
     <legend>LoTW</legend>
     <p class="note">{$text('lotw_username')}</p>
-    <label>{$text('years')} <input type="number" name="years" value="{$v['years']}" min="1" max="{$maxYears}" required></label>
-    <p class="note">{$text('years_note', $defaultYears)}</p>
+    <p class="note">{$text('download_note')}</p>
     <label>{$text('lotw_password')} <input type="password" name="lotw_password" autocomplete="new-password" required></label>
     <p class="note">{$text('lotw_note')}</p>
   </fieldset>

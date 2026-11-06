@@ -2,7 +2,8 @@
 /**
  * Manager portal: create invites for new stations, see and cancel pending
  * ones, list the stations with their status, choose what each static map
- * shows, delete a station, and read the event log.
+ * shows, turn the club ranking on or off (with its title and language) and
+ * leave stations out of it, delete a station, and read the event log.
  *
  * The folder must be password-protected by the web server (cPanel →
  * Directory Privacy, i.e. HTTP Basic auth). The page refuses to work if the
@@ -11,6 +12,7 @@
  */
 
 require dirname(__DIR__) . '/scripts/common.php';
+require dirname(__DIR__) . '/scripts/ranking_data.php';
 require dirname(__DIR__) . '/scripts/portal.php';
 
 const INVITE_SECONDS = 48 * 3600;
@@ -38,7 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $call = normalizeCall((string)($_POST['callsign'] ?? ''));
     $action = (string)($_POST['action'] ?? '');
-    if ($call === null) {
+    if ($action === 'ranking_settings') {
+        $enabled = !empty($_POST['enabled']);
+        writeRankingSettings(['enabled' => $enabled, 'title' => (string)($_POST['title'] ?? ''), 'lang' => (string)($_POST['lang'] ?? '')]);
+        logEvent('ranking ' . ($enabled ? 'enabled' : 'disabled') . " by $user");
+        $_SESSION['flash'] = ['message' => 'Ranking settings saved.'];
+    } elseif ($call === null) {
         $_SESSION['flash'] = ['error' => 'Enter a callsign without prefixes or suffixes (e.g. LU9XYZ, not LU9XYZ/P).'];
     } elseif ($action === 'invite') {
         $_SESSION['flash'] = ['invite' => createInvite($call, $user)];
@@ -50,6 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setStaticView($call, $view);
         logEvent("static map of $call set to " . MAP_VIEWS[$view]['name'] . ", by $user");
         $_SESSION['flash'] = ['message' => "The static map of $call now shows " . MAP_VIEWS[$view]['name'] . '.'];
+    } elseif ($action === 'ranking_opt_out' && stationExists($call)) {
+        $optOut = !empty($_POST['opt_out']);
+        setRankingOptOut($call, $optOut);
+        logEvent("$call " . ($optOut ? 'left out of' : 'back in') . " the ranking, by $user");
+        $_SESSION['flash'] = ['message' => "$call is " . ($optOut ? 'no longer shown' : 'shown again') . ' in the ranking.'];
     } elseif ($action === 'delete' && stationExists($call)) {
         deleteStation($call);
         logEvent("station deleted: $call, by $user");
@@ -79,6 +91,57 @@ function setStaticView(string $call, string $view): void {
     $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
     $config['map']['static_mode'] = $view;
     writeStationConfig($call, $config);
+}
+
+/** Set or clear ranking.opt_out in a station's config.json, keeping everything else. */
+function setRankingOptOut(string $call, bool $optOut): void {
+    $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
+    $config['ranking']['opt_out'] = $optOut;
+    writeStationConfig($call, $config);
+}
+
+/** The club ranking: on/off, title and language, and its embed codes while on. */
+function rankingSection(string $base, string $csrf): string {
+    $settings = rankingSettings();
+    $languages = '';
+    foreach (['en' => 'English', 'es' => 'Español'] as $lang => $name) {
+        $languages .= '<option value="' . $lang . '"' . ($settings['lang'] === $lang ? ' selected' : '') . '>' . $name . '</option>';
+    }
+    $html = '<h2>Club ranking</h2><form method="post"><input type="hidden" name="csrf" value="' . $csrf . '">'
+        . '<input type="hidden" name="action" value="ranking_settings">'
+        . '<label><input type="checkbox" name="enabled" value="1"' . ($settings['enabled'] ? ' checked' : '') . '> '
+        . 'Show the ranking of DXCC entities confirmed in LoTW (Phone, CW, RTTY, FT8/FT4)</label>'
+        . '<label>Title (e.g. the club name; empty: "DXCC ranking")<input name="title" maxlength="80" value="' . h($settings['title']) . '"></label>'
+        . '<label>Default language<select name="lang">' . $languages . '</select></label>'
+        . '<button>Save</button></form>'
+        . '<p class="note">Every QSO confirmed in LoTW counts, whatever its grid; nothing comes from Clublog. Stations synced from Clublog '
+        . 'download their LoTW confirmations in the nightly sync while the ranking is on. Leave a station out with the <em>Ranking</em> column below.</p>';
+    if (!$settings['enabled']) return $html;
+    $codes = '';
+    foreach (array_merge(array_keys(RANKING_MODES), ['all']) as $mode) {
+        $url = "$base/ranking.php?mode=$mode&lang={$settings['lang']}";
+        $codes .= '<iframe src="' . $url . '" width="480" height="' . ($mode === 'all' ? 1600 : 700) . '" frameborder="0"></iframe>' . "\n\n";
+    }
+    return $html . '<p><a href="' . h("$base/ranking.php") . '" target="_blank" rel="noopener">Open the ranking</a> '
+        . '(add <code>&amp;band=20M</code> for one band, <code>&amp;lang=en|es</code> for the language)</p>'
+        . '<details><summary>Embed codes (one per mode, then all of them)</summary><textarea rows="9" readonly onclick="this.select()">'
+        . h(rtrim($codes)) . '</textarea></details>';
+}
+
+/** Ranking column of a station: its entity totals and the button to leave it out or bring it back. */
+function rankingCell(string $call, array $config, string $csrf): string {
+    $counts = readJson(QSOMAP_STATIONS . "/$call/data/dxcc_counts.json");
+    $optOut = rankingOptOut($config);
+    $totals = [];
+    foreach (RANKING_MODES as $mode => $info) {
+        $current = $counts['modes'][$mode]['all'][0] ?? 0;
+        if ($current > 0) $totals[] = ($mode === 'phone' ? 'Phone' : $info['en']) . " $current";
+    }
+    $status = $counts === null ? 'no LoTW confirmations yet' : ($totals ? implode(' · ', $totals) : 'no entities yet');
+    return ($optOut ? '<strong>Left out</strong><br>' : '') . '<span class="note">' . h($status) . '</span><br>'
+        . '<form method="post" class="inline"><input type="hidden" name="csrf" value="' . $csrf . '">'
+        . '<input type="hidden" name="action" value="ranking_opt_out"><input type="hidden" name="callsign" value="' . h($call) . '">'
+        . '<input type="hidden" name="opt_out" value="' . ($optOut ? '' : '1') . '"><button>' . ($optOut ? 'Show in ranking' : 'Leave out') . '</button></form>';
 }
 
 /** Remove stations/<CALL>/ with its config (credentials included) and data. */
@@ -177,13 +240,14 @@ function portalPage(array $flash, string $csrf): string {
             . h(lastSyncResult($call)) . '</td><td>' . $viewForm . '</td><td><a href="' . h("$base/" . MAP_VIEWS[$view]['page'] . "?$call") . '" target="_blank" rel="noopener">Map</a> · '
             . '<a href="' . h("$base/map-qrz.php?$call") . '" target="_blank" rel="noopener">QRZ</a>'
             . '<details><summary>Embed codes</summary><textarea rows="4" readonly onclick="this.select()">' . h($embed['qrz'] . "\n\n" . $embed['github'])
-            . '</textarea></details></td><td>'
+            . '</textarea></details></td><td>' . rankingCell($call, $config, $csrf) . '</td><td>'
             . $form('delete', $call, 'Delete', "Delete $call? Its settings, passwords and QSOs are removed from this server. This cannot be undone.")
             . '</td></tr>';
     }
-    $html .= '<h2>Stations</h2>' . ($rows ? '<div class="table-wrap"><table><tr><th>Station</th><th>Sources</th><th>Map</th><th>Last sync</th><th>Static map</th><th>Links</th><th></th></tr>'
+    $html .= '<h2>Stations</h2>' . ($rows ? '<div class="table-wrap"><table><tr><th>Station</th><th>Sources</th><th>Map</th><th>Last sync</th><th>Static map</th><th>Links</th><th>Ranking</th><th></th></tr>'
         . $rows . '</table></div>' : '<p class="note">No stations yet.</p>');
 
+    $html .= rankingSection($base, $csrf);
     $html .= storageNotes();
 
     $events = array_slice(@file(QSOMAP_DATA . '/events.log', FILE_IGNORE_NEW_LINES) ?: [], -40);

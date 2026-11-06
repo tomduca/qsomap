@@ -25,6 +25,7 @@ The maps take the station's callsign in the query string; one set of pages serve
 | Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-cw.html`, `map-rtty.html`, `map-ft.html` for FT8/FT4, and `map-qsl.html` for confirmed QSOs in any mode) |
 | Static map for QRZ.com | `https://your-domain.com/qsomap/map-qrz.php?LU9XYZ` |
 | Image for a GitHub README | `https://your-domain.com/qsomap/map-github.php?LU9XYZ` |
+| Club ranking (all stations) | `https://your-domain.com/qsomap/ranking.php?mode=cw` (see step 9) |
 
 Until version 2.0 the static maps were `map-ssb-qrz.php` and `map-ssb-github.php`; those URLs still work and show the same maps.
 
@@ -61,7 +62,7 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 ```json
 {
   "map":     { "my_callsign": "LU2MET", "my_grid": "FF57oc" },
-  "lotw":    { "username": "LU2MET", "password": "...", "days_back": 1825 },
+  "lotw":    { "username": "LU2MET", "password": "..." },
   "clublog": { "email": "...", "password": "...", "api_key": "...", "callsign": "LU2MET" },
   "hamqth":  { "username": "...", "password": "..." }
 }
@@ -69,7 +70,7 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 
 - **map:** the station's callsign (as the folder name, upper case, no `/P`) and grid (4, 6 or 8 characters).
 - **Clublog:** `password` is an *application password* created in your Clublog settings, not your account password. `api_key` can be requested at [clublog.org/need_api.php](https://clublog.org/need_api.php).
-- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section. `days_back` limits how far back the first download goes: **1825 days (5 years) by default**. More years means a longer first sync, since every new QSO needs a grid lookup; later runs are incremental. Changing it later has no effect unless you force a full download (see Troubleshooting).
+- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section, and always for the club ranking (step 9). The first download brings the **whole log**: with many thousands of QSOs it can take several minutes, plus the grid lookups of every QSO; later runs are incremental. Before version 2.2.0 the first download was limited by `days_back` (5 years by default); that setting is now ignored, and each station downloads its whole log once more on its next LoTW sync.
 - **HamQTH:** optional but recommended. Without it, missing grids are looked up on Spothole only.
 
 To check that the configs are not reachable, open `https://your-domain.com/qsomap/config.json` (must return **403**) and `https://your-domain.com/qsomap/stations/LU2MET/config.json` (must return **403** or **404**).
@@ -81,7 +82,7 @@ A station without a `clublog` section syncs from LoTW: the daily sync tries Club
 - Only QSOs uploaded to LoTW (signed with TQSL) are downloaded.
 - LoTW includes the other station's grid only for confirmed QSOs; unconfirmed ones get their grid from HamQTH/Spothole (the station's registered home grid, which may differ from where it operated).
 
-Following ARRL's guidance for automated downloads, only the first LoTW sync downloads everything. Later runs ask only for QSOs uploaded since the last run (`qso_qsorxsince`) and for new confirmations (`qso_qslsince`, which also catches old QSOs confirmed recently), using the timestamps LoTW returns. They are stored in `stations/<CALL>/data/lotw_last_sync.json`.
+Following ARRL's guidance for automated downloads, only the first LoTW sync downloads everything (the whole log, since version 2.2.0). Later runs ask only for QSOs uploaded since the last run (`qso_qsorxsince`) and for new confirmations (`qso_qslsince`, which also catches old QSOs confirmed recently), using the timestamps LoTW returns. They are stored in `stations/<CALL>/data/lotw_last_sync.json`.
 
 ### Protecting stored passwords
 
@@ -198,7 +199,7 @@ To test without waiting for the night, set the job a couple of minutes ahead (Cr
 2. Checks GitHub for a newer QSO Map version (see *Update notice* below).
 3. Then, for each folder in `stations/`, **one station at a time**:
    1. Syncs from Clublog (incremental, with a 2-day overlap).
-   2. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result.
+   2. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result. If Clublog works and the club ranking is on, downloads only the station's new LoTW confirmations, for the ranking (a station without LoTW credentials is skipped and stays out of it).
    3. Rebuilds the station's `qso_cache.json`, reusing grids found in earlier runs and dropping grids that do not match the QSO's DXCC entity (see *Grid check* below).
 4. Logs the shared steps, and one line per station, to `data/sync.log`; each station's details go to `stations/<CALL>/data/sync.log`.
 
@@ -265,7 +266,7 @@ GitHub serves remote images through its own cache (camo). The PHP sends `Cache-C
 
 Two pages let you add stations without receiving anyone's password and without touching files:
 
-- **`admin/`**, your portal: create invites, see pending ones, list the stations with their status and embed codes, delete a station, and read the event log.
+- **`admin/`**, your portal: create invites, see pending ones, list the stations with their status and embed codes, turn the club ranking on and leave stations out of it (step 9), delete a station, and read the event log.
 - **`join.php`**, public: the invited station enters its callsign, the code, its grid and its passwords, and the page sets up its map by itself.
 
 ### Protect the admin portal
@@ -278,10 +279,10 @@ As a safety net, the portal refuses to work if the server reports no logged-in u
 
 1. In `admin/`, enter the station's base callsign (`LU9XYZ`, not `LU9XYZ/P`) and press *Create code*. The portal shows a 6-digit code **once**, with a message ready to send.
 2. Send that message to the station (e.g. by WhatsApp). The code works only together with that callsign, for 48 hours and one use; after 5 failed attempts (wrong code, or a LoTW login that fails) it is cancelled. Create a new one if needed.
-3. The station opens `join.php` and enters its callsign, the code, its grid, which QSOs its static map shows (SSB by default; CW, RTTY, FT8/FT4 or confirmed in LoTW), how many years of QSOs to load (5 by default, up to 25; the form warns that with many QSOs the setup takes many minutes), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
+3. The station opens `join.php` and enters its callsign, the code, its grid, which QSOs its static map shows (SSB by default; CW, RTTY, FT8/FT4 or confirmed in LoTW), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
    - The **LoTW username must be the callsign**, and the login is checked against LoTW before saving: only the owner of that LoTW account can create the map for that callsign, even if someone else gets hold of the code.
    - **HamQTH** is optional but strongly recommended on the form: LoTW only gives the grid of confirmed QSOs, so with HamQTH lookups many more QSOs show up. Their HamQTH account is used only for their map, as yours is only for yours.
-4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download, grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
+4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download of the whole log (the form warns that with many QSOs this takes many minutes), grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
 5. At the end the page shows the map's address and the QRZ.com and GitHub embed codes.
 
 Nothing is left for you to do: the daily Cron job (step 5) picks up the new station. Stations created through the portal sync from **LoTW only**; the daily sync logs `Clublog credentials not configured` and uses LoTW, which is expected.
@@ -305,6 +306,23 @@ Tell the station owner what they are entrusting to the server:
 - Recommend a password they use only for LoTW. Whoever runs the server can technically read it, even when encrypted (the key is on the same server), so the portal avoids sending the password to you by mail or chat, but it does not hide it from the server's administrator. To revoke access at any time they change their LoTW password.
 - All stations' files are read by the same hosting account. A security flaw in any script, or a leaked hosting login, would expose every station's passwords at once, not just one. That is why each station should use passwords it uses nowhere else.
 
+## 9. Club ranking
+
+`ranking.php` ranks the stations by DXCC entities confirmed in LoTW, one plain table per mode, to embed with an iframe on QRZ.com, a blog or the club's website.
+
+- **Turn it on** in the *Club ranking* section of `admin/`: tick the box, optionally set a title (e.g. the club's name) and the default language, and save. While it is off, `ranking.php` answers 404 and the nightly sync downloads nothing extra.
+- **Modes:** Phone (SSB, AM, FM), CW, RTTY and FT8/FT4. `ranking.php?mode=phone|cw|rtty|ft8` shows one; `mode=all` (the default) shows the four tables on one page. Every table can show all bands or one band, chosen from the menu at the top (or `&band=20M`). `&lang=en|es` overrides the default language.
+- **What counts:** every QSO confirmed in LoTW, whatever its grid (QSOs without a grid, or with one dropped by the grid check, are not on the map but do count). Nothing comes from Clublog, not even for stations synced from it. A station's position counts current DXCC entities only; confirmed **deleted** entities are shown next to the total as `(+3*)`, with a footnote. Equal totals share the position (1, 1, 3), and stations with no entity in that mode or band are not listed.
+- **Links:** each callsign opens that station's interactive map of the mode (`map-ssb.html`, `map-cw.html`, `map-rtty.html` or `map-ft.html`) in a new tab.
+- **Leaving a station out:** in the *Stations* table of `admin/`, the *Ranking* column shows its totals and a *Leave out* button (it sets `ranking.opt_out` in its `config.json`; *Show in ranking* undoes it). It takes effect right away.
+- **Embed codes** for each mode and for the four together are in the *Club ranking* section once it is on, e.g.:
+
+  ```html
+  <iframe src="https://your-domain.com/qsomap/ranking.php?mode=cw&lang=es" width="480" height="700" frameborder="0"></iframe>
+  ```
+
+**Data.** `sync_lotw.php` keeps each station's LoTW confirmations in `stations/<CALL>/data/lotw_confirmed.json` and writes its totals by mode and band to `dxcc_counts.json`; `ranking.php` only reads those totals. Stations synced from LoTW get them on every sync; stations synced from Clublog get them from a confirmations-only LoTW download (`sync_lotw.php --confirmations-only`) that `sync_daily.sh` runs while the ranking is on. The settings are in `data/ranking_settings.json`. The list of deleted entities comes from the ADIF specification and is part of `scripts/ranking_data.php`.
+
 ## Upgrading from version 1 (one station per installation)
 
 Version 2 keeps each station in `stations/<CALL>/`. To upgrade, upload the new files over the old ones, keeping `config.json` and `data/`. The next daily sync (or `scripts/migrate_to_stations.php?token=YOUR_TOKEN`, to do it right away) moves your station once:
@@ -327,6 +345,7 @@ Until it runs, the maps show *No station selected*.
 - [ ] Changing that mode in `admin/` changes the points and the box of `map-qrz.php?LU2MET`; the old `map-ssb-qrz.php?LU2MET` shows the same.
 - [ ] `map-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.
 - [ ] Cron ran and added a `CALL: sync complete` line per station to `data/sync.log`.
+- [ ] With the ranking on, `ranking.php?mode=cw` lists the stations with CW entities, the band menu changes the table, and a callsign opens `map-cw.html?CALL`; a station left out in `admin/` disappears from it. With the ranking off it returns 404.
 
 ## Troubleshooting
 
@@ -344,6 +363,7 @@ Until it runs, the maps show *No station selected*.
 | `is not a PHP CLI binary` in the log | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). |
 | `admin/` says *Protect this folder first* | Set up Directory Privacy for it (step 8). |
 | `join.php` says the code does not match | Wrong callsign or code, expired (48 hours), already used, or cancelled after 5 failed attempts: create a new invite. |
+| A station is missing from the ranking | It was left out in `admin/`, has no LoTW credentials, has no confirmed entity in that mode or band, or its LoTW confirmations were not downloaded yet: the *Ranking* column of `admin/` shows its totals or *no LoTW confirmations yet*. Stations synced from Clublog get them in the first nightly sync after the ranking is turned on. |
 | A run ends with `CALL: sync FAILED` | Look at that station's `stations/<CALL>/data/sync.log`: the sync (Clublog and the LoTW fallback) or the cache rebuild failed. |
 
 To force a full download of a station (e.g. after fixing old grids), delete its `clublog_last_sync.txt` (Clublog) or `lotw_last_sync.json` (LoTW) in `stations/<CALL>/data/` and run the sync again (browser or Cron).

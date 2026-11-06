@@ -1,35 +1,50 @@
 <?php
 /**
  * Download a station's QSOs from LoTW (Logbook of The World) into
- * stations/<CALL>/data/qso_data.json.
+ * stations/<CALL>/data/qso_data.json, and its LoTW confirmations into
+ * lotw_confirmed.json for the club ranking (see ranking_data.php).
  *
  * Follows ARRL's guidance for automated downloads: the first run downloads
- * everything (limited by lotw.days_back); later runs only ask for what changed,
- * using the timestamps LoTW returns in each report header:
+ * the whole log; later runs only ask for what changed, using the timestamps
+ * LoTW returns in each report header:
  *   - qso_qsorxsince: QSOs uploaded since the last run, confirmed or not
  *   - qso_qslsince:   new confirmations since the last run, including old QSOs
  * Results are merged into qso_data.json, so LoTW works both as the only source
- * and as a fallback for Clublog. Delete stations/<CALL>/data/lotw_last_sync.json to force a
- * full download.
+ * and as a fallback for Clublog. Stations synced before version 2.2.0 only
+ * had the last years of their log: they download everything once more.
+ * Delete stations/<CALL>/data/lotw_last_sync.json to force a full download.
+ *
+ * With --confirmations-only (command line, used by sync_daily.sh for stations
+ * synced from Clublog while the ranking is on) only the confirmations report
+ * runs and only lotw_confirmed.json changes; a station without LoTW
+ * credentials is skipped without error.
  */
 
-require __DIR__ . '/common.php';
+require __DIR__ . '/ranking_data.php';
 useStation(requireCliOrToken(true));
-set_time_limit(300);
+set_time_limit(900);
 
+$confirmationsOnly = PHP_SAPI === 'cli' && in_array('--confirmations-only', $argv ?? [], true);
 $lotw = loadConfig()['lotw'] ?? [];
 $username = $lotw['username'] ?? '';
 $password = $lotw['password'] ?? '';
-$daysBack = (int)($lotw['days_back'] ?? 1825); // 5 years
 
 if ($username === '' || $password === '') {
+    if ($confirmationsOnly) {
+        echo "LoTW credentials not configured: this station is not in the ranking\n";
+        exit(0);
+    }
     fail('LoTW credentials not configured');
 }
 
 $jsonFile = stationData('qso_data.json');
+$confirmedFile = stationData('lotw_confirmed.json');
 $stateFile = stationData('lotw_last_sync.json');
 $state = readJson($stateFile) ?? [];
-$incremental = isset($state['qsorx'], $state['qsl']) && is_file($jsonFile);
+$confirmationsKnown = isset($state['qsl']) && !empty($state['full_confirmations']) && is_file($confirmedFile);
+$incremental = $confirmationsOnly
+    ? $confirmationsKnown
+    : $confirmationsKnown && isset($state['qsorx']) && !empty($state['full_uploads']) && is_file($jsonFile);
 
 $query = [
     'login' => $username,
@@ -39,44 +54,55 @@ $query = [
     'qso_withown' => 'yes',
 ];
 
+$what = $confirmationsOnly ? 'confirmations' : 'sync';
 if ($incremental) {
-    echo "=== LoTW incremental sync: $username ===\n";
-    echo "Uploads since {$state['qsorx']}, confirmations since {$state['qsl']}\n";
-    $uploadsSince = ['qso_qsorxsince' => $state['qsorx']];
+    echo "=== LoTW incremental $what: $username ===\n";
+    echo ($confirmationsOnly ? '' : "Uploads since {$state['qsorx']}, ") . "confirmations since {$state['qsl']}\n";
+    $uploadsSince = ['qso_qsorxsince' => $state['qsorx'] ?? ''];
     $confirmationsSince = ['qso_qslsince' => $state['qsl']];
 } else {
-    $startDate = date('Y-m-d', strtotime("-$daysBack days"));
-    echo "=== LoTW full sync: $username (QSOs since $startDate) ===\n";
-    $uploadsSince = $confirmationsSince = ['qso_startdate' => $startDate];
+    echo "=== LoTW full $what: $username (whole log, this can take several minutes) ===\n";
+    $uploadsSince = $confirmationsSince = [];
 }
 
-$uploads = lotwReport($query + ['qso_qsl' => 'no'] + $uploadsSince);
+$uploads = $confirmationsOnly ? null : lotwReport($query + ['qso_qsl' => 'no'] + $uploadsSince);
 $confirmations = lotwReport($query + ['qso_qsl' => 'yes'] + $confirmationsSince);
 
-// Merge into the existing data; confirmations go last so their QSL details win.
-$existing = mergeQsos(readJson($jsonFile) ?? []);
-$before = count($existing);
-$merged = mergeQsos($existing, $uploads['qsos'], $confirmations['qsos']);
-writeJson($jsonFile, $merged);
+if ($uploads !== null) {
+    // Merge into the existing data; confirmations go last so their QSL details win.
+    $existing = mergeQsos(readJson($jsonFile) ?? []);
+    $before = count($existing);
+    $merged = mergeQsos($existing, $uploads['qsos'], $confirmations['qsos']);
+    writeJson($jsonFile, $merged);
+}
+$confirmedTotal = storeLotwConfirmations($confirmations['qsos']);
 
 // Next run starts where LoTW says this one ended. If a report had no records
 // (and so no timestamp), keep the previous value; on a first run, use yesterday.
 $fallback = gmdate('Y-m-d', strtotime('-1 day'));
-writeJson($stateFile, [
-    'qsorx' => $uploads['last'] ?? $state['qsorx'] ?? $fallback,
-    'qsl' => $confirmations['last'] ?? $state['qsl'] ?? $fallback,
-]);
+$state['qsl'] = $confirmations['last'] ?? $state['qsl'] ?? $fallback;
+$state['full_confirmations'] = true;
+if ($uploads !== null) {
+    $state['qsorx'] = $uploads['last'] ?? $state['qsorx'] ?? $fallback;
+    $state['full_uploads'] = true;
+}
+writeJson($stateFile, $state);
 
-echo 'Uploads: ' . count($uploads['qsos']) . ', confirmations: ' . count($confirmations['qsos'])
-    . ', new QSOs: ' . (count($merged) - $before) . "\n";
-echo 'Total: ' . count($merged) . " QSOs\n";
+if ($uploads !== null) {
+    echo 'Uploads: ' . count($uploads['qsos']) . ', confirmations: ' . count($confirmations['qsos'])
+        . ', new QSOs: ' . (count($merged) - $before) . "\n";
+    echo 'Total: ' . count($merged) . " QSOs\n";
+} else {
+    echo 'Confirmations: ' . count($confirmations['qsos']) . "\n";
+}
+echo "Confirmed in LoTW (ranking): $confirmedTotal QSOs\n";
 
 /**
  * Run one lotwreport.adi query. Returns the parsed QSOs and the header
  * timestamp to use as the next "since" value (null if the report has none).
  */
 function lotwReport(array $params): array {
-    $adif = httpRequest('https://lotw.arrl.org/lotwuser/lotwreport.adi?' . http_build_query($params), null, 300);
+    $adif = httpRequest('https://lotw.arrl.org/lotwuser/lotwreport.adi?' . http_build_query($params), null, 840);
     if ($adif === null || stripos($adif, '<eoh>') === false) {
         fail('LoTW download failed or returned invalid ADIF (check username/password)');
     }
