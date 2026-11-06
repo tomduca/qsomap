@@ -370,7 +370,7 @@ function httpRequest(string $url, ?array $postFields = null, int $timeout = 60):
     }
     $body = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    if (PHP_VERSION_ID < 80000) curl_close($ch); // no effect since PHP 8.0, deprecated in 8.5
     return ($body === false || $status !== 200) ? null : $body;
 }
 

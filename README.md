@@ -16,7 +16,8 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 - **Live map image for a GitHub README** (`map-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
 - **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
 - **Several stations per installation**: the same pages serve every station by callsign (`map-ssb.html?LU9XYZ`, `map-qrz.php?LU9XYZ`), each with its own settings and data; one Cron job syncs them one after the other.
-- **Portals to host other stations**: the manager creates a 6-digit invite for a callsign in `admin/` (protected by cPanel's Directory Privacy); the station enters it in `join.php` with its own LoTW password and the mode of its static map (checked against LoTW, username must be the callsign), the map is set up automatically and the page hands over the QRZ.com embed code. The manager never receives anyone's password.
+- **Club ranking** (`ranking.php`): DXCC entities confirmed in LoTW per member, one plain table per mode (Phone, CW, RTTY, FT8/FT4), for all bands or one band picked from a menu. Every confirmed QSO counts, whatever its grid; positions count current entities, and confirmed deleted ones are shown as `(+N*)` with a footnote. Each callsign opens that member's interactive map of the mode. English or Spanish, embeddable with an iframe (QRZ.com, a blog, any site); the manager turns it on, sets its title and leaves members out in `admin/`.
+- **Portals to host other stations**: the manager creates a 6-digit invite for a callsign in `admin/` (protected by cPanel's Directory Privacy); the station enters it in `join.php` with its own LoTW password and the mode of its static map (checked against LoTW, username must be the callsign); its whole LoTW log is downloaded, the map is set up automatically and the page hands over the QRZ.com embed code. The manager never receives anyone's password.
 - **Update notice**: a daily check against this repository's version tags shows a banner, only to the map's owner, when a new version is available.
 - **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
 - **Grid check against DXCC**: grids that do not match the QSO's DXCC entity (per TQSL's grid list, with a one-square tolerance at borders) are dropped and looked up again, so contacts never show in the wrong country.
@@ -53,6 +54,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 ├── map-qrz.php                                 Static map for QRZ (map-ssb-qrz.php: old URL, still works)
 ├── map-github.php                              Same map as an SVG image, for GitHub (old: map-ssb-github.php)
 ├── map.php                                     Redirects to the interactive view of a station's static map mode
+├── ranking.php                                 Club ranking of DXCC entities confirmed in LoTW (iframe)
 ├── cache.php, background.php                   A station's map data and background, by callsign
 ├── join.php                                    Public portal: an invited station sets up its map
 ├── admin/index.php                             Manager portal: invites, stations, static map mode, event log
@@ -64,6 +66,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 │   ├── common.php                              Stations, config, invites, ADIF parser, grids, HTTP
 │   ├── portal.php                              Page helpers for the two portals
 │   ├── static_map.php                          Shared data and projection of the static maps
+│   ├── ranking_data.php                        Club ranking: LoTW confirmations, entity counts, settings
 │   ├── sync_clublog.php, sync_lotw.php         QSO download
 │   ├── build_cache.php                         Cache + grid lookups
 │   ├── make_background.php                     Static map background
@@ -93,7 +96,8 @@ Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with 
      | --- | --- | --- |
      | `map` | `my_callsign`, `my_grid` | The station on the maps |
      | `clublog` | `email`, `password` (application password), `api_key`, `callsign` | Main QSO source |
-     | `lotw` | `username`, `password`, `days_back` | Fallback, or only source without Clublog |
+     | `lotw` | `username`, `password` | Fallback, or only source without Clublog; always the source of the club ranking |
+     | `ranking` | `opt_out` | Optional: leave the station out of the club ranking (also in `admin/`) |
      | `hamqth` | `username`, `password` | Optional: grid lookups |
 
      Then run its first sync and background: `bash scripts/sync_daily.sh YOUR_CALLSIGN && QSOMAP_STATION=YOUR_CALLSIGN php scripts/make_background.php`, or open the scripts in a browser with `?token=YOUR_TOKEN&station=YOUR_CALLSIGN` ([details](docs/DEPLOYMENT.md#3-first-sync-of-a-station-you-set-up-by-hand)).
