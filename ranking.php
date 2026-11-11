@@ -39,7 +39,7 @@ const RANKING_TEXTS = [
         'source' => 'Data from LoTW, updated every night. Click a callsign to open its map.',
         'off' => 'The ranking is not available.',
         'switch' => 'Ver en español',
-        'credit' => 'Developed by %s for the ham radio community',
+        'credit' => 'Developed by %s for the ham radio community.',
     ],
     'es' => [
         'default_title' => 'Ranking DXCC',
@@ -58,7 +58,7 @@ const RANKING_TEXTS = [
         'source' => 'Datos de LoTW, actualizados cada noche. Haz clic en un indicativo para ver su mapa.',
         'off' => 'El ranking no está disponible.',
         'switch' => 'View in English',
-        'credit' => 'Desarrollado por %s para la comunidad de radioaficionados',
+        'credit' => 'Desarrollado por %s para la comunidad de radioaficionados.',
     ],
 ];
 const MODE_ALIASES = ['ssb' => 'phone', 'ft' => 'ft8'];
