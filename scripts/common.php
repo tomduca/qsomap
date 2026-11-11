@@ -344,14 +344,53 @@ function readJson(string $path): ?array {
     return is_array($data) ? $data : null;
 }
 
-/** Write JSON atomically so the maps never read a half-written file. */
-function writeJson(string $path, array $data): void {
+/**
+ * Write JSON atomically so the maps never read a half-written file. Files the
+ * browser downloads are written without indentation ($pretty = false).
+ */
+function writeJson(string $path, array $data, bool $pretty = true): void {
     if (!is_dir(dirname($path))) mkdir(dirname($path), 0755, true);
     $tmp = $path . '.tmp';
-    if (file_put_contents($tmp, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false
+    if (file_put_contents($tmp, json_encode($data, ($pretty ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_UNICODE)) === false
         || !rename($tmp, $path)) {
         fail("cannot write $path");
     }
+}
+
+/** Memory a script may use with a big log (the whole qso_data.json is loaded). */
+const MEMORY_LIMIT = '512M';
+
+/**
+ * Raise PHP's memory limit to MEMORY_LIMIT for the scripts that load a whole
+ * log: hosting plans often default to 128M, which a log of about 70,000 QSOs
+ * already nearly fills. Never lowers a higher (or unlimited) limit; if the
+ * host forbids the change, the script runs with the limit it has.
+ */
+function raiseMemoryLimit(): void {
+    $current = bytesFromIni((string)ini_get('memory_limit'));
+    if ($current !== -1 && $current < bytesFromIni(MEMORY_LIMIT)) @ini_set('memory_limit', MEMORY_LIMIT);
+}
+
+/** A php.ini size ("128M", "1G", "-1") in bytes; -1 means unlimited. */
+function bytesFromIni(string $value): int {
+    $value = trim($value);
+    if ($value === '' || $value === '-1') return -1;
+    $number = (int)$value;
+    switch (strtoupper(substr($value, -1))) {
+        case 'G': return $number * 1073741824;
+        case 'M': return $number * 1048576;
+        case 'K': return $number * 1024;
+        default: return $number;
+    }
+}
+
+function formatBytes(int $bytes): string {
+    return $bytes >= 1048576 ? sprintf('%.1f MB', $bytes / 1048576) : sprintf('%d KB', $bytes / 1024);
+}
+
+/** "Memory: 119.0 MB peak, limit 512M", to see how close a big log gets. */
+function memoryUse(): string {
+    return 'Memory: ' . formatBytes(memory_get_peak_usage(true)) . ' peak, limit ' . ini_get('memory_limit') . "\n";
 }
 
 /** GET (or POST when $postFields is given) with cURL. Returns null on failure. */
@@ -381,15 +420,54 @@ function httpRequest(string $url, ?array $postFields = null, int $timeout = 60):
 function parseAdif(string $content): array {
     $qsos = [];
     foreach (preg_split('/<eor>/i', $content) as $record) {
-        preg_match_all('/<(\w+):(\d+)(?::\w)?>([^<]*)/i', $record, $matches, PREG_SET_ORDER);
-        $qso = [];
-        foreach ($matches as $match) {
-            $value = trim($match[3]);
-            if ($value !== '') $qso[strtoupper($match[1])] = $value;
-        }
+        $qso = parseAdifRecord($record);
         if (isset($qso['CALL'], $qso['QSO_DATE'])) $qsos[] = $qso;
     }
     return $qsos;
+}
+
+/** Fields of one ADIF record (the text between two <eor>), keyed by upper-case name. */
+function parseAdifRecord(string $record): array {
+    preg_match_all('/<(\w+):(\d+)(?::\w)?>([^<]*)/i', $record, $matches, PREG_SET_ORDER);
+    $qso = [];
+    foreach ($matches as $match) {
+        $value = trim($match[3]);
+        if ($value !== '') $qso[strtoupper($match[1])] = $value;
+    }
+    return $qso;
+}
+
+/**
+ * Read an ADIF file without loading it whole, so reports of hundreds of MB
+ * fit in memory: calls $onRecord with the text of each record. Returns the
+ * header (the text before <eoh>), or null if the file has none, e.g. an HTML
+ * error page.
+ */
+function readAdifFile(string $path, callable $onRecord): ?string {
+    $file = fopen($path, 'rb');
+    if ($file === false) return null;
+    $header = null;
+    $buffer = '';
+    while (!feof($file)) {
+        $buffer .= (string)fread($file, 1048576);
+        if ($header === null) {
+            $end = stripos($buffer, '<eoh>');
+            if ($end === false) {
+                if (strlen($buffer) > 1048576) break; // no header in the first MB: not ADIF
+                continue;
+            }
+            $header = substr($buffer, 0, $end);
+            $buffer = substr($buffer, $end + 5);
+        }
+        $start = 0;
+        while (($end = stripos($buffer, '<eor>', $start)) !== false) {
+            $onRecord(substr($buffer, $start, $end - $start));
+            $start = $end + 5;
+        }
+        $buffer = substr($buffer, $start);
+    }
+    fclose($file);
+    return $header;
 }
 
 /**
@@ -411,13 +489,16 @@ function qsoKey(array $qso): string {
  */
 function mergeQsos(array ...$lists): array {
     $merged = [];
-    foreach ($lists as $list) {
-        foreach ($list as $qso) {
-            $key = qsoKey($qso);
-            $merged[$key] = array_merge($merged[$key] ?? [], $qso);
-        }
-    }
+    foreach ($lists as $list) addQsos($merged, $list);
     return $merged;
+}
+
+/** Merge a QSO list into a map from mergeQsos() in place, without copying it. */
+function addQsos(array &$merged, array $list): void {
+    foreach ($list as $qso) {
+        $key = qsoKey($qso);
+        $merged[$key] = array_merge($merged[$key] ?? [], $qso);
+    }
 }
 
 /** Centre of a Maidenhead locator (4, 6 or 8 chars) as [lat, lon], or null if invalid. */

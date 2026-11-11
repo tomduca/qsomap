@@ -11,15 +11,16 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 ## Features
 
 - **Five interactive views** (Leaflet), one per mode: `map-ssb.html` (phone: SSB, AM, FM), `map-cw.html`, `map-rtty.html`, `map-ft.html` (FT8 and FT4) and `map-qsl.html` (confirmed QSOs in any mode). Other modes (PSK, JT65...) appear only on the QSL map once confirmed. The old `map-digi.html` redirects to `map-ft.html`.
-- Markers colored by band, short-path great-circle lines, and popups with date, frequency, mode, DXCC entity and POTA/SOTA references (`SIG`/`SIG_INFO`).
+- Markers colored by band, short-path great-circle lines, and popups with date, frequency, mode, DXCC entity and POTA/SOTA references (`SIG`/`SIG_INFO`). Popups stay inside the map: near the top edge they open below their point, and very long ones scroll.
+- **Big logs**: a log of more than 10,000 QSOs is shown grouped by 4-character grid square (one point per square, sized by its QSOs, with its QSOs per band, DXCC entities and latest callsigns), so maps of 100,000+ QSOs stay light; the map says so.
 - **Static map for QRZ.com** (`map-qrz.php`): 600 × 600 px, showing one view chosen per station (SSB by default, or CW, RTTY, FT8/FT4 or confirmed QSOs), with its name and number of locations; HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
 - **Live map image for a GitHub README** (`map-github.php`): the same map as a self-contained SVG, since GitHub strips iframes but renders remote images.
-- **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run.
+- **Daily incremental sync** via Cron from Clublog, with LoTW as a fallback or as the only source. LoTW downloads follow ARRL's guidance: only new uploads and new confirmations since the last run. The first LoTW download goes in parts by QSO date that resume where they stopped, confirmations first, so the ranking is complete within minutes even for logs of tens of thousands of QSOs.
 - **Several stations per installation**: the same pages serve every station by callsign (`map-ssb.html?LU9XYZ`, `map-qrz.php?LU9XYZ`), each with its own settings and data; one Cron job syncs them one after the other.
 - **Club ranking** (`ranking.php`): DXCC entities confirmed in LoTW per member as a plain table: all modes together (as DXCC Mixed), one mode (Phone, CW, RTTY, FT8/FT4) or a table per mode, filtered by mode and band from two menus that only offer what the members have confirmed. Every confirmed QSO counts, whatever its grid; positions count current entities, and confirmed deleted ones are shown as `(+N*)` with a footnote. Each callsign opens that member's interactive map of the mode. English or Spanish, embeddable with an iframe (QRZ.com, a blog, any site); the manager turns it on, sets its title and leaves members out in `admin/`.
 - **Portals to host other stations**: the manager creates a 6-digit invite for a callsign in `admin/` (protected by cPanel's Directory Privacy); the station enters it in `join.php` with its own LoTW password and the mode of its static map (checked against LoTW, username must be the callsign); its whole LoTW log is downloaded, the map is set up automatically and the page hands over the QRZ.com embed code. The manager never receives anyone's password.
 - **Update notice**: a daily check against this repository's version tags shows a banner, only to the map's owner, when a new version is available.
-- **Grid completion**: QSOs without a grid are looked up on HamQTH and Spothole; results are reused across runs.
+- **Grid completion**: a QSO without a grid takes the one logged for the same callsign in another QSO; otherwise the callsign is looked up on HamQTH and Spothole, once per callsign. Results are kept across runs, and callsigns not found are tried again after 30 days.
 - **Grid check against DXCC**: grids that do not match the QSO's DXCC entity (per TQSL's grid list, with a one-square tolerance at borders) are dropped and looked up again, so contacts never show in the wrong country.
 
 ## How it works
@@ -37,10 +38,10 @@ flowchart LR
     P --> G
 ```
 
-Each station's files live in `stations/<CALL>/data/` (`qso_data.json`, `qso_cache.json`, `qrz-background.png`):
+Each station's files live in `stations/<CALL>/data/` (`qso_data.json`, `qso_cache.json`, `grid_lookups.json`, `qrz-background.png`, plus the LoTW sync state and the ranking's confirmations):
 
 1. `scripts/sync_daily.sh` (Cron) downloads each station's QSOs into its `qso_data.json`, one station at a time.
-2. `scripts/build_cache.php` normalizes the data, fills in missing grids and writes `qso_cache.json`, the only file the maps read. It also stores the station's callsign and grid.
+2. `scripts/build_cache.php` normalizes the data, fills in missing grids and writes `qso_cache.json`, the only file the maps read: one entry per QSO, or one per grid square, band and mode for logs of more than 10,000 QSOs. It also stores the station's callsign and grid.
 3. The interactive maps load the cache in the browser through `cache.php?CALL`. `map-qrz.php` reads it on the server, keeps the QSOs of the station's static view and projects each point onto a background generated once with the QTH centered (equirectangular longitude, Web Mercator latitude).
 
 ## Stack
@@ -84,7 +85,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 
 ## Installation
 
-Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with `.htaccess` enabled, and Cron access. SSH is not required.
+Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with `.htaccess` enabled, and Cron access. SSH is not required. The sync scripts raise PHP's memory limit to 512M for big logs (a log of 70,000 QSOs needs about 120 MB); if the host does not allow that, set `memory_limit` to at least 256M in cPanel's *MultiPHP INI Editor*.
 
 1. **Upload the project** to the hosting, e.g. to `public_html/qsomap/` (any folder name works: all paths are relative).
 2. **Configure:** copy `config.json.example` to `config.json` and set `web.token` (to run the scripts from a browser) and `default_station` (the map shown without a callsign).
@@ -123,7 +124,7 @@ The full guide (portals, QRZ iframe, GitHub README image, verification checklist
 - The admin portal relies on the web server's password protection (cPanel *Directory Privacy*) and refuses to work without it; its forms carry a CSRF token. Invites are a 6-digit code bound to one callsign, stored hashed, valid 48 hours, one use, cancelled after 5 failed attempts; the LoTW username must be the callsign and is checked against LoTW. Every invite, failed attempt and station change is logged to `data/events.log`, without secrets.
 - The scripts in `scripts/` run from the CLI (Cron), or from a browser only with `?token=` matching `web.token`, compared in constant time (`hash_equals`). With no token configured, web access is disabled. `common.php` and `sync_daily.sh` are never reachable from the web.
 - `.htaccess` denies `config.json`, `invites.json`, the raw log (`qso_data.json`), logs, `.txt`/`.md`/`.sh` files and dotfiles, and disables directory listings.
-- The only public data is what the maps display: each station's map cache through `cache.php` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO) and its PNG background through `background.php`, plus `data/dxcc.json` and `data/vuccgrids.json` (public DXCC lists), `data/update.json` and `VERSION` (installed and latest version).
+- The only public data is what the maps display: each station's map cache through `cache.php` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO; for logs grouped by grid square, the QSO counts per square, band and mode, the DXCC entities and the latest callsigns) and its PNG background through `background.php`, plus `data/dxcc.json` and `data/vuccgrids.json` (public DXCC lists), `data/update.json` and `VERSION` (installed and latest version).
 - All external data is escaped before being inserted into HTML, both in JavaScript and PHP.
 
 ## Credits and license

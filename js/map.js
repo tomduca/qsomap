@@ -9,7 +9,9 @@
  * The station is the bare callsign in the query string (map-ssb.html?LU2MET);
  * without one, cache.php serves the installation's default station. Data
  * comes from cache.php, i.e. the station's qso_cache.json built by
- * scripts/build_cache.php.
+ * scripts/build_cache.php. Big logs come grouped by grid square ("groups"
+ * instead of "qsos"): the map then shows one point per square, sized by its
+ * QSOs, and says so in the status bar.
  */
 (() => {
     // Pages and their modes, in the order of the navigation links. A QSO
@@ -143,9 +145,141 @@
         return html + '</tbody></table>';
     }
 
-    function setStatus(message, isError = false) {
+    /** Popup of a grid square of a grouped (big) log. */
+    function popupForSquare(square) {
+        const bands = [...square.bands.entries()].sort((a, b) => b[1] - a[1]);
+        let html = '<div class="popup-title"><strong>' + escapeHtml(square.grid) + '</strong> &nbsp;'
+            + escapeHtml(square.total + (square.total === 1 ? ' QSO' : ' QSOs')) + '</div>';
+        const entities = [...square.dxcc].map(code => dxccText({ dxcc: code })).filter(Boolean);
+        if (entities.length) html += '<div>DXCC: ' + escapeHtml(entities.join(', ')) + '</div>';
+        html += '<table class="popup-table"><thead><tr><th>Band</th><th>QSOs</th></tr></thead><tbody>';
+        bands.forEach(([band, count]) => {
+            html += '<tr><td>' + escapeHtml(band || 'n/a') + '</td><td>' + count + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (square.calls.size) {
+            html += '<div class="popup-calls">Latest: ' + [...square.calls].slice(0, 12).map(call => '<a href="https://www.qrz.com/db/'
+                + encodeURIComponent(call) + '" target="_blank" rel="noopener">' + escapeHtml(call) + '</a>').join(', ') + '</div>';
+        }
+        return html;
+    }
+
+    /**
+     * Draw a grouped cache: one point and path per grid square, in the color
+     * of its band with most QSOs. Returns [squares, QSOs] shown.
+     */
+    function drawSquares(map, groups, qthPosition) {
+        const squares = new Map();
+        groups.forEach(group => {
+            const count = view === 'qsl' ? group.q : (group.class === view ? group.n : 0);
+            if (!count) return;
+            const position = gridCentre(group.grid);
+            if (!position) return;
+            if (!squares.has(group.grid)) squares.set(group.grid, { grid: group.grid, position, total: 0, bands: new Map(), calls: new Set(), dxcc: new Set() });
+            const square = squares.get(group.grid);
+            square.total += count;
+            square.bands.set(group.band, (square.bands.get(group.band) || 0) + count);
+            (view === 'qsl' ? group.qsl_calls : group.calls).forEach(call => square.calls.add(call));
+            group.dxcc.forEach(code => square.dxcc.add(code));
+        });
+        // Canvas instead of SVG: thousands of paths stay smooth.
+        const renderer = L.canvas({ padding: 0.5 });
+        let total = 0;
+        squares.forEach(square => {
+            total += square.total;
+            const band = [...square.bands.entries()].sort((a, b) => b[1] - a[1])[0][0];
+            const color = bandColor(band);
+            const position = [square.position[0], shortestLongitude(square.position[1], qthPosition[1])];
+            L.polyline(greatCirclePoints(qthPosition, position, 32), { renderer, color, weight: 1, opacity: 0.35, interactive: false }).addTo(map);
+            L.circleMarker(position, {
+                renderer, radius: Math.min(9, 3 + Math.log10(square.total) * 2), color: '#ffffff', weight: 1, fillColor: color, fillOpacity: 0.92
+            }).bindPopup(popupForSquare(square)).addTo(map);
+        });
+        return [squares.size, total];
+    }
+
+    /**
+     * Keep popups inside the map. Leaflet opens them above their point and
+     * pans the map to make room, but this map cannot move past the poles, so a
+     * popup near the top edge would be cut off. Such a popup opens below its
+     * point instead; one too tall for either side opens where there is more
+     * room and scrolls. Panning is left for the sides only.
+     */
+    function keepPopupsInsideMap() {
+        const margin = 10;      // px kept free between a popup and the map edge
+        const tip = 14;         // px the tip adds beyond the popup box
+        const leafletUpdate = L.Popup.prototype._updatePosition;
+        L.Popup.include({
+            _updatePosition() {
+                leafletUpdate.call(this);
+                if (!this._map || !this._container) return;
+                const container = this._container;
+                const wrapper = this._wrapper;
+                container.classList.remove('popup-below');
+                container.style.top = '';
+                wrapper.style.maxHeight = '';
+                wrapper.style.overflowY = '';
+                const pointY = this._map.latLngToContainerPoint(this._latlng).y;
+                const above = pointY - margin;
+                const below = this._map.getSize().y - pointY - margin;
+                const needed = container.offsetHeight + tip;
+                if (needed <= above) {
+                    fadeBoxesUnder(container);
+                    return;
+                }
+                const opensBelow = below > above;
+                const room = opensBelow ? below : above;
+                if (needed > room) {
+                    wrapper.style.maxHeight = Math.max(80, room - tip) + 'px';
+                    wrapper.style.overflowY = 'auto';
+                }
+                if (opensBelow) {
+                    // Mirror Leaflet's offset: the same distance, measured downwards.
+                    container.classList.add('popup-below');
+                    container.style.top = container.style.bottom;
+                    container.style.bottom = 'auto';
+                }
+                fadeBoxesUnder(container);
+            },
+            _adjustPan() {
+                if (!this.options.autoPan || !this._map) return;
+                if (this._map._panAnim) this._map._panAnim.stop();
+                if (this._autopanning) {
+                    this._autopanning = false;
+                    return;
+                }
+                const map = this._map;
+                const padding = L.point(this.options.autoPanPadding).x;
+                const left = map.latLngToContainerPoint(this._latlng).x + this._containerLeft;
+                const right = left + this._containerWidth;
+                let dx = 0;
+                if (right + padding > map.getSize().x) dx = right + padding - map.getSize().x;
+                if (left - dx - padding < 0) dx = left - padding;
+                if (dx) {
+                    if (this.options.keepInView) this._autopanning = true;
+                    map.fire('autopanstart').panBy([dx, 0]);
+                }
+            }
+        });
+    }
+
+    /**
+     * The status and navigation boxes float over the map: while an open popup
+     * passes under one, the box fades so the popup can be read.
+     */
+    function fadeBoxesUnder(popup) {
+        const rect = popup && popup.isConnected ? popup.getBoundingClientRect() : null;
+        document.querySelectorAll('.map-status').forEach(box => {
+            const boxRect = box.getBoundingClientRect();
+            const overlaps = rect !== null && boxRect.left < rect.right && boxRect.right > rect.left
+                && boxRect.top < rect.bottom && boxRect.bottom > rect.top;
+            box.classList.toggle('under-popup', overlaps);
+        });
+    }
+
+    function setStatus(message, isError = false, note = '') {
         status.innerHTML = '<strong>' + escapeHtml((stationName + ' ' + views[view].name).trim()) + '</strong><span class="' + (isError ? 'error' : '') + '">'
-            + escapeHtml(message) + '</span>';
+            + escapeHtml(message) + '</span>' + (note ? '<span class="map-note">' + escapeHtml(note) + '</span>' : '');
     }
 
     /**
@@ -208,6 +342,7 @@
 
     async function start() {
         setStatus('Loading QSOs...');
+        keepPopupsInsideMap();
         const dxccUpdates = loadDxccUpdates();
         document.querySelector('.map-nav').innerHTML = Object.values(views)
             .map(item => '<a href="' + item.page + stationQuery + '"' + (item === views[view] ? ' aria-current="page"' : '') + '>'
@@ -235,10 +370,24 @@
             maxBoundsViscosity: 1,
         });
         map.on('resize', () => map.setMinZoom(worldFitZoom()));
+        map.on('popupclose', () => fadeBoxesUnder(null));
+        map.on('move', () => {
+            const popup = document.querySelector('.leaflet-popup');
+            if (popup) fadeBoxesUnder(popup);
+        });
         L.tileLayer.provider('Esri.NatGeoWorldMap', { maxZoom: 17 }).addTo(map);
         const oms = new OverlappingMarkerSpiderfier(map, { nearbyDistance: 20, keepSpiderfied: true });
         L.circleMarker(qthPosition, { radius: 4, color: '#18343a', fillColor: '#f3c969', fillOpacity: 1, weight: 1 })
             .bindTooltip(station.callsign + ' (' + String(station.grid).toUpperCase() + ')').addTo(map);
+
+        if (cache.groups) {
+            await dxccUpdates;
+            const [squares, total] = drawSquares(map, cache.groups, qthPosition);
+            map.setView(qthPosition, 3);
+            setStatus(squares + ' grid squares, ' + total + ' QSOs', false,
+                'This log is too big to show each QSO, so they are grouped by grid square. Click a square for its QSOs per band and latest callsigns.');
+            return;
+        }
 
         // One marker per callsign + grid + band; its popup lists every QSO.
         const groups = new Map();

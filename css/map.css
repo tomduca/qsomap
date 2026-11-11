@@ -70,6 +70,39 @@ body {
     white-space: normal !important;
 }
 
+.map-status .map-note {
+    display: block;
+    margin-top: 4px;
+    color: #5b6b70;
+    font-size: 12px;
+}
+
+.map-status.under-popup {
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.map-status {
+    transition: opacity 0.15s;
+}
+
+.leaflet-popup.popup-below {
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.leaflet-popup.popup-below .leaflet-popup-tip-container {
+    top: -20px;
+    margin-top: 0;
+    transform: rotate(180deg);
+}
+
+.popup-calls {
+    max-width: 260px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
 @media (max-width: 600px) {
     .map-status {
         top: 8px;

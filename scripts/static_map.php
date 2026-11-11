@@ -30,6 +30,23 @@ function staticMapData(): array {
     $view = staticView($config);
 
     $groups = [];
+    // Big logs come grouped by grid square (see build_cache.php): one point per
+    // square, in the color of its band with most QSOs.
+    $bySquare = [];
+    foreach ($cache['groups'] ?? [] as $group) {
+        $count = $view === 'qsl' ? (int)$group['q'] : ($group['class'] === $view ? (int)$group['n'] : 0);
+        if ($count > 0) $bySquare[$group['grid']][$group['band']] = ($bySquare[$group['grid']][$group['band']] ?? 0) + $count;
+    }
+    foreach ($bySquare as $square => $bands) {
+        $position = gridCentre($square);
+        if ($position === null) continue;
+        arsort($bands);
+        $groups[] = [
+            'label' => $square . ' ' . array_sum($bands) . ' QSOs',
+            'position' => [$position[0], shortestLongitude($position[1], $qth[1])],
+            'color' => BAND_COLORS[array_key_first($bands)] ?? DEFAULT_COLOR,
+        ];
+    }
     foreach ($cache['qsos'] ?? [] as $qso) {
         if (!qsoInView($qso, $view)) continue;
         $position = gridCentre((string)($qso['grid'] ?? ''));
