@@ -17,12 +17,16 @@
  *
  * The full download goes in parts by QSO date, so a log of hundreds of
  * thousands of QSOs never needs one huge report that LoTW cannot produce in
- * time. Each part is saved before the next one starts and the progress is
- * kept in lotw_last_sync.json, so an interrupted download resumes where it
- * stopped. The parts adapt to the log: they grow while LoTW answers fast and
- * shrink when it is slow or times out. From a browser each run stops after
- * WEB_BUDGET seconds and ends with "Run again to continue from <date>" while
- * parts remain (join.php repeats it); from the terminal it runs to the end.
+ * time. Confirmations come first, for the whole log: they are what the
+ * ranking counts, and a much smaller report than every QSO uploaded, so the
+ * ranking is complete long before the map. Then come the uploads (every QSO,
+ * confirmed or not), which only the map uses. Each part is saved before the
+ * next one starts and the progress is kept in lotw_last_sync.json, so an
+ * interrupted download resumes where it stopped. Each part is sized from the
+ * previous one so LoTW takes about TARGET_SECONDS for it, and halved when it
+ * times out. From a browser each run stops after WEB_BUDGET seconds and ends
+ * with "Run again to continue from <date>" while parts remain (join.php
+ * repeats it); from the terminal it runs to the end.
  * Reports are saved to a temporary file and read record by record, so their
  * size does not matter for memory.
  *
@@ -49,10 +53,9 @@ const INCREMENTAL_TIMEOUT = 600;      // seconds for the reports of an increment
 const PART_START_DAYS = 1461;         // first part: 4 years
 const PART_MAX_DAYS = 1461;           // 4 years: bigger reports take LoTW too long
 const PART_MIN_DAYS = 7;
-const FAST_PART = 30;                 // seconds: a faster part doubles the next one
-const SLOW_PART = 120;                // seconds: a slower part halves the next one
+const TARGET_SECONDS = 120;           // parts are sized so LoTW takes about this long for each
 const WEB_BUDGET = 180;               // seconds: from a browser, no new part after this
-const BIG_PART = 30000;               // QSOs: a part with more shrinks the next one (memory)
+const BIG_PART = 30000;               // QSOs: parts are sized to stay below this (memory)
 const TOO_BIG_PART = 60000;           // QSOs: a report with more is dropped and its part halved
 const PART_TOO_BIG = 1;               // exception code for that case
 const LOTW_BUSY = 2;                  // exception code: LoTW refused the report for now (HTTP 503...)
@@ -84,8 +87,8 @@ if (!is_dir(dirname($stateFile))) mkdir(dirname($stateFile), 0755, true);
 $lock = fopen(stationData('lotw_sync.lock'), 'c');
 if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
     // Say how far it got: from a browser, a closed page does not stop it.
-    $running = readJson($stateFile)['full_progress']['next'] ?? null;
-    fail('another LoTW sync of this station is running' . ($running !== null ? " (now at QSOs from $running)" : '')
+    $running = currentPart(readJson($stateFile)['full_progress'] ?? null);
+    fail('another LoTW sync of this station is running' . ($running !== null ? " (now at {$running[0]} of QSOs from {$running[1]['next']})" : '')
         . '; try again when it ends');
 }
 
@@ -100,7 +103,6 @@ $query = [
     'login' => $username,
     'password' => $password,
     'qso_query' => '1',
-    'qso_qsldetail' => 'yes',
     'qso_withown' => 'yes',
 ];
 
@@ -138,76 +140,85 @@ if ($incremental) {
     exit(0);
 }
 
-// Full download, in parts by QSO date.
+// Full download, in parts by QSO date: confirmations first, then uploads.
 $today = gmdate('Y-m-d');
 $progress = $state['full_progress'] ?? null;
-if (!is_array($progress) || ($progress['kinds'] ?? null) !== $kinds || !isset($progress['next'], $progress['days'], $progress['started'])) {
-    $progress = ['kinds' => $kinds, 'next' => FIRST_QSO_DATE, 'days' => PART_START_DAYS, 'started' => $today];
+if (is_array($progress) && !isset($progress['parts']) && isset($progress['next'], $progress['days'], $progress['started'])
+    && ($progress['kinds'] ?? null) === $kinds) {
+    // Saved by the version that asked for both reports of each part: both
+    // are done up to the same date.
+    $part = ['next' => $progress['next'], 'days' => min((int)$progress['days'], PART_MAX_DAYS)];
+    $progress = ['kinds' => $kinds, 'started' => $progress['started'], 'parts' => array_fill_keys($kinds, $part)];
+}
+if (!is_array($progress) || ($progress['kinds'] ?? null) !== $kinds || !isset($progress['parts'], $progress['started'])) {
+    $first = ['next' => FIRST_QSO_DATE, 'days' => PART_START_DAYS];
+    $progress = ['kinds' => $kinds, 'started' => $today, 'parts' => array_fill_keys($kinds, $first)];
     echo "=== LoTW full $what: $username (whole log, in parts by QSO date) ===\n";
 } else {
-    echo "=== LoTW full $what: $username, resuming from QSOs of {$progress['next']} ===\n";
-    $progress['days'] = min((int)$progress['days'], PART_MAX_DAYS);
+    $running = currentPart($progress);
+    echo "=== LoTW full $what: $username, resuming " . ($running ? "{$running[0]} from QSOs of {$running[1]['next']}" : '') . " ===\n";
 }
 
 $runStart = microtime(true);
 $saved = null;
 $busyTries = 0;
-while ($progress['next'] <= $today) {
+while (($running = currentPart($progress)) !== null) {
+    [$kind, $part] = $running;
     if (PHP_SAPI !== 'cli' && microtime(true) - $runStart > WEB_BUDGET) {
-        echo "Run again to continue from {$progress['next']}\n";
+        echo "Run again to continue from {$part['next']} ($kind)\n";
         exit(0);
     }
-    $from = $progress['next'];
-    $to = min(addDays($from, $progress['days'] - 1), $today);
-    set_time_limit(REPORT_TIMEOUT * count($kinds) + 120);
-    $range = ['qso_startdate' => $from, 'qso_enddate' => $to];
-    $since = ['uploads' => ['qso_qsorxsince' => FULL_SINCE], 'confirmations' => ['qso_qslsince' => FULL_SINCE]];
-    $reports = [];
+    $from = $part['next'];
+    $to = min(addDays($from, $part['days'] - 1), $today);
+    set_time_limit(REPORT_TIMEOUT + 120);
+    $since = $kind === 'uploads' ? ['qso_qsorxsince' => FULL_SINCE] : ['qso_qslsince' => FULL_SINCE];
     try {
-        foreach ($kinds as $kind) $reports[$kind] = lotwReport($query, $kind, $since[$kind] + $range, REPORT_TIMEOUT, TOO_BIG_PART);
+        $report = lotwReport($query, $kind, $since + ['qso_startdate' => $from, 'qso_enddate' => $to], REPORT_TIMEOUT, TOO_BIG_PART);
     } catch (RuntimeException $e) {
         if ($e->getCode() === LOTW_BUSY) {
             // Usually LoTW is still preparing a report that timed out here,
             // and refuses another one of the same account until it ends.
-            $state['full_progress'] = $progress;
-            writeJson($stateFile, $state);
             if (PHP_SAPI !== 'cli' || ++$busyTries >= BUSY_TRIES) {
-                fail("QSOs $from to $to: " . $e->getMessage() . '. LoTW is probably still preparing an earlier report:'
+                fail("$kind $from to $to: " . $e->getMessage() . '. LoTW is probably still preparing an earlier report:'
                     . " wait a few minutes and run this again, it continues from $from");
             }
-            echo "QSOs $from to $to: " . $e->getMessage() . ', waiting ' . BUSY_WAIT . " s\n";
+            echo "$kind $from to $to: " . $e->getMessage() . ', waiting ' . BUSY_WAIT . " s\n";
             sleep(BUSY_WAIT);
             continue;
         }
         $busyTries = 0;
-        if (!in_array($e->getCode(), [CURLE_OPERATION_TIMEDOUT, PART_TOO_BIG], true)) fail("QSOs $from to $to: " . $e->getMessage());
-        if ($progress['days'] <= PART_MIN_DAYS) {
-            fail("QSOs $from to $to: " . $e->getMessage() . ', even for ' . PART_MIN_DAYS . ' days; LoTW may be overloaded, try again later');
+        if (!in_array($e->getCode(), [CURLE_OPERATION_TIMEDOUT, PART_TOO_BIG], true)) fail("$kind $from to $to: " . $e->getMessage());
+        if ($part['days'] <= PART_MIN_DAYS) {
+            fail("$kind $from to $to: " . $e->getMessage() . ', even for ' . PART_MIN_DAYS . ' days; LoTW may be overloaded, try again later');
         }
         // Parts this long are too much for LoTW or for memory: never grow back to that size.
-        $progress['days'] = max(PART_MIN_DAYS, intdiv($progress['days'], 2));
-        $progress['max_days'] = $progress['days'];
+        $part['days'] = $part['max_days'] = max(PART_MIN_DAYS, intdiv($part['days'], 2));
+        $progress['parts'][$kind] = $part;
         $state['full_progress'] = $progress;
         writeJson($stateFile, $state);
-        echo "QSOs $from to $to: " . $e->getMessage() . ", trying again with {$progress['days']} days\n";
+        echo "$kind $from to $to: " . $e->getMessage() . ", trying again with {$part['days']} days\n";
         continue;
     }
-    $saved = saveReports($reports);
     $busyTries = 0;
-    $seconds = max(array_column($reports, 'seconds'));
-    $counts = [];
-    foreach ($reports as $kind => $report) $counts[] = count($report['qsos']) . " $kind";
-    printf("QSOs %s to %s: %s (%d s)\n", $from, $to, implode(', ', $counts), $seconds);
+    $saved = saveReports([$kind => $report], $kind === 'uploads');
+    $size = count($report['qsos']);
+    printf("%s %s to %s: %d QSOs (%d s)\n", $kind, $from, $to, $size, $report['seconds']);
 
-    // Size the next part: double it while LoTW is fast and the part small,
-    // shrink it when LoTW was slow or the part had too many QSOs for memory.
-    $progress['next'] = addDays($to, 1);
-    $size = max(array_map(fn($report) => count($report['qsos']), $reports));
-    if ($seconds > SLOW_PART || $size > BIG_PART) {
-        $days = $size > BIG_PART ? (int)($progress['days'] * BIG_PART / $size) : intdiv($progress['days'], 2);
-        $progress['days'] = $progress['max_days'] = max(PART_MIN_DAYS, $days);
-    } elseif ($seconds < FAST_PART && $size < BIG_PART / 2) {
-        $progress['days'] = min($progress['max_days'] ?? PART_MAX_DAYS, $progress['days'] * 2);
+    // Size the next part so LoTW takes about TARGET_SECONDS and it stays
+    // below BIG_PART QSOs, changing by at most 4 times at once.
+    $factor = TARGET_SECONDS / max(1.0, $report['seconds']);
+    if ($size > 0) $factor = min($factor, BIG_PART / $size);
+    $days = (int)round($part['days'] * max(0.25, min(4.0, $factor)));
+    $part['next'] = addDays($to, 1);
+    $part['days'] = max(PART_MIN_DAYS, min($days, $part['max_days'] ?? PART_MAX_DAYS));
+    $progress['parts'][$kind] = $part;
+
+    if ($kind === 'confirmations' && $part['next'] > $today) {
+        // The ranking is complete; later runs ask for confirmations since the
+        // day before this download started.
+        $state['qsl'] = addDays($progress['started'], -1);
+        $state['full_confirmations'] = true;
+        echo "All confirmations downloaded: the ranking is up to date\n";
     }
     $state['full_progress'] = $progress;
     writeJson($stateFile, $state);
@@ -235,14 +246,29 @@ echo "Confirmed in LoTW (ranking): $confirmed QSOs\n";
 echo memoryUse();
 
 /**
- * Merge the reports of one run or part into qso_data.json (uploads first, so
- * the QSL details of confirmations win) and lotw_confirmed.json. Returns the
+ * The report kind still to download and its part ([kind, part]), or null when
+ * the full download is done: confirmations first, then uploads.
+ */
+function currentPart(?array $progress): ?array {
+    foreach (['confirmations', 'uploads'] as $kind) {
+        $part = $progress['parts'][$kind] ?? null;
+        if ($part !== null && $part['next'] <= gmdate('Y-m-d')) return [$kind, $part];
+    }
+    return null;
+}
+
+/**
+ * Merge the reports of one run or part into qso_data.json (unless only
+ * confirmations are synced) and the confirmations into lotw_confirmed.json.
+ * Confirmations win over uploads, so their QSL details stay; with
+ * $uploadsAfter (a full download, where uploads come after every
+ * confirmation) uploads only add what the QSOs do not have yet. Returns the
  * number of new QSOs, the QSO total and the confirmed total.
  */
-function saveReports(array $reports): array {
-    global $jsonFile;
-    $result = ['new' => 0, 'total' => null];
-    if (isset($reports['uploads'])) {
+function saveReports(array $reports, bool $uploadsAfter = false): array {
+    global $jsonFile, $confirmationsOnly;
+    $result = ['new' => 0, 'total' => null, 'confirmed' => null];
+    if (!$confirmationsOnly) {
         // Re-key only if some key is in an older format: copying a big log
         // just to re-key it could double the memory it needs.
         $merged = readJson($jsonFile) ?? [];
@@ -253,13 +279,16 @@ function saveReports(array $reports): array {
             }
         }
         $before = count($merged);
-        addQsos($merged, $reports['uploads']['qsos']);
-        addQsos($merged, $reports['confirmations']['qsos']);
+        foreach ($reports['uploads']['qsos'] ?? [] as $qso) {
+            $key = qsoKey($qso);
+            $merged[$key] = $uploadsAfter ? array_merge($qso, $merged[$key] ?? []) : array_merge($merged[$key] ?? [], $qso);
+        }
+        addQsos($merged, $reports['confirmations']['qsos'] ?? []);
         writeJson($jsonFile, $merged);
-        $result = ['new' => count($merged) - $before, 'total' => count($merged)];
+        $result = ['new' => count($merged) - $before, 'total' => count($merged), 'confirmed' => null];
         unset($merged);
     }
-    $result['confirmed'] = storeLotwConfirmations($reports['confirmations']['qsos']);
+    if (isset($reports['confirmations'])) $result['confirmed'] = storeLotwConfirmations($reports['confirmations']['qsos']);
     return $result;
 }
 
@@ -273,7 +302,9 @@ function saveReports(array $reports): array {
  * LOTW_BUSY when LoTW refuses the report for now (HTTP 429, 502, 503, 504).
  */
 function lotwReport(array $query, string $kind, array $params, int $timeout, ?int $maxQsos = null): array {
-    $params = $query + ['qso_qsl' => $kind === 'confirmations' ? 'yes' : 'no'] + $params;
+    // QSL details (the other station's grid, DXCC...) only exist for
+    // confirmed QSOs: asking for them in the uploads report only makes it bigger.
+    $params = $query + ($kind === 'confirmations' ? ['qso_qsl' => 'yes', 'qso_qsldetail' => 'yes'] : ['qso_qsl' => 'no']) + $params;
     $path = stationData("lotw_report_$kind.tmp");
     $file = fopen($path, 'w+b');
     if ($file === false) throw new RuntimeException("cannot write $path");
