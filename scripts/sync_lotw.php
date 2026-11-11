@@ -41,7 +41,10 @@ if (PHP_SAPI !== 'cli') ob_start();
 
 const FULL_SINCE = '1900-01-01';
 const FIRST_QSO_DATE = '1945-11-01';  // LoTW accepts no earlier QSOs
-const REPORT_TIMEOUT = 240;           // seconds LoTW gets for one report of a part
+const REPORT_TIMEOUT = 900;           // seconds LoTW gets for one report of a part
+const STALL_TIMEOUT = 90;             // seconds without data after which a report is given up
+// LoTW sends big reports slowly (about 17 KB/s seen) but steadily: a report is
+// only given up when it stops arriving, or after REPORT_TIMEOUT.
 const INCREMENTAL_TIMEOUT = 600;      // seconds for the reports of an incremental run
 const PART_START_DAYS = 1461;         // first part: 4 years
 const PART_MAX_DAYS = 1461;           // 4 years: bigger reports take LoTW too long
@@ -279,6 +282,8 @@ function lotwReport(array $query, string $kind, array $params, int $timeout, ?in
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_CONNECTTIMEOUT => 15,
         CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_LOW_SPEED_LIMIT => 1,
+        CURLOPT_LOW_SPEED_TIME => STALL_TIMEOUT,
         CURLOPT_USERAGENT => 'QSOMap/1.0',
     ]);
     curl_exec($ch);
@@ -293,7 +298,10 @@ function lotwReport(array $query, string $kind, array $params, int $timeout, ?in
 
     try {
         if ($errno === CURLE_OPERATION_TIMEDOUT) {
-            throw new RuntimeException("LoTW did not finish the $kind report in $took ($received received)", CURLE_OPERATION_TIMEDOUT);
+            $why = $seconds < $timeout - 5
+                ? "LoTW stopped sending the $kind report for " . STALL_TIMEOUT . " s (after $took, $received received)"
+                : "LoTW did not finish the $kind report in $took ($received received)";
+            throw new RuntimeException($why, CURLE_OPERATION_TIMEDOUT);
         }
         if ($errno !== 0) {
             // cURL messages never include the URL, so the password stays out of the log.
