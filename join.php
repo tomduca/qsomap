@@ -227,11 +227,11 @@ function firstSyncPage(string $key, string $call): string {
     if (!is_file(QSOMAP_DATA . '/vuccgrids.json')) {
         $steps[] = ['label' => t('step_dxcc'), 'url' => 'update_dxcc.php', 'optional' => true];
     }
-    $steps[] = ['label' => t('step_lotw'), 'url' => 'sync_lotw.php'];
+    $steps[] = ['label' => t('step_lotw'), 'url' => 'sync_lotw.php', 'resume' => true];
     $steps[] = ['label' => t('step_cache'), 'url' => 'build_cache.php', 'batches' => true];
     $steps[] = ['label' => t('step_background'), 'url' => 'make_background.php'];
     $texts = [];
-    foreach (['js_no_answer', 'js_left', 'js_retry', 'js_nightly', 'js_skipped'] as $id) $texts[$id] = t($id);
+    foreach (['js_no_answer', 'js_left', 'js_lotw_from', 'js_retry', 'js_nightly', 'js_skipped'] as $id) $texts[$id] = t($id);
     $setup = json_encode(['key' => $key, 'batch' => LOOKUPS_PER_BATCH, 'steps' => $steps, 'text' => $texts], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
     $text = fn(string $id, ...$args) => t($id, ...$args);
     $view = staticView(readJson(QSOMAP_STATIONS . "/$call/config.json") ?? []);
@@ -253,6 +253,15 @@ async function request(url) {
 }
 
 async function runStep(step, item) {
+  if (step.resume) {
+    // Long logs download in parts: repeat while the script says where to go on.
+    for (;;) {
+      const text = await request(step.url);
+      const next = text.match(/Run again to continue from (\S+)/);
+      if (!next) return text;
+      item.dataset.detail = SETUP.text.js_lotw_from.replace('%s', next[1]);
+    }
+  }
   if (!step.batches) return request(step.url);
   let offset = 0;
   for (;;) {

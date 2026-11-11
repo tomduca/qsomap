@@ -381,15 +381,54 @@ function httpRequest(string $url, ?array $postFields = null, int $timeout = 60):
 function parseAdif(string $content): array {
     $qsos = [];
     foreach (preg_split('/<eor>/i', $content) as $record) {
-        preg_match_all('/<(\w+):(\d+)(?::\w)?>([^<]*)/i', $record, $matches, PREG_SET_ORDER);
-        $qso = [];
-        foreach ($matches as $match) {
-            $value = trim($match[3]);
-            if ($value !== '') $qso[strtoupper($match[1])] = $value;
-        }
+        $qso = parseAdifRecord($record);
         if (isset($qso['CALL'], $qso['QSO_DATE'])) $qsos[] = $qso;
     }
     return $qsos;
+}
+
+/** Fields of one ADIF record (the text between two <eor>), keyed by upper-case name. */
+function parseAdifRecord(string $record): array {
+    preg_match_all('/<(\w+):(\d+)(?::\w)?>([^<]*)/i', $record, $matches, PREG_SET_ORDER);
+    $qso = [];
+    foreach ($matches as $match) {
+        $value = trim($match[3]);
+        if ($value !== '') $qso[strtoupper($match[1])] = $value;
+    }
+    return $qso;
+}
+
+/**
+ * Read an ADIF file without loading it whole, so reports of hundreds of MB
+ * fit in memory: calls $onRecord with the text of each record. Returns the
+ * header (the text before <eoh>), or null if the file has none, e.g. an HTML
+ * error page.
+ */
+function readAdifFile(string $path, callable $onRecord): ?string {
+    $file = fopen($path, 'rb');
+    if ($file === false) return null;
+    $header = null;
+    $buffer = '';
+    while (!feof($file)) {
+        $buffer .= (string)fread($file, 1048576);
+        if ($header === null) {
+            $end = stripos($buffer, '<eoh>');
+            if ($end === false) {
+                if (strlen($buffer) > 1048576) break; // no header in the first MB: not ADIF
+                continue;
+            }
+            $header = substr($buffer, 0, $end);
+            $buffer = substr($buffer, $end + 5);
+        }
+        $start = 0;
+        while (($end = stripos($buffer, '<eor>', $start)) !== false) {
+            $onRecord(substr($buffer, $start, $end - $start));
+            $start = $end + 5;
+        }
+        $buffer = substr($buffer, $start);
+    }
+    fclose($file);
+    return $header;
 }
 
 /**
@@ -411,13 +450,16 @@ function qsoKey(array $qso): string {
  */
 function mergeQsos(array ...$lists): array {
     $merged = [];
-    foreach ($lists as $list) {
-        foreach ($list as $qso) {
-            $key = qsoKey($qso);
-            $merged[$key] = array_merge($merged[$key] ?? [], $qso);
-        }
-    }
+    foreach ($lists as $list) addQsos($merged, $list);
     return $merged;
+}
+
+/** Merge a QSO list into a map from mergeQsos() in place, without copying it. */
+function addQsos(array &$merged, array $list): void {
+    foreach ($list as $qso) {
+        $key = qsoKey($qso);
+        $merged[$key] = array_merge($merged[$key] ?? [], $qso);
+    }
 }
 
 /** Centre of a Maidenhead locator (4, 6 or 8 chars) as [lat, lon], or null if invalid. */
