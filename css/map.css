@@ -70,6 +70,19 @@ body {
     white-space: normal !important;
 }
 
+.map-status .map-note {
+    display: block;
+    margin-top: 4px;
+    color: #5b6b70;
+    font-size: 12px;
+}
+
+.popup-calls {
+    max-width: 260px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
 @media (max-width: 600px) {
     .map-status {
         top: 8px;

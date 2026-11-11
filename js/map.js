@@ -9,7 +9,9 @@
  * The station is the bare callsign in the query string (map-ssb.html?LU2MET);
  * without one, cache.php serves the installation's default station. Data
  * comes from cache.php, i.e. the station's qso_cache.json built by
- * scripts/build_cache.php.
+ * scripts/build_cache.php. Big logs come grouped by grid square ("groups"
+ * instead of "qsos"): the map then shows one point per square, sized by its
+ * QSOs, and says so in the status bar.
  */
 (() => {
     // Pages and their modes, in the order of the navigation links. A QSO
@@ -143,9 +145,62 @@
         return html + '</tbody></table>';
     }
 
-    function setStatus(message, isError = false) {
+    /** Popup of a grid square of a grouped (big) log. */
+    function popupForSquare(square) {
+        const bands = [...square.bands.entries()].sort((a, b) => b[1] - a[1]);
+        let html = '<div class="popup-title"><strong>' + escapeHtml(square.grid) + '</strong> &nbsp;'
+            + escapeHtml(square.total + (square.total === 1 ? ' QSO' : ' QSOs')) + '</div>';
+        const entities = [...square.dxcc].map(code => dxccText({ dxcc: code })).filter(Boolean);
+        if (entities.length) html += '<div>DXCC: ' + escapeHtml(entities.join(', ')) + '</div>';
+        html += '<table class="popup-table"><thead><tr><th>Band</th><th>QSOs</th></tr></thead><tbody>';
+        bands.forEach(([band, count]) => {
+            html += '<tr><td>' + escapeHtml(band || 'n/a') + '</td><td>' + count + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (square.calls.size) {
+            html += '<div class="popup-calls">Latest: ' + [...square.calls].slice(0, 12).map(call => '<a href="https://www.qrz.com/db/'
+                + encodeURIComponent(call) + '" target="_blank" rel="noopener">' + escapeHtml(call) + '</a>').join(', ') + '</div>';
+        }
+        return html;
+    }
+
+    /**
+     * Draw a grouped cache: one point and path per grid square, in the color
+     * of its band with most QSOs. Returns [squares, QSOs] shown.
+     */
+    function drawSquares(map, groups, qthPosition) {
+        const squares = new Map();
+        groups.forEach(group => {
+            const count = view === 'qsl' ? group.q : (group.class === view ? group.n : 0);
+            if (!count) return;
+            const position = gridCentre(group.grid);
+            if (!position) return;
+            if (!squares.has(group.grid)) squares.set(group.grid, { grid: group.grid, position, total: 0, bands: new Map(), calls: new Set(), dxcc: new Set() });
+            const square = squares.get(group.grid);
+            square.total += count;
+            square.bands.set(group.band, (square.bands.get(group.band) || 0) + count);
+            (view === 'qsl' ? group.qsl_calls : group.calls).forEach(call => square.calls.add(call));
+            group.dxcc.forEach(code => square.dxcc.add(code));
+        });
+        // Canvas instead of SVG: thousands of paths stay smooth.
+        const renderer = L.canvas({ padding: 0.5 });
+        let total = 0;
+        squares.forEach(square => {
+            total += square.total;
+            const band = [...square.bands.entries()].sort((a, b) => b[1] - a[1])[0][0];
+            const color = bandColor(band);
+            const position = [square.position[0], shortestLongitude(square.position[1], qthPosition[1])];
+            L.polyline(greatCirclePoints(qthPosition, position, 32), { renderer, color, weight: 1, opacity: 0.35, interactive: false }).addTo(map);
+            L.circleMarker(position, {
+                renderer, radius: Math.min(9, 3 + Math.log10(square.total) * 2), color: '#ffffff', weight: 1, fillColor: color, fillOpacity: 0.92
+            }).bindPopup(popupForSquare(square)).addTo(map);
+        });
+        return [squares.size, total];
+    }
+
+    function setStatus(message, isError = false, note = '') {
         status.innerHTML = '<strong>' + escapeHtml((stationName + ' ' + views[view].name).trim()) + '</strong><span class="' + (isError ? 'error' : '') + '">'
-            + escapeHtml(message) + '</span>';
+            + escapeHtml(message) + '</span>' + (note ? '<span class="map-note">' + escapeHtml(note) + '</span>' : '');
     }
 
     /**
@@ -239,6 +294,15 @@
         const oms = new OverlappingMarkerSpiderfier(map, { nearbyDistance: 20, keepSpiderfied: true });
         L.circleMarker(qthPosition, { radius: 4, color: '#18343a', fillColor: '#f3c969', fillOpacity: 1, weight: 1 })
             .bindTooltip(station.callsign + ' (' + String(station.grid).toUpperCase() + ')').addTo(map);
+
+        if (cache.groups) {
+            await dxccUpdates;
+            const [squares, total] = drawSquares(map, cache.groups, qthPosition);
+            map.setView(qthPosition, 3);
+            setStatus(squares + ' grid squares, ' + total + ' QSOs', false,
+                'This log is too big to show each QSO, so they are grouped by grid square. Click a square for its QSOs per band and latest callsigns.');
+            return;
+        }
 
         // One marker per callsign + grid + band; its popup lists every QSO.
         const groups = new Map();

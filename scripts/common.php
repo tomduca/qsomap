@@ -344,11 +344,14 @@ function readJson(string $path): ?array {
     return is_array($data) ? $data : null;
 }
 
-/** Write JSON atomically so the maps never read a half-written file. */
-function writeJson(string $path, array $data): void {
+/**
+ * Write JSON atomically so the maps never read a half-written file. Files the
+ * browser downloads are written without indentation ($pretty = false).
+ */
+function writeJson(string $path, array $data, bool $pretty = true): void {
     if (!is_dir(dirname($path))) mkdir(dirname($path), 0755, true);
     $tmp = $path . '.tmp';
-    if (file_put_contents($tmp, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false
+    if (file_put_contents($tmp, json_encode($data, ($pretty ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_UNICODE)) === false
         || !rename($tmp, $path)) {
         fail("cannot write $path");
     }
