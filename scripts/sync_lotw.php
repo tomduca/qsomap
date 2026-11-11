@@ -83,7 +83,10 @@ if (!is_dir(dirname($stateFile))) mkdir(dirname($stateFile), 0755, true);
 // One sync per station at a time: the nightly cron and a browser could overlap.
 $lock = fopen(stationData('lotw_sync.lock'), 'c');
 if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
-    fail('another LoTW sync of this station is running; try again when it ends');
+    // Say how far it got: from a browser, a closed page does not stop it.
+    $running = readJson($stateFile)['full_progress']['next'] ?? null;
+    fail('another LoTW sync of this station is running' . ($running !== null ? " (now at QSOs from $running)" : '')
+        . '; try again when it ends');
 }
 
 $state = readJson($stateFile) ?? [];
