@@ -199,15 +199,25 @@ function serveStationFile(string $file, string $contentType): void {
         echo "Not generated yet\n";
         exit;
     }
-    $etag = '"' . md5(station() . '|' . filemtime($path) . '|' . filesize($path)) . '"';
+    // JSON is sent gzipped when the browser accepts it: a big log's map data
+    // shrinks to about a fifth. Each encoding has its own ETag.
+    $gzip = strpos($contentType, 'json') !== false && function_exists('gzencode') && !ini_get('zlib.output_compression')
+        && stripos((string)($_SERVER['HTTP_ACCEPT_ENCODING'] ?? ''), 'gzip') !== false;
+    $etag = '"' . md5(station() . '|' . filemtime($path) . '|' . filesize($path)) . ($gzip ? '-gz' : '') . '"';
     header('Cache-Control: public, no-cache, max-age=0');
     header('ETag: ' . $etag);
+    if (strpos($contentType, 'json') !== false) header('Vary: Accept-Encoding');
     if (trim((string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
         http_response_code(304);
         exit;
     }
     header('Content-Type: ' . $contentType);
-    readfile($path);
+    if ($gzip) {
+        header('Content-Encoding: gzip');
+        echo gzencode((string)file_get_contents($path), 6);
+    } else {
+        readfile($path);
+    }
     exit;
 }
 
@@ -357,13 +367,26 @@ function writeJson(string $path, array $data, bool $pretty = true): void {
     }
 }
 
-/** Memory a script may use with a big log (the whole qso_data.json is loaded). */
+/**
+ * When a station's map was built and how many QSOs it has, read from the
+ * start of qso_cache.json: the cache of a big log is several MB, too much to
+ * decode just for that (e.g. once per station in the admin list).
+ */
+function cacheSummary(string $path): array {
+    $start = is_file($path) ? (string)file_get_contents($path, false, null, 0, 1024) : '';
+    return [
+        'generated' => preg_match('/"generated":"([^"]*)"/', $start, $match) ? $match[1] : null,
+        'total_qsos' => preg_match('/"total_qsos":(\d+)/', $start, $match) ? (int)$match[1] : 0,
+    ];
+}
+
+/** Memory a script may use with a big log (one year of it is loaded at a time). */
 const MEMORY_LIMIT = '512M';
 
 /**
- * Raise PHP's memory limit to MEMORY_LIMIT for the scripts that load a whole
- * log: hosting plans often default to 128M, which a log of about 70,000 QSOs
- * already nearly fills. Never lowers a higher (or unlimited) limit; if the
+ * Raise PHP's memory limit to MEMORY_LIMIT for the scripts that process a
+ * log: hosting plans often default to 128M, and a busy year of FT8 can have
+ * tens of thousands of QSOs. Never lowers a higher (or unlimited) limit; if the
  * host forbids the change, the script runs with the limit it has.
  */
 function raiseMemoryLimit(): void {
@@ -411,6 +434,34 @@ function httpRequest(string $url, ?array $postFields = null, int $timeout = 60):
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     if (PHP_VERSION_ID < 80000) curl_close($ch); // no effect since PHP 8.0, deprecated in 8.5
     return ($body === false || $status !== 200) ? null : $body;
+}
+
+/**
+ * Download to a file with cURL (POST when $postFields is given), so big
+ * answers never sit in memory. Returns the HTTP status, or null if the
+ * transfer failed; the file is left for the caller to delete.
+ */
+function httpDownload(string $url, string $path, ?array $postFields = null, int $timeout = 300): ?int {
+    if (!is_dir(dirname($path))) mkdir(dirname($path), 0755, true);
+    $file = fopen($path, 'wb');
+    if ($file === false) return null;
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_FILE => $file,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_CONNECTTIMEOUT => 15,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_USERAGENT => 'QSOMap/1.0',
+    ]);
+    if ($postFields !== null) {
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postFields));
+    }
+    $ok = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if (PHP_VERSION_ID < 80000) curl_close($ch);
+    fclose($file);
+    return $ok === false ? null : (int)$status;
 }
 
 /**
@@ -481,24 +532,72 @@ function qsoKey(array $qso): string {
 }
 
 /**
- * Merge QSO lists into one map keyed by qsoKey(). When the same contact comes
- * from more than one source (e.g. LoTW on a night Clublog was down, then
- * Clublog again the next day) it stays a single record: fields from both are
- * kept and later values win. Existing data is re-keyed, which also collapses
- * duplicates stored under older key formats.
+ * A station's log is kept in one file per year of QSO date (qsos_2024.json,
+ * and lotw_confirmed_2024.json for the ranking's confirmations), each a map
+ * keyed by qsoKey(). Scripts load one year at a time, so the memory they need
+ * depends on the busiest year, not on the size of the whole log. The year is
+ * part of the key (QSO_DATE), so the same contact always lands in the same
+ * file. QSOs without a valid date go to year 0000.
  */
-function mergeQsos(array ...$lists): array {
-    $merged = [];
-    foreach ($lists as $list) addQsos($merged, $list);
-    return $merged;
+const QSOS_FILES = 'qsos_';
+const CONFIRMED_FILES = 'lotw_confirmed_';
+
+/** The year files of a log ($prefix QSOS_FILES or CONFIRMED_FILES) as year => path, oldest first. */
+function yearFiles(string $prefix, ?string $dataDir = null): array {
+    $files = [];
+    foreach (glob(($dataDir ?? stationDir() . '/data') . "/$prefix" . '[0-9][0-9][0-9][0-9].json') ?: [] as $path) {
+        $files[substr(basename($path, '.json'), -4)] = $path;
+    }
+    ksort($files, SORT_STRING);
+    return $files;
 }
 
-/** Merge a QSO list into a map from mergeQsos() in place, without copying it. */
-function addQsos(array &$merged, array $list): void {
-    foreach ($list as $qso) {
-        $key = qsoKey($qso);
-        $merged[$key] = array_merge($merged[$key] ?? [], $qso);
+/** Year of a QSO's file: the first 4 digits of QSO_DATE, or 0000. */
+function qsoYear(array $qso): string {
+    $year = substr((string)($qso['QSO_DATE'] ?? ''), 0, 4);
+    return strlen($year) === 4 && ctype_digit($year) ? $year : '0000';
+}
+
+/**
+ * Merge QSOs into a log's year files, loading only the years they belong to.
+ * When a contact is already stored (e.g. from LoTW on a night Clublog was
+ * down, then from Clublog the next day) it stays a single record with the
+ * fields of both: new values win, or with $existingWins the stored ones do.
+ * Returns how many contacts were new.
+ */
+function storeQsos(string $prefix, array $qsos, bool $existingWins = false): int {
+    $byYear = [];
+    foreach ($qsos as $qso) $byYear[qsoYear($qso)][] = $qso;
+    $new = 0;
+    foreach ($byYear as $year => $list) {
+        $path = stationData("$prefix$year.json");
+        $stored = readJson($path) ?? [];
+        $before = count($stored);
+        foreach ($list as $qso) {
+            $key = qsoKey($qso);
+            $stored[$key] = $existingWins ? array_merge($qso, $stored[$key] ?? []) : array_merge($stored[$key] ?? [], $qso);
+        }
+        $new += count($stored) - $before;
+        writeJson($path, $stored, false);
+        unset($stored);
     }
+    return $new;
+}
+
+/** Every QSO of a log, one year file at a time (oldest first). */
+function storedQsos(string $prefix, ?string $dataDir = null): Generator {
+    foreach (yearFiles($prefix, $dataDir) as $path) {
+        $qsos = readJson($path) ?? [];
+        foreach ($qsos as $qso) yield $qso;
+        unset($qsos);
+    }
+}
+
+/** Number of QSOs in a log. */
+function countStoredQsos(string $prefix): int {
+    $count = 0;
+    foreach (yearFiles($prefix) as $path) $count += count(readJson($path) ?? []);
+    return $count;
 }
 
 /** Centre of a Maidenhead locator (4, 6 or 8 chars) as [lat, lon], or null if invalid. */

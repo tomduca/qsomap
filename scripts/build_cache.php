@@ -1,7 +1,8 @@
 <?php
 /**
- * Build a station's qso_cache.json, the file the maps read, from its
- * qso_data.json (both in stations/<CALL>/data/).
+ * Build a station's qso_cache.json, the file the maps read, from its log
+ * (qsos_<YEAR>.json, both in stations/<CALL>/data/). The log is read one year
+ * at a time, twice: once for the grids logged per callsign, once to build.
  *
  * QSOs without a grid get the grid logged for the same callsign in another
  * QSO, or one looked up on HamQTH (if configured) and then Spothole. Lookups
@@ -37,20 +38,14 @@ const LOOKUP_RETRY_DAYS = 30;   // a callsign not found is looked up again after
 const GROUP_CALLS = 8;          // latest callsigns kept per group
 
 $config = loadConfig();
-$qsoDataFile = stationData('qso_data.json');
 $cacheFile = stationData('qso_cache.json');
 $lookupsFile = stationData('grid_lookups.json');
 
-$qsos = readJson($qsoDataFile);
-if ($qsos === null) {
-    fail("$qsoDataFile not found; run sync_clublog.php or sync_lotw.php first");
+if (!yearFiles(QSOS_FILES)) {
+    fail('this station has no QSOs yet; run sync_clublog.php or sync_lotw.php first');
 }
-$grouped = count($qsos) > GROUP_ABOVE;
-
-echo '=== Building cache from ' . count($qsos) . ' QSOs' . ($grouped ? ', grouped by grid square' : '') . " ===\n";
 
 $entityGrids = loadEntityGrids();
-echo $entityGrids ? "Checking grids against DXCC entities\n" : "data/vuccgrids.json not found, grids are not checked\n";
 
 // Lookups by callsign: call => ['grid' => found grid or '', 'date' => Y-m-d].
 // The first time, seed them from the previous cache so callsigns looked up
@@ -66,14 +61,31 @@ if ($lookups === null) {
 $retryBefore = date('Y-m-d', strtotime('-' . LOOKUP_RETRY_DAYS . ' days'));
 
 // Grids logged for each callsign (the latest QSO with a grid), so QSOs of the
-// same station without one need no lookup.
+// same station without one need no lookup; and the number of QSOs. Each is
+// one string, date and time (12 characters) then grid: a big log has
+// hundreds of thousands of callsigns, and an array each would take 3 times
+// the memory.
 $loggedGrids = [];
-foreach ($qsos as $qso) {
+$count = 0;
+foreach (storedQsos(QSOS_FILES) as $qso) {
+    $count++;
     $grid = trim((string)($qso['GRIDSQUARE'] ?? ''));
     if ($grid === '' || ($call = strtoupper((string)($qso['CALL'] ?? ''))) === '') continue;
-    $date = ($qso['QSO_DATE'] ?? '') . ($qso['TIME_ON'] ?? '');
-    if (!isset($loggedGrids[$call]) || $date > $loggedGrids[$call][1]) $loggedGrids[$call] = [$grid, $date];
+    $date = str_pad(substr(($qso['QSO_DATE'] ?? '') . '00000000', 0, 8) . substr(($qso['TIME_ON'] ?? '') . '0000', 0, 4), 12);
+    if (!isset($loggedGrids[$call]) || $date > substr($loggedGrids[$call], 0, 12)) $loggedGrids[$call] = $date . $grid;
 }
+
+// While LoTW downloads a log again (e.g. after the upgrade to year files),
+// keep a map that has more QSOs than are stored so far.
+$previousTotal = cacheSummary($cacheFile)['total_qsos'];
+if (isset((readJson(stationData('lotw_last_sync.json')) ?? [])['full_progress']) && $previousTotal > $count) {
+    echo "LoTW download in progress ($count QSOs so far): keeping the current map of $previousTotal QSOs until it ends\n";
+    exit(0);
+}
+
+$grouped = $count > GROUP_ABOVE;
+echo "=== Building cache from $count QSOs" . ($grouped ? ', grouped by grid square' : '') . " ===\n";
+echo $entityGrids ? "Checking grids against DXCC entities\n" : "data/vuccgrids.json not found, grids are not checked\n";
 
 $hamqthSession = null;
 $hamqthTried = false;
@@ -90,7 +102,7 @@ $processed = []; // per-QSO entries (small logs)
 $groups = [];    // grid square|band|class => group (big logs)
 
 $index = -1;
-foreach ($qsos as $qso) {
+foreach (storedQsos(QSOS_FILES) as $qso) {
     $index++;
     $entry = [
         'call' => $qso['CALL'] ?? '',
@@ -123,9 +135,9 @@ foreach ($qsos as $qso) {
     };
     if (!$check($entry['grid'], 'logged')) {
         $entry['grid'] = '';
-        if ($call !== '' && isset($loggedGrids[$call]) && $loggedGrids[$call][0] !== trim((string)($qso['GRIDSQUARE'] ?? ''))
-            && gridMatchesDxcc($loggedGrids[$call][0], $entry['dxcc'], $entityGrids)) {
-            $entry['grid'] = $loggedGrids[$call][0];
+        $logged = $call !== '' && isset($loggedGrids[$call]) ? substr($loggedGrids[$call], 12) : '';
+        if ($logged !== '' && $logged !== trim((string)($qso['GRIDSQUARE'] ?? '')) && gridMatchesDxcc($logged, $entry['dxcc'], $entityGrids)) {
+            $entry['grid'] = $logged;
             $stats['logged_elsewhere']++;
         }
     }
@@ -167,7 +179,8 @@ foreach ($qsos as $qso) {
         $processed[] = $entry;
     }
 }
-unset($qsos);
+
+unset($loggedGrids);
 
 $cache = [
     'generated' => date('Y-m-d H:i:s'),
@@ -240,10 +253,15 @@ function keepLatestCall(array &$calls, string $call, string $when): void {
     }
 }
 
-/** Groups as the maps read them: callsigns latest first, DXCC codes as a list. */
-function finishGroups(array $groups): array {
+/**
+ * Groups as the maps read them: callsigns latest first, DXCC codes as a list.
+ * Each group is freed as it is copied, so a big log never has both in memory.
+ */
+function finishGroups(array &$groups): array {
     $list = [];
-    foreach ($groups as $group) {
+    foreach (array_keys($groups) as $key) {
+        $group = $groups[$key];
+        unset($groups[$key]);
         arsort($group['calls']);
         arsort($group['qsl_calls']);
         $group['calls'] = array_map('strval', array_keys($group['calls']));

@@ -1,8 +1,10 @@
 <?php
 /**
  * Download a station's QSOs from LoTW (Logbook of The World) into
- * stations/<CALL>/data/qso_data.json, and its LoTW confirmations into
- * lotw_confirmed.json for the club ranking (see ranking_data.php).
+ * stations/<CALL>/data/qsos_<YEAR>.json, and its LoTW confirmations into
+ * lotw_confirmed_<YEAR>.json for the club ranking (see ranking_data.php).
+ * The log is kept in one file per year (see storeQsos() in common.php), so
+ * the memory a sync needs depends on the busiest year, not the whole log.
  *
  * Follows ARRL's guidance for automated downloads: the first run downloads
  * the whole log (since FULL_SINCE: without a date LoTW only returns what is
@@ -10,10 +12,11 @@
  * changed, using the timestamps LoTW returns in each report header:
  *   - qso_qsorxsince: QSOs uploaded since the last run, confirmed or not
  *   - qso_qslsince:   new confirmations since the last run, including old QSOs
- * Results are merged into qso_data.json, so LoTW works both as the only source
- * and as a fallback for Clublog. Stations synced before version 2.2.0 only
- * had the last years of their log: they download everything once more.
- * Delete stations/<CALL>/data/lotw_last_sync.json to force a full download.
+ * Results are merged into the year files, so LoTW works both as the only
+ * source and as a fallback for Clublog. A station without year files (new, or
+ * synced before version 2.5.0, when the log was a single qso_data.json that
+ * is no longer read) downloads everything again. Delete
+ * stations/<CALL>/data/lotw_last_sync.json to force a full download.
  *
  * The full download goes in parts by QSO date, so a log of hundreds of
  * thousands of QSOs never needs one huge report that LoTW cannot produce in
@@ -32,7 +35,7 @@
  *
  * With --confirmations-only (command line, used by sync_daily.sh for stations
  * synced from Clublog while the ranking is on) only the confirmations report
- * runs and only lotw_confirmed.json changes; a station without LoTW
+ * runs and only the confirmations change; a station without LoTW
  * credentials is skipped without error.
  */
 
@@ -63,7 +66,7 @@ const LOTW_BUSY = 2;                  // exception code: LoTW refused the report
 const BUSY_WAIT = 60;                 // seconds to wait before asking a busy LoTW again
 const BUSY_TRIES = 5;                 // from the terminal: tries before giving up
 // Fields kept from LoTW records: the ones build_cache.php and the ranking use.
-// LoTW adds many APP_LoTW_* fields that would only make qso_data.json bigger.
+// LoTW adds many APP_LoTW_* fields that would only make the log bigger.
 const LOTW_FIELDS = ['CALL', 'QSO_DATE', 'TIME_ON', 'BAND', 'FREQ', 'MODE', 'SUBMODE', 'GRIDSQUARE', 'DXCC', 'QSL_RCVD'];
 
 $confirmationsOnly = PHP_SAPI === 'cli' && in_array('--confirmations-only', $argv ?? [], true);
@@ -79,8 +82,6 @@ if ($username === '' || $password === '') {
     fail('LoTW credentials not configured');
 }
 
-$jsonFile = stationData('qso_data.json');
-$confirmedFile = stationData('lotw_confirmed.json');
 $stateFile = stationData('lotw_last_sync.json');
 if (!is_dir(dirname($stateFile))) mkdir(dirname($stateFile), 0755, true);
 
@@ -94,10 +95,11 @@ if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
 }
 
 $state = readJson($stateFile) ?? [];
-$confirmationsKnown = isset($state['qsl']) && !empty($state['full_confirmations']) && is_file($confirmedFile);
+$confirmationsKnown = isset($state['qsl']) && !empty($state['full_confirmations']) && yearFiles(CONFIRMED_FILES);
 $incremental = $confirmationsOnly
     ? $confirmationsKnown
-    : $confirmationsKnown && isset($state['qsorx']) && !empty($state['full_uploads']) && is_file($jsonFile);
+    : $confirmationsKnown && isset($state['qsorx']) && !empty($state['full_uploads']) && yearFiles(QSOS_FILES)
+        && !isset($state['full_progress']);
 $kinds = $confirmationsOnly ? ['confirmations'] : ['uploads', 'confirmations'];
 
 $query = [
@@ -132,7 +134,7 @@ if ($incremental) {
     if (isset($reports['uploads'])) {
         echo 'Uploads: ' . count($reports['uploads']['qsos']) . ', confirmations: ' . count($reports['confirmations']['qsos'])
             . ", new QSOs: {$saved['new']}\n";
-        echo "Total: {$saved['total']} QSOs\n";
+        echo 'Total: ' . countStoredQsos(QSOS_FILES) . " QSOs\n";
     } else {
         echo 'Confirmations: ' . count($reports['confirmations']['qsos']) . "\n";
     }
@@ -154,6 +156,8 @@ if (is_array($progress) && !isset($progress['parts']) && isset($progress['next']
 if (!is_array($progress) || ($progress['kinds'] ?? null) !== $kinds || !isset($progress['parts'], $progress['started'])) {
     $first = ['next' => FIRST_QSO_DATE, 'days' => PART_START_DAYS];
     $progress = ['kinds' => $kinds, 'started' => $today, 'parts' => array_fill_keys($kinds, $first)];
+    // Until this download ends, the station is not up to date.
+    foreach ($kinds as $kind) unset($state["full_$kind"]);
     echo "=== LoTW full $what: $username (whole log, in parts by QSO date) ===\n";
 } else {
     $running = currentPart($progress);
@@ -201,7 +205,7 @@ while (($running = currentPart($progress)) !== null) {
         continue;
     }
     $busyTries = 0;
-    $saved = saveReports([$kind => $report], $kind === 'uploads');
+    $saved = saveReports([$kind => $report], $kind === 'uploads', true);
     $size = count($report['qsos']);
     printf("%s %s to %s: %d QSOs (%d s)\n", $kind, $from, $to, $size, $report['seconds']);
 
@@ -219,6 +223,7 @@ while (($running = currentPart($progress)) !== null) {
         // day before this download started.
         $state['qsl'] = addDays($progress['started'], -1);
         $state['full_confirmations'] = true;
+        writeDxccCounts();
         echo "All confirmations downloaded: the ranking is up to date\n";
     }
     $state['full_progress'] = $progress;
@@ -239,10 +244,9 @@ if (!$confirmationsOnly) {
 writeJson($stateFile, $state);
 
 if (!$confirmationsOnly) {
-    $total = $saved['total'] ?? count(readJson($jsonFile) ?? []);
-    echo "Total: $total QSOs\n";
+    echo 'Total: ' . countStoredQsos(QSOS_FILES) . " QSOs\n";
 }
-$confirmed = $saved['confirmed'] ?? count(readJson($confirmedFile) ?? []);
+$confirmed = $saved['confirmed'] ?? countStoredQsos(CONFIRMED_FILES);
 echo "Confirmed in LoTW (ranking): $confirmed QSOs\n";
 echo memoryUse();
 
@@ -259,37 +263,22 @@ function currentPart(?array $progress): ?array {
 }
 
 /**
- * Merge the reports of one run or part into qso_data.json (unless only
- * confirmations are synced) and the confirmations into lotw_confirmed.json.
+ * Merge the reports of one run or part into the log (unless only
+ * confirmations are synced) and the confirmations into the ranking's.
  * Confirmations win over uploads, so their QSL details stay; with
  * $uploadsAfter (a full download, where uploads come after every
- * confirmation) uploads only add what the QSOs do not have yet. Returns the
- * number of new QSOs, the QSO total and the confirmed total.
+ * confirmation) uploads only add what the QSOs do not have yet. $partial: a
+ * part of a full download (see storeLotwConfirmations()). Returns the number
+ * of new QSOs and the confirmed total.
  */
-function saveReports(array $reports, bool $uploadsAfter = false): array {
-    global $jsonFile, $confirmationsOnly;
-    $result = ['new' => 0, 'total' => null, 'confirmed' => null];
+function saveReports(array $reports, bool $uploadsAfter = false, bool $partial = false): array {
+    global $confirmationsOnly;
+    $result = ['new' => 0, 'confirmed' => null];
     if (!$confirmationsOnly) {
-        // Re-key only if some key is in an older format: copying a big log
-        // just to re-key it could double the memory it needs.
-        $merged = readJson($jsonFile) ?? [];
-        foreach ($merged as $key => $qso) {
-            if (qsoKey($qso) !== (string)$key) {
-                $merged = mergeQsos($merged);
-                break;
-            }
-        }
-        $before = count($merged);
-        foreach ($reports['uploads']['qsos'] ?? [] as $qso) {
-            $key = qsoKey($qso);
-            $merged[$key] = $uploadsAfter ? array_merge($qso, $merged[$key] ?? []) : array_merge($merged[$key] ?? [], $qso);
-        }
-        addQsos($merged, $reports['confirmations']['qsos'] ?? []);
-        writeJson($jsonFile, $merged);
-        $result = ['new' => count($merged) - $before, 'total' => count($merged), 'confirmed' => null];
-        unset($merged);
+        $result['new'] = storeQsos(QSOS_FILES, $reports['uploads']['qsos'] ?? [], $uploadsAfter)
+            + storeQsos(QSOS_FILES, $reports['confirmations']['qsos'] ?? []);
     }
-    if (isset($reports['confirmations'])) $result['confirmed'] = storeLotwConfirmations($reports['confirmations']['qsos']);
+    if (isset($reports['confirmations'])) $result['confirmed'] = storeLotwConfirmations($reports['confirmations']['qsos'], $partial);
     return $result;
 }
 

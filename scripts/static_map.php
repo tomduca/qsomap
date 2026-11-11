@@ -20,6 +20,7 @@ const DEFAULT_COLOR = '#68747d';
  * (key, name and interactive page) and one point per callsign + grid + band.
  */
 function staticMapData(): array {
+    raiseMemoryLimit(); // the cache of a big log is several MB of JSON
     $cache = readJson(stationData('qso_cache.json')) ?? [];
     // Raw config: only map settings are needed, so passwords stay encrypted.
     $config = readJson(stationDir() . '/config.json') ?? [];

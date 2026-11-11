@@ -3,7 +3,7 @@
  * Club ranking: DXCC entities confirmed in LoTW per station, by mode and band.
  *
  * sync_lotw.php keeps each station's LoTW confirmations in
- * stations/<CALL>/data/lotw_confirmed.json (nothing from Clublog, and every
+ * stations/<CALL>/data/lotw_confirmed_<YEAR>.json (nothing from Clublog, and every
  * QSO counts whatever its grid) and writes the per-station totals to
  * stations/<CALL>/data/dxcc_counts.json. ranking.php only reads those small
  * totals, ranks the stations and leaves out the ones the manager opted out
@@ -55,7 +55,7 @@ const BAND_ORDER = [
 
 /**
  * Format of dxcc_counts.json. Bump it when dxccCounts() changes: totals of an
- * older format are recounted from lotw_confirmed.json the next time the
+ * older format are recounted from the confirmations the next time the
  * ranking is shown, so no station has to sync again.
  */
 const COUNTS_VERSION = 2;
@@ -97,20 +97,40 @@ function rankingMode(array $qso): ?string {
 }
 
 /**
- * Merge new LoTW confirmations into the current station's lotw_confirmed.json
- * and rewrite its dxcc_counts.json. Only QSL_RCVD = Y records are kept.
+ * Merge new LoTW confirmations into the current station's year files
+ * (lotw_confirmed_<YEAR>.json) and rewrite its dxcc_counts.json. Only
+ * QSL_RCVD = Y records are kept. With $partial (a full download that has not
+ * got every confirmation yet) the totals are only written if they do not go
+ * down, so a station downloaded again keeps its place in the ranking
+ * meanwhile. Returns the number of confirmations stored.
  */
-function storeLotwConfirmations(array $confirmations): int {
-    $file = stationData('lotw_confirmed.json');
+function storeLotwConfirmations(array $confirmations, bool $partial = false): int {
     $kept = [];
     foreach ($confirmations as $qso) {
         if (strtoupper((string)($qso['QSL_RCVD'] ?? '')) !== 'Y') continue;
         $kept[] = array_intersect_key($qso, array_flip(CONFIRMED_FIELDS));
     }
-    $merged = mergeQsos(readJson($file) ?? [], $kept);
-    writeJson($file, $merged);
-    writeJson(stationData('dxcc_counts.json'), dxccCounts($merged));
-    return count($merged);
+    storeQsos(CONFIRMED_FILES, $kept);
+    return writeDxccCounts($partial);
+}
+
+/**
+ * Recount the current station's dxcc_counts.json from its stored
+ * confirmations; with $onlyIfMore, keep the current file if it has more
+ * entities. Returns the number of confirmations.
+ */
+function writeDxccCounts(bool $onlyIfMore = false): int {
+    $total = 0;
+    $counts = dxccCounts((function () use (&$total) {
+        foreach (storedQsos(CONFIRMED_FILES) as $qso) {
+            $total++;
+            yield $qso;
+        }
+    })());
+    $file = stationData('dxcc_counts.json');
+    $entities = fn(?array $data) => (int)($data['modes'][RANKING_MIXED]['all'][0] ?? 0);
+    if (!$onlyIfMore || $entities($counts) >= $entities(readJson($file))) writeJson($file, $counts);
+    return $total;
 }
 
 /**
@@ -118,7 +138,7 @@ function storeLotwConfirmations(array $confirmations): int {
  * [current, deleted] counts, plus RANKING_MIXED for any mode. Code 0 (no
  * entity, e.g. /MM) is ignored.
  */
-function dxccCounts(array $confirmed): array {
+function dxccCounts(iterable $confirmed): array {
     $deleted = array_flip(DELETED_DXCC);
     $sets = [];
     foreach ($confirmed as $qso) {
@@ -169,9 +189,8 @@ function rankingStations(): array {
         $file = QSOMAP_STATIONS . "/$call/data/dxcc_counts.json";
         $counts = readJson($file);
         if ($counts !== null && ($counts['version'] ?? 1) < COUNTS_VERSION) {
-            $confirmed = readJson(QSOMAP_STATIONS . "/$call/data/lotw_confirmed.json");
-            if ($confirmed !== null) {
-                $counts = dxccCounts($confirmed);
+            if (yearFiles(CONFIRMED_FILES, dirname($file))) {
+                $counts = dxccCounts(storedQsos(CONFIRMED_FILES, dirname($file)));
                 writeJson($file, $counts);
             }
         }
