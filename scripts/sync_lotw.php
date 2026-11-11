@@ -35,13 +35,16 @@
 require __DIR__ . '/ranking_data.php';
 useStation(requireCliOrToken(true));
 ignore_user_abort(true); // a closed browser tab must not stop a part half saved
+// From a browser, hold the output so an error after some progress lines can
+// still answer HTTP 500 (join.php tells errors from progress by the status).
+if (PHP_SAPI !== 'cli') ob_start();
 
 const FULL_SINCE = '1900-01-01';
 const FIRST_QSO_DATE = '1945-11-01';  // LoTW accepts no earlier QSOs
 const REPORT_TIMEOUT = 240;           // seconds LoTW gets for one report of a part
 const INCREMENTAL_TIMEOUT = 600;      // seconds for the reports of an incremental run
 const PART_START_DAYS = 1461;         // first part: 4 years
-const PART_MAX_DAYS = 5844;           // 16 years
+const PART_MAX_DAYS = 1461;           // 4 years: bigger reports take LoTW too long
 const PART_MIN_DAYS = 7;
 const FAST_PART = 30;                 // seconds: a faster part doubles the next one
 const SLOW_PART = 120;                // seconds: a slower part halves the next one
@@ -49,6 +52,9 @@ const WEB_BUDGET = 180;               // seconds: from a browser, no new part af
 const BIG_PART = 30000;               // QSOs: a part with more shrinks the next one (memory)
 const TOO_BIG_PART = 60000;           // QSOs: a report with more is dropped and its part halved
 const PART_TOO_BIG = 1;               // exception code for that case
+const LOTW_BUSY = 2;                  // exception code: LoTW refused the report for now (HTTP 503...)
+const BUSY_WAIT = 60;                 // seconds to wait before asking a busy LoTW again
+const BUSY_TRIES = 5;                 // from the terminal: tries before giving up
 // Fields kept from LoTW records: the ones build_cache.php and the ranking use.
 // LoTW adds many APP_LoTW_* fields that would only make qso_data.json bigger.
 const LOTW_FIELDS = ['CALL', 'QSO_DATE', 'TIME_ON', 'BAND', 'FREQ', 'MODE', 'SUBMODE', 'GRIDSQUARE', 'DXCC', 'QSL_RCVD'];
@@ -103,7 +109,7 @@ if ($incremental) {
         try {
             $reports[$kind] = lotwReport($query, $kind, $since[$kind], INCREMENTAL_TIMEOUT);
         } catch (RuntimeException $e) {
-            fail($e->getMessage());
+            fail($e->getMessage() . ($e->getCode() === LOTW_BUSY ? '; try again later' : ''));
         }
     }
     $saved = saveReports($reports);
@@ -134,10 +140,12 @@ if (!is_array($progress) || ($progress['kinds'] ?? null) !== $kinds || !isset($p
     echo "=== LoTW full $what: $username (whole log, in parts by QSO date) ===\n";
 } else {
     echo "=== LoTW full $what: $username, resuming from QSOs of {$progress['next']} ===\n";
+    $progress['days'] = min((int)$progress['days'], PART_MAX_DAYS);
 }
 
 $runStart = microtime(true);
 $saved = null;
+$busyTries = 0;
 while ($progress['next'] <= $today) {
     if (PHP_SAPI !== 'cli' && microtime(true) - $runStart > WEB_BUDGET) {
         echo "Run again to continue from {$progress['next']}\n";
@@ -152,6 +160,20 @@ while ($progress['next'] <= $today) {
     try {
         foreach ($kinds as $kind) $reports[$kind] = lotwReport($query, $kind, $since[$kind] + $range, REPORT_TIMEOUT, TOO_BIG_PART);
     } catch (RuntimeException $e) {
+        if ($e->getCode() === LOTW_BUSY) {
+            // Usually LoTW is still preparing a report that timed out here,
+            // and refuses another one of the same account until it ends.
+            $state['full_progress'] = $progress;
+            writeJson($stateFile, $state);
+            if (PHP_SAPI !== 'cli' || ++$busyTries >= BUSY_TRIES) {
+                fail("QSOs $from to $to: " . $e->getMessage() . '. LoTW is probably still preparing an earlier report:'
+                    . " wait a few minutes and run this again, it continues from $from");
+            }
+            echo "QSOs $from to $to: " . $e->getMessage() . ', waiting ' . BUSY_WAIT . " s\n";
+            sleep(BUSY_WAIT);
+            continue;
+        }
+        $busyTries = 0;
         if (!in_array($e->getCode(), [CURLE_OPERATION_TIMEDOUT, PART_TOO_BIG], true)) fail("QSOs $from to $to: " . $e->getMessage());
         if ($progress['days'] <= PART_MIN_DAYS) {
             fail("QSOs $from to $to: " . $e->getMessage() . ', even for ' . PART_MIN_DAYS . ' days; LoTW may be overloaded, try again later');
@@ -165,6 +187,7 @@ while ($progress['next'] <= $today) {
         continue;
     }
     $saved = saveReports($reports);
+    $busyTries = 0;
     $seconds = max(array_column($reports, 'seconds'));
     $counts = [];
     foreach ($reports as $kind => $report) $counts[] = count($report['qsos']) . " $kind";
@@ -240,7 +263,8 @@ function saveReports(array $reports): array {
  * value (null if the report has none) and the seconds it took. Throws a
  * RuntimeException saying what went wrong, with code CURLE_OPERATION_TIMEDOUT
  * when LoTW did not finish in time and PART_TOO_BIG when the report has more
- * than $maxQsos QSOs (it stops reading there, so memory stays bounded).
+ * than $maxQsos QSOs (it stops reading there, so memory stays bounded), and
+ * LOTW_BUSY when LoTW refuses the report for now (HTTP 429, 502, 503, 504).
  */
 function lotwReport(array $query, string $kind, array $params, int $timeout, ?int $maxQsos = null): array {
     $params = $query + ['qso_qsl' => $kind === 'confirmations' ? 'yes' : 'no'] + $params;
@@ -274,6 +298,9 @@ function lotwReport(array $query, string $kind, array $params, int $timeout, ?in
         if ($errno !== 0) {
             // cURL messages never include the URL, so the password stays out of the log.
             throw new RuntimeException("cannot download the $kind report from LoTW: $error (after $took, $received received)");
+        }
+        if (in_array($status, [429, 502, 503, 504], true)) {
+            throw new RuntimeException("LoTW is busy (HTTP $status to the $kind report)", LOTW_BUSY);
         }
         if ($status !== 200) {
             throw new RuntimeException("LoTW answered HTTP $status to the $kind report (after $took)");
