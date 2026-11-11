@@ -226,7 +226,7 @@ function portalPage(array $flash, string $csrf): string {
     $rows = '';
     foreach (stationList() as $call) {
         $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
-        $cache = readJson(QSOMAP_STATIONS . "/$call/data/qso_cache.json") ?? [];
+        $cache = cacheSummary(QSOMAP_STATIONS . "/$call/data/qso_cache.json");
         $sources = implode(', ', array_filter([
             ($config['clublog']['email'] ?? '') !== '' ? 'Clublog' : '',
             ($config['lotw']['password'] ?? '') !== '' ? 'LoTW' : '',

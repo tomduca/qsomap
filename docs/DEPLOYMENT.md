@@ -92,7 +92,9 @@ LoTW builds its reports slowly (about 17 KB/s has been seen), so a log of tens o
 - **From a browser** each run stops starting new parts after 3 minutes and ends with `Run again to continue from <date> (confirmations|uploads)`: open the same URL again until it prints `Total: N QSOs`. A run keeps going on the server when the page is closed, so a new one meanwhile answers `another LoTW sync of this station is running (now at … of QSOs from <date>)` with how far it got. `join.php` repeats the runs by itself, and from the terminal (Cron) the whole download runs in one go.
 - **HTTP 503 from LoTW** usually means it is still building a report given up earlier and refuses another one for the same account: from Cron the sync waits a minute and tries again, up to five times; from a browser it stops and asks to try again in a few minutes. The progress is kept.
 - **Maps of more than 10,000 QSOs are grouped by grid square.** `build_cache.php` then writes one entry per 4-character grid square, band and mode class (SSB, CW, RTTY, FT or other) with its QSO count, confirmed count, DXCC entities and latest 8 callsigns, instead of one entry per QSO: a log of 70,000 QSOs gives a map file of about 2 MB. The interactive maps draw one point per square, sized by its QSOs and colored by its band with most QSOs, and say why; the QRZ and GitHub maps draw the same squares.
-- **Memory.** `sync_lotw.php`, `sync_clublog.php` and `build_cache.php` load the whole log, so they raise PHP's memory limit to 512M (never lowering a higher one); they print their peak use at the end (`Memory: … peak, limit …`). A log of 70,000 QSOs needs about 120 MB, over the 128M many hosts default to. If the host forbids raising it, set `memory_limit` to at least 256M in cPanel's *MultiPHP INI Editor*.
+- **The log is kept by year** (since version 2.5.0): `qsos_<YEAR>.json` and, for the ranking, `lotw_confirmed_<YEAR>.json`. The sync scripts merge each batch into the years it touches, and `build_cache.php` and the ranking read one year at a time, so the memory they need depends on the busiest year, not on the size of the whole log. Clublog's ADIF is saved to a temporary file and read record by record, like LoTW's reports.
+- **Memory.** The scripts still raise PHP's memory limit to 512M when they can (never lowering a higher one), and print their peak use at the end (`Memory: … peak, limit …`). A busy year of 40,000 QSOs takes about 55 MB to load; what remains is `build_cache.php`'s per-callsign grids and grid-square groups, which grow with the number of different callsigns and grid squares, not with the QSOs. In a test with 334,000 QSOs (40,000 a year) the sync stayed at about 120 MB and `build_cache.php` at about 300 MB. If the host forbids raising the limit and a script runs out of memory, set `memory_limit` to 256M or more in cPanel's *MultiPHP INI Editor*.
+- **Map data is sent gzipped** when the browser accepts it: the map file of a big log shrinks to about a fifth.
 
 ### Protecting stored passwords
 
@@ -331,7 +333,17 @@ Tell the station owner what they are entrusting to the server:
   <iframe src="https://your-domain.com/qsomap/ranking.php?mode=cw&lang=es" width="480" height="700" frameborder="0"></iframe>
   ```
 
-**Data.** `sync_lotw.php` keeps each station's LoTW confirmations in `stations/<CALL>/data/lotw_confirmed.json` and writes its totals by mode and band to `dxcc_counts.json`; `ranking.php` only reads those totals. Stations synced from LoTW get them on every sync; stations synced from Clublog get them from a confirmations-only LoTW download (`sync_lotw.php --confirmations-only`) that `sync_daily.sh` runs while the ranking is on. The settings are in `data/ranking_settings.json`. The list of deleted entities comes from the ADIF specification and is part of `scripts/ranking_data.php`.
+**Data.** `sync_lotw.php` keeps each station's LoTW confirmations in `stations/<CALL>/data/lotw_confirmed_<YEAR>.json` and writes its totals by mode and band to `dxcc_counts.json`; `ranking.php` only reads those totals. Stations synced from LoTW get them on every sync; stations synced from Clublog get them from a confirmations-only LoTW download (`sync_lotw.php --confirmations-only`) that `sync_daily.sh` runs while the ranking is on. The settings are in `data/ranking_settings.json`. The list of deleted entities comes from the ADIF specification and is part of `scripts/ranking_data.php`.
+
+## Upgrading to 2.5.0 (log by year)
+
+Version 2.5.0 keeps each station's log in one file per year instead of a single `qso_data.json`, and the ranking's confirmations likewise instead of `lotw_confirmed.json`. There is no conversion: upload the new files, and on its next sync (the nightly Cron, or the sync URLs) each station finds no year files and downloads its whole log again, from Clublog or LoTW (see *Big logs* in step 2). Meanwhile:
+
+- the map keeps showing the current `qso_cache.json`: `build_cache.php` does not replace it while a LoTW download is under way and has fewer QSOs than the map;
+- the ranking keeps the current totals until the new ones are at least as high, or all confirmations are downloaded;
+- grids already looked up are kept in `grid_lookups.json`, so they are not looked up again.
+
+A big LoTW log takes hours to download again (from Cron it runs in one go). When a station's sync has finished, its old `qso_data.json` and `lotw_confirmed.json` are no longer read and can be deleted.
 
 ## Upgrading from version 1 (one station per installation)
 
@@ -374,6 +386,7 @@ Until it runs, the maps show *No station selected*.
 | `another LoTW sync of this station is running` | A previous run is still working on the server, even if its page was closed. Wait: the message says how far it got. |
 | `LoTW is busy (HTTP 503 …)` | LoTW is still building an earlier report: try again in a few minutes. The progress is kept. |
 | `Allowed memory size … exhausted` | The host does not let the scripts raise PHP's memory limit: set `memory_limit` to 256M or more in cPanel's *MultiPHP INI Editor* (see *Big logs* in step 2). |
+| `LoTW download in progress (…): keeping the current map` | Expected while a station downloads its LoTW log again (e.g. after upgrading to 2.5.0): the map is rebuilt when the download ends. |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |
 | `is not a PHP CLI binary` in the log | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). |
 | `admin/` says *Protect this folder first* | Set up Directory Privacy for it (step 8). |

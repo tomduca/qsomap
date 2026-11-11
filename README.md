@@ -27,7 +27,7 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 
 ```mermaid
 flowchart LR
-    CL[Clublog] -->|sync_clublog.php| D[(data/qso_data.json)]
+    CL[Clublog] -->|sync_clublog.php| D[(qsos_YEAR.json)]
     LW[LoTW] -.->|sync_lotw.php<br/>fallback| D
     D -->|build_cache.php<br/>+ HamQTH / Spothole| C[(qso_cache.json)]
     C -->|cache.php| I[map-ssb / digi / qsl.html]
@@ -38,9 +38,9 @@ flowchart LR
     P --> G
 ```
 
-Each station's files live in `stations/<CALL>/data/` (`qso_data.json`, `qso_cache.json`, `grid_lookups.json`, `qrz-background.png`, plus the LoTW sync state and the ranking's confirmations):
+Each station's files live in `stations/<CALL>/data/` (its log in `qsos_<YEAR>.json`, `qso_cache.json`, `grid_lookups.json`, `qrz-background.png`, plus the LoTW sync state and the ranking's confirmations):
 
-1. `scripts/sync_daily.sh` (Cron) downloads each station's QSOs into its `qso_data.json`, one station at a time.
+1. `scripts/sync_daily.sh` (Cron) downloads each station's QSOs into its log, one station at a time. The log is kept in one file per year of QSO date, so the scripts load one year at a time and the memory they need depends on the busiest year, not on the size of the whole log.
 2. `scripts/build_cache.php` normalizes the data, fills in missing grids and writes `qso_cache.json`, the only file the maps read: one entry per QSO, or one per grid square, band and mode for logs of more than 10,000 QSOs. It also stores the station's callsign and grid.
 3. The interactive maps load the cache in the browser through `cache.php?CALL`. `map-qrz.php` reads it on the server, keeps the QSOs of the station's static view and projects each point onto a background generated once with the QTH centered (equirectangular longitude, Web Mercator latitude).
 
@@ -85,7 +85,7 @@ PHP 7.4+ (cURL, GD) · vanilla JavaScript · Leaflet 1.9 · Bash + Cron · Apach
 
 ## Installation
 
-Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with `.htaccess` enabled, and Cron access. SSH is not required. The sync scripts raise PHP's memory limit to 512M for big logs (a log of 70,000 QSOs needs about 120 MB); if the host does not allow that, set `memory_limit` to at least 256M in cPanel's *MultiPHP INI Editor*.
+Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with `.htaccess` enabled, and Cron access. SSH is not required. The sync scripts raise PHP's memory limit to 512M for big logs; since they load one year of the log at a time, a log of 70,000 QSOs needs well under the 128M most hosts default to (see [Big logs](docs/DEPLOYMENT.md#big-logs)).
 
 1. **Upload the project** to the hosting, e.g. to `public_html/qsomap/` (any folder name works: all paths are relative).
 2. **Configure:** copy `config.json.example` to `config.json` and set `web.token` (to run the scripts from a browser) and `default_station` (the map shown without a callsign).
@@ -113,6 +113,8 @@ Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with 
 
 5. **Open** `https://your-domain.com/qsomap/map-ssb.html?YOUR_CALLSIGN`.
 
+Upgrading to 2.5.0? Each station downloads its whole log once more on its next sync, into the new files by year; its map and ranking stay as they are until that ends ([details](docs/DEPLOYMENT.md#upgrading-to-250-log-by-year)).
+
 Upgrading from version 1 (one station per installation)? Upload the new files keeping `config.json` and `data/`; the next sync moves your station to `stations/` and keeps your URLs working ([details](docs/DEPLOYMENT.md#upgrading-from-version-1-one-station-per-installation)).
 
 The full guide (portals, QRZ iframe, GitHub README image, verification checklist, troubleshooting) is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
@@ -123,7 +125,7 @@ The full guide (portals, QRZ iframe, GitHub README image, verification checklist
 - Optionally (`storage` in `config.json`), the station folders live outside `public_html` and their passwords are encrypted (AES-256-GCM), with the key in a file outside `public_html`. This protects against leaked copies of the configs (a lost `.htaccess`, a commit, a backup of the site), not against someone in control of the hosting account, since the sync must be able to decrypt them ([details](docs/DEPLOYMENT.md#protecting-stored-passwords)).
 - The admin portal relies on the web server's password protection (cPanel *Directory Privacy*) and refuses to work without it; its forms carry a CSRF token. Invites are a 6-digit code bound to one callsign, stored hashed, valid 48 hours, one use, cancelled after 5 failed attempts; the LoTW username must be the callsign and is checked against LoTW. Every invite, failed attempt and station change is logged to `data/events.log`, without secrets.
 - The scripts in `scripts/` run from the CLI (Cron), or from a browser only with `?token=` matching `web.token`, compared in constant time (`hash_equals`). With no token configured, web access is disabled. `common.php` and `sync_daily.sh` are never reachable from the web.
-- `.htaccess` denies `config.json`, `invites.json`, the raw log (`qso_data.json`), logs, `.txt`/`.md`/`.sh` files and dotfiles, and disables directory listings.
+- `.htaccess` denies `config.json`, `invites.json`, the raw log (`qsos_<YEAR>.json`), logs, `.txt`/`.md`/`.sh` files and dotfiles, and disables directory listings.
 - The only public data is what the maps display: each station's map cache through `cache.php` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO; for logs grouped by grid square, the QSO counts per square, band and mode, the DXCC entities and the latest callsigns) and its PNG background through `background.php`, plus `data/dxcc.json` and `data/vuccgrids.json` (public DXCC lists), `data/update.json` and `VERSION` (installed and latest version).
 - All external data is escaped before being inserted into HTML, both in JavaScript and PHP.
 
