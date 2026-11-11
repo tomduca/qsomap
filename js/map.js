@@ -125,10 +125,17 @@
         return entity ? entity.name + ' (' + code + ')' : code;
     }
 
+    /**
+     * QRZ.com page of a callsign. The slashes of a portable call (UR7FM/MM,
+     * EA8/DL1ABC) stay as they are: QRZ does not find the call with %2F.
+     */
+    function qrzUrl(call) {
+        return 'https://www.qrz.com/db/' + String(call).split('/').map(encodeURIComponent).join('/');
+    }
+
     function popupFor(group) {
         const first = group.items[0];
-        let html = '<div class="popup-title"><a href="https://www.qrz.com/db/'
-            + encodeURIComponent(group.call) + '" target="_blank" rel="noopener"><strong>'
+        let html = '<div class="popup-title"><a href="' + escapeHtml(qrzUrl(group.call)) + '" target="_blank" rel="noopener"><strong>'
             + escapeHtml(group.call) + '</strong></a>';
         if (first.name) html += ' &nbsp;' + escapeHtml(first.name);
         html += '</div><div>' + escapeHtml(group.grid);
@@ -158,8 +165,8 @@
         });
         html += '</tbody></table>';
         if (square.calls.size) {
-            html += '<div class="popup-calls">Latest: ' + [...square.calls].slice(0, 12).map(call => '<a href="https://www.qrz.com/db/'
-                + encodeURIComponent(call) + '" target="_blank" rel="noopener">' + escapeHtml(call) + '</a>').join(', ') + '</div>';
+            html += '<div class="popup-calls">Latest: ' + [...square.calls].slice(0, 12).map(call => '<a href="'
+                + escapeHtml(qrzUrl(call)) + '" target="_blank" rel="noopener">' + escapeHtml(call) + '</a>').join(', ') + '</div>';
         }
         return html;
     }
