@@ -70,7 +70,7 @@ Make sure the three `.htaccess` files (root, `scripts/` and `stations/`) are upl
 
 - **map:** the station's callsign (as the folder name, upper case, no `/P`) and grid (4, 6 or 8 characters).
 - **Clublog:** `password` is an *application password* created in your Clublog settings, not your account password. `api_key` can be requested at [clublog.org/need_api.php](https://clublog.org/need_api.php).
-- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section, and always for the club ranking (step 9). The first download brings the **whole log**: with many thousands of QSOs it can take several minutes, plus the grid lookups of every QSO; later runs are incremental. Before version 2.2.0 the first download was limited by `days_back` (5 years by default); that setting is now ignored, and each station downloads its whole log once more on its next LoTW sync.
+- **LoTW:** the lotw.arrl.org login; no API key needed. Used when Clublog fails, or as the only source if there is no `clublog` section, and always for the club ranking (step 9). The first download brings the **whole log** in parts (see *Big logs* below): with many thousands of QSOs it can take from minutes to an hour, plus the grid lookups; later runs are incremental. Before version 2.2.0 the first download was limited by `days_back` (5 years by default); that setting is now ignored, and each station downloads its whole log once more on its next LoTW sync.
 - **HamQTH:** optional but recommended. Without it, missing grids are looked up on Spothole only.
 
 To check that the configs are not reachable, open `https://your-domain.com/qsomap/config.json` (must return **403**) and `https://your-domain.com/qsomap/stations/LU2MET/config.json` (must return **403** or **404**).
@@ -83,6 +83,16 @@ A station without a `clublog` section syncs from LoTW: the daily sync tries Club
 - LoTW includes the other station's grid only for confirmed QSOs; unconfirmed ones get their grid from HamQTH/Spothole (the station's registered home grid, which may differ from where it operated).
 
 Following ARRL's guidance for automated downloads, only the first LoTW sync downloads everything (the whole log, since version 2.2.0). Later runs ask only for QSOs uploaded since the last run (`qso_qsorxsince`) and for new confirmations (`qso_qslsince`, which also catches old QSOs confirmed recently), using the timestamps LoTW returns. They are stored in `stations/<CALL>/data/lotw_last_sync.json`.
+
+### Big logs
+
+LoTW builds its reports slowly (about 17 KB/s has been seen), so a log of tens of thousands of QSOs cannot come in a single request. Since version 2.4.0:
+
+- **The first LoTW download goes in parts by QSO date.** Confirmations come first, for the whole log: they are what the ranking counts and a much smaller report, so the ranking is complete long before the map. Then come the uploads (every QSO, confirmed or not), which only the map uses. Each part is sized from the previous one so LoTW takes about 2 minutes for it, and halved when LoTW stops sending data for 90 s or does not finish in 15 minutes. The progress is saved after every part (`full_progress` in `lotw_last_sync.json`), so an interrupted download resumes where it stopped.
+- **From a browser** each run stops starting new parts after 3 minutes and ends with `Run again to continue from <date> (confirmations|uploads)`: open the same URL again until it prints `Total: N QSOs`. A run keeps going on the server when the page is closed, so a new one meanwhile answers `another LoTW sync of this station is running (now at … of QSOs from <date>)` with how far it got. `join.php` repeats the runs by itself, and from the terminal (Cron) the whole download runs in one go.
+- **HTTP 503 from LoTW** usually means it is still building a report given up earlier and refuses another one for the same account: from Cron the sync waits a minute and tries again, up to five times; from a browser it stops and asks to try again in a few minutes. The progress is kept.
+- **Maps of more than 10,000 QSOs are grouped by grid square.** `build_cache.php` then writes one entry per 4-character grid square, band and mode class (SSB, CW, RTTY, FT or other) with its QSO count, confirmed count, DXCC entities and latest 8 callsigns, instead of one entry per QSO: a log of 70,000 QSOs gives a map file of about 2 MB. The interactive maps draw one point per square, sized by its QSOs and colored by its band with most QSOs, and say why; the QRZ and GitHub maps draw the same squares.
+- **Memory.** `sync_lotw.php`, `sync_clublog.php` and `build_cache.php` load the whole log, so they raise PHP's memory limit to 512M (never lowering a higher one); they print their peak use at the end (`Memory: … peak, limit …`). A log of 70,000 QSOs needs about 120 MB, over the 128M many hosts default to. If the host forbids raising it, set `memory_limit` to at least 256M in cPanel's *MultiPHP INI Editor*.
 
 ### Protecting stored passwords
 
@@ -146,7 +156,7 @@ tail stations/LU2MET/data/sync.log
 
 A single script runs for a station with `QSOMAP_STATION`, e.g. `QSOMAP_STATION=LU2MET php scripts/build_cache.php`.
 
-The first sync downloads the whole log and may take several minutes if many QSOs have no grid. Later syncs, from Clublog or LoTW, are incremental.
+The first sync downloads the whole log and may take several minutes if many QSOs have no grid; a big LoTW log goes in parts and, from a browser, needs the URL opened several times (see *Big logs* in step 2). For grid lookups in short requests, add `&max_lookups=200` to the `build_cache.php` URL and repeat it with the `&offset=N` that each run prints as `Next offset: N`. Later syncs, from Clublog or LoTW, are incremental.
 
 If the PHP found by Cron is not the right binary, set its path with `PHP_BIN`:
 
@@ -200,7 +210,7 @@ To test without waiting for the night, set the job a couple of minutes ahead (Cr
 3. Then, for each folder in `stations/`, **one station at a time**:
    1. Syncs from Clublog (incremental, with a 2-day overlap).
    2. If Clublog fails or is not configured, syncs from LoTW instead (also incremental) and merges the result. If Clublog works and the club ranking is on, downloads only the station's new LoTW confirmations, for the ranking (a station without LoTW credentials is skipped and stays out of it).
-   3. Rebuilds the station's `qso_cache.json`, reusing grids found in earlier runs and dropping grids that do not match the QSO's DXCC entity (see *Grid check* below).
+   3. Rebuilds the station's `qso_cache.json`, dropping grids that do not match the QSO's DXCC entity (see *Grid check* below). A QSO without a grid takes the one logged for the same callsign in another QSO; otherwise the callsign is looked up on HamQTH and Spothole once, and the result is kept in `grid_lookups.json` (a callsign not found is tried again after 30 days).
 4. Logs the shared steps, and one line per station, to `data/sync.log`; each station's details go to `stations/<CALL>/data/sync.log`.
 
 Stations never sync at the same time, so the server's load is that of a single map; only the total time grows with the number of stations. A station that fails does not stop the others. If a sync is already running, the new one is skipped. `sync_daily.sh LU2MET` syncs only that station.
@@ -220,7 +230,7 @@ If a download fails, the log shows `DXCC list update failed, keeping the current
 A wrong grid puts a contact in the wrong place, e.g. `AA00` (the default value of some logging programs) for a US station, or an operator's home grid logged while operating abroad. On every run, `build_cache.php` checks each grid, logged or looked up, against the QSO's DXCC entity in `data/vuccgrids.json`:
 
 - The grid is accepted if its 4-character square, **or any of the 8 squares around it**, belongs to the entity. This one-square tolerance avoids false alarms along borders the file does not cover exactly (e.g. along the Mexico/US border, or the Russian regions that count as Asiatic Russia for DXCC).
-- If it does not match, it is dropped and the call is looked up on HamQTH and Spothole; the lookup result goes through the same check. A matching grid from the lookup puts the QSO in the right place.
+- If it does not match, it is dropped and the grid logged for that callsign in another QSO, or the callsign's lookup on HamQTH and Spothole, is used instead; it goes through the same check. A matching grid from the lookup puts the QSO in the right place.
 - If no matching grid is found, the QSO has no grid and no map shows it, including the QRZ and GitHub maps.
 - QSOs without a DXCC code, and entities missing from the file, are not checked.
 
@@ -282,7 +292,7 @@ As a safety net, the portal refuses to work if the server reports no logged-in u
 3. The station opens `join.php` and enters its callsign, the code, its grid, which QSOs its static map shows (SSB by default; CW, RTTY, FT8/FT4 or confirmed in LoTW), its LoTW password and, optionally, its HamQTH account. They must confirm that their map will be public. The page is in English, with an **ES** button in the top corner for Spanish (or send the link as `join.php?lang=es`); the choice is remembered for the rest of the setup.
    - The **LoTW username must be the callsign**, and the login is checked against LoTW before saving: only the owner of that LoTW account can create the map for that callsign, even if someone else gets hold of the code.
    - **HamQTH** is optional but strongly recommended on the form: LoTW only gives the grid of confirmed QSOs, so with HamQTH lookups many more QSOs show up. Their HamQTH account is used only for their map, as yours is only for yours.
-4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download of the whole log (the form warns that with many QSOs this takes many minutes), grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
+4. The page creates `stations/LU9XYZ/`, then runs the first sync step by step: DXCC list (only if missing), LoTW download of the whole log (the form warns that with many QSOs this takes many minutes; a big log goes in parts, which the page requests one after the other, see *Big logs* in step 2), grid lookups and the static map background. Grid lookups run in batches of 40 (`build_cache.php?max_lookups=40&offset=...`), so no request runs long enough to hit the hosting's time limits, and each batch saves its progress. If they close the page they can reopen it within 2 hours to resume; after that the nightly sync finishes the job.
 5. At the end the page shows the map's address and the QRZ.com and GitHub embed codes.
 
 Nothing is left for you to do: the daily Cron job (step 5) picks up the new station. Stations created through the portal sync from **LoTW only**; the daily sync logs `Clublog credentials not configured` and uses LoTW, which is expected.
@@ -358,7 +368,12 @@ Until it runs, the maps show *No station selected*.
 | `Clublog credentials not configured` in a station's log | Expected for LoTW-only stations, e.g. those created through the portal. |
 | The QRZ or GitHub map has no background | The station's `qrz-background.png` is missing. The next daily sync creates it; to do it now, run `make_background.php` for that station (step 4). If it fails with *no GD extension*, enable GD for the web PHP version too. |
 | `config.json` downloads in the browser | The host ignores `.htaccess` (`AllowOverride`) or it was not uploaded. Ask your provider before going further. |
-| Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole, or their grid does not match their DXCC entity (listed in the station's `sync.log`, see *Grid check*). They are retried on every sync. |
+| Some QSOs are missing | They have no grid and none was found on HamQTH or Spothole, or their grid does not match their DXCC entity (listed in the station's `sync.log`, see *Grid check*). Callsigns not found are looked up again after 30 days; delete `grid_lookups.json` to retry them all on the next sync. |
+| The map says the log is grouped by grid square | Expected for logs of more than 10,000 QSOs (see *Big logs* in step 2). |
+| `Run again to continue from …` | A big LoTW log downloading in parts from a browser: open the same URL again (see *Big logs* in step 2). |
+| `another LoTW sync of this station is running` | A previous run is still working on the server, even if its page was closed. Wait: the message says how far it got. |
+| `LoTW is busy (HTTP 503 …)` | LoTW is still building an earlier report: try again in a few minutes. The progress is kept. |
+| `Allowed memory size … exhausted` | The host does not let the scripts raise PHP's memory limit: set `memory_limit` to 256M or more in cPanel's *MultiPHP INI Editor* (see *Big logs* in step 2). |
 | `php: command not found` in the log | Set `PHP_BIN` in the Cron command (see step 5). |
 | `is not a PHP CLI binary` in the log | Cron is using the CGI build of PHP. Set `PHP_BIN` to a CLI build (see *Choosing the PHP binary* in step 5). |
 | `admin/` says *Protect this folder first* | Set up Directory Privacy for it (step 8). |
