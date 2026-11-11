@@ -198,6 +198,85 @@
         return [squares.size, total];
     }
 
+    /**
+     * Keep popups inside the map. Leaflet opens them above their point and
+     * pans the map to make room, but this map cannot move past the poles, so a
+     * popup near the top edge would be cut off. Such a popup opens below its
+     * point instead; one too tall for either side opens where there is more
+     * room and scrolls. Panning is left for the sides only.
+     */
+    function keepPopupsInsideMap() {
+        const margin = 10;      // px kept free between a popup and the map edge
+        const tip = 14;         // px the tip adds beyond the popup box
+        const leafletUpdate = L.Popup.prototype._updatePosition;
+        L.Popup.include({
+            _updatePosition() {
+                leafletUpdate.call(this);
+                if (!this._map || !this._container) return;
+                const container = this._container;
+                const wrapper = this._wrapper;
+                container.classList.remove('popup-below');
+                container.style.top = '';
+                wrapper.style.maxHeight = '';
+                wrapper.style.overflowY = '';
+                const pointY = this._map.latLngToContainerPoint(this._latlng).y;
+                const above = pointY - margin;
+                const below = this._map.getSize().y - pointY - margin;
+                const needed = container.offsetHeight + tip;
+                if (needed <= above) {
+                    fadeBoxesUnder(container);
+                    return;
+                }
+                const opensBelow = below > above;
+                const room = opensBelow ? below : above;
+                if (needed > room) {
+                    wrapper.style.maxHeight = Math.max(80, room - tip) + 'px';
+                    wrapper.style.overflowY = 'auto';
+                }
+                if (opensBelow) {
+                    // Mirror Leaflet's offset: the same distance, measured downwards.
+                    container.classList.add('popup-below');
+                    container.style.top = container.style.bottom;
+                    container.style.bottom = 'auto';
+                }
+                fadeBoxesUnder(container);
+            },
+            _adjustPan() {
+                if (!this.options.autoPan || !this._map) return;
+                if (this._map._panAnim) this._map._panAnim.stop();
+                if (this._autopanning) {
+                    this._autopanning = false;
+                    return;
+                }
+                const map = this._map;
+                const padding = L.point(this.options.autoPanPadding).x;
+                const left = map.latLngToContainerPoint(this._latlng).x + this._containerLeft;
+                const right = left + this._containerWidth;
+                let dx = 0;
+                if (right + padding > map.getSize().x) dx = right + padding - map.getSize().x;
+                if (left - dx - padding < 0) dx = left - padding;
+                if (dx) {
+                    if (this.options.keepInView) this._autopanning = true;
+                    map.fire('autopanstart').panBy([dx, 0]);
+                }
+            }
+        });
+    }
+
+    /**
+     * The status and navigation boxes float over the map: while an open popup
+     * passes under one, the box fades so the popup can be read.
+     */
+    function fadeBoxesUnder(popup) {
+        const rect = popup && popup.isConnected ? popup.getBoundingClientRect() : null;
+        document.querySelectorAll('.map-status').forEach(box => {
+            const boxRect = box.getBoundingClientRect();
+            const overlaps = rect !== null && boxRect.left < rect.right && boxRect.right > rect.left
+                && boxRect.top < rect.bottom && boxRect.bottom > rect.top;
+            box.classList.toggle('under-popup', overlaps);
+        });
+    }
+
     function setStatus(message, isError = false, note = '') {
         status.innerHTML = '<strong>' + escapeHtml((stationName + ' ' + views[view].name).trim()) + '</strong><span class="' + (isError ? 'error' : '') + '">'
             + escapeHtml(message) + '</span>' + (note ? '<span class="map-note">' + escapeHtml(note) + '</span>' : '');
@@ -263,6 +342,7 @@
 
     async function start() {
         setStatus('Loading QSOs...');
+        keepPopupsInsideMap();
         const dxccUpdates = loadDxccUpdates();
         document.querySelector('.map-nav').innerHTML = Object.values(views)
             .map(item => '<a href="' + item.page + stationQuery + '"' + (item === views[view] ? ' aria-current="page"' : '') + '>'
@@ -290,6 +370,11 @@
             maxBoundsViscosity: 1,
         });
         map.on('resize', () => map.setMinZoom(worldFitZoom()));
+        map.on('popupclose', () => fadeBoxesUnder(null));
+        map.on('move', () => {
+            const popup = document.querySelector('.leaflet-popup');
+            if (popup) fadeBoxesUnder(popup);
+        });
         L.tileLayer.provider('Esri.NatGeoWorldMap', { maxZoom: 17 }).addTo(map);
         const oms = new OverlappingMarkerSpiderfier(map, { nearbyDistance: 20, keepSpiderfied: true });
         L.circleMarker(qthPosition, { radius: 4, color: '#18343a', fillColor: '#f3c969', fillOpacity: 1, weight: 1 })
