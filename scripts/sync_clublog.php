@@ -9,6 +9,7 @@
 
 require __DIR__ . '/common.php';
 useStation(requireCliOrToken());
+raiseMemoryLimit();
 set_time_limit(300);
 
 $clublog = loadConfig()['clublog'] ?? [];

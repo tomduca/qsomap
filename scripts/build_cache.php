@@ -29,6 +29,7 @@
 
 require __DIR__ . '/common.php';
 useStation(requireCliOrToken(true));
+raiseMemoryLimit();
 set_time_limit(600);
 
 const GROUP_ABOVE = 10000;      // QSOs: a bigger log is grouped by grid square
@@ -193,6 +194,7 @@ if ($nextOffset !== null) {
     echo 'Lookups left for the next batch: ' . count($remaining) . "\n";
     echo "Next offset: $nextOffset\n";
 }
+echo memoryUse();
 if ($rejected) {
     echo 'Grids rejected for not matching the DXCC entity (' . count($rejected) . (count($rejected) >= 200 ? ', first 200' : '') . "):\n  "
         . implode("\n  ", $rejected) . "\n";

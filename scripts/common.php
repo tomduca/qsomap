@@ -357,6 +357,42 @@ function writeJson(string $path, array $data, bool $pretty = true): void {
     }
 }
 
+/** Memory a script may use with a big log (the whole qso_data.json is loaded). */
+const MEMORY_LIMIT = '512M';
+
+/**
+ * Raise PHP's memory limit to MEMORY_LIMIT for the scripts that load a whole
+ * log: hosting plans often default to 128M, which a log of about 70,000 QSOs
+ * already nearly fills. Never lowers a higher (or unlimited) limit; if the
+ * host forbids the change, the script runs with the limit it has.
+ */
+function raiseMemoryLimit(): void {
+    $current = bytesFromIni((string)ini_get('memory_limit'));
+    if ($current !== -1 && $current < bytesFromIni(MEMORY_LIMIT)) @ini_set('memory_limit', MEMORY_LIMIT);
+}
+
+/** A php.ini size ("128M", "1G", "-1") in bytes; -1 means unlimited. */
+function bytesFromIni(string $value): int {
+    $value = trim($value);
+    if ($value === '' || $value === '-1') return -1;
+    $number = (int)$value;
+    switch (strtoupper(substr($value, -1))) {
+        case 'G': return $number * 1073741824;
+        case 'M': return $number * 1048576;
+        case 'K': return $number * 1024;
+        default: return $number;
+    }
+}
+
+function formatBytes(int $bytes): string {
+    return $bytes >= 1048576 ? sprintf('%.1f MB', $bytes / 1048576) : sprintf('%d KB', $bytes / 1024);
+}
+
+/** "Memory: 119.0 MB peak, limit 512M", to see how close a big log gets. */
+function memoryUse(): string {
+    return 'Memory: ' . formatBytes(memory_get_peak_usage(true)) . ' peak, limit ' . ini_get('memory_limit') . "\n";
+}
+
 /** GET (or POST when $postFields is given) with cURL. Returns null on failure. */
 function httpRequest(string $url, ?array $postFields = null, int $timeout = 60): ?string {
     $ch = curl_init($url);

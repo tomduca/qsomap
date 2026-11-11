@@ -38,6 +38,7 @@
 
 require __DIR__ . '/ranking_data.php';
 useStation(requireCliOrToken(true));
+raiseMemoryLimit();
 ignore_user_abort(true); // a closed browser tab must not stop a part half saved
 // From a browser, hold the output so an error after some progress lines can
 // still answer HTTP 500 (join.php tells errors from progress by the status).
@@ -385,10 +386,3 @@ function addDays(string $date, int $days): string {
     return gmdate('Y-m-d', strtotime("$date UTC $days days"));
 }
 
-function formatBytes(int $bytes): string {
-    return $bytes >= 1048576 ? sprintf('%.1f MB', $bytes / 1048576) : sprintf('%d KB', $bytes / 1024);
-}
-
-function memoryUse(): string {
-    return 'Memory: ' . formatBytes(memory_get_peak_usage(true)) . ' peak, limit ' . ini_get('memory_limit') . "\n";
-}
