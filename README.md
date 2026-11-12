@@ -129,6 +129,10 @@ The full guide (portals, QRZ iframe, GitHub README image, verification checklist
 - The only public data is what the maps display: each station's map cache through `cache.php` (the popup data: callsign, grid, date, frequency, mode and comment of each QSO; for logs grouped by grid square, the QSO counts per square, band and mode, the DXCC entities and the latest callsigns) and its PNG background through `background.php`, plus `data/dxcc.json` and `data/vuccgrids.json` (public DXCC lists), `data/update.json` and `VERSION` (installed and latest version).
 - All external data is escaped before being inserted into HTML, both in JavaScript and PHP.
 
+## Acknowledgements
+
+Special thanks to [LU3MC](https://www.qrz.com/db/LU3MC), [LU5MMM](https://www.qrz.com/db/LU5MMM) and [LW6EQG](https://www.qrz.com/db/LW6EQG) for lending their QSOs to test the ranking system and the map generation.
+
 ## Credits and license
 
 Based on the idea of [QSO Map](https://git.ianrenton.com/ian/qsomap.git) by Ian Renton (M0TRT). Libraries and services are listed in [CREDITS.md](CREDITS.md).
