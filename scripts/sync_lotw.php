@@ -63,7 +63,7 @@ const BIG_PART = 30000;               // QSOs: parts are sized to stay below thi
 const TOO_BIG_PART = 60000;           // QSOs: a report with more is dropped and its part halved
 const PART_TOO_BIG = 1;               // exception code for that case
 const LOTW_BUSY = 2;                  // exception code: LoTW refused the report for now (HTTP 503...)
-const BUSY_WAIT = 60;                 // seconds to wait before asking a busy LoTW again
+const BUSY_WAIT = 120;                // seconds to wait before asking a busy LoTW again (it may still be building an abandoned report)
 const BUSY_TRIES = 5;                 // from the terminal: tries before giving up
 // Fields kept from LoTW records: the ones build_cache.php and the ranking use.
 // LoTW adds many APP_LoTW_* fields that would only make the log bigger.
