@@ -10,7 +10,7 @@ A web map of an amateur radio station's contacts (QSOs). It downloads the log fr
 
 ## Features
 
-- **Five interactive views** (Leaflet), one per mode: `map-ssb.html` (phone: SSB, AM, FM), `map-cw.html`, `map-rtty.html`, `map-ft.html` (FT8 and FT4) and `map-qsl.html` (confirmed QSOs in any mode). Other modes (PSK, JT65...) appear only on the QSL map once confirmed. The old `map-digi.html` redirects to `map-ft.html`.
+- **Six interactive views** (Leaflet): one per mode, `map-ssb.html` (phone: SSB, AM, FM), `map-cw.html`, `map-rtty.html`, `map-ft.html` (FT8 and FT4) and `map-qsl.html` (confirmed QSOs in any mode), plus `map-dxcc.html`, one point per confirmed DXCC entity with its first confirmed QSO (date and band). Other modes (PSK, JT65...) appear only on the QSL map once confirmed. The old `map-digi.html` redirects to `map-ft.html`.
 - Markers colored by band, short-path great-circle lines, and popups with date, frequency, mode, DXCC entity and POTA/SOTA references (`SIG`/`SIG_INFO`). Popups stay inside the map: near the top edge they open below their point, and very long ones scroll.
 - **Big logs**: a log of more than 10,000 QSOs is shown grouped by 4-character grid square (one point per square, sized by its QSOs, with its QSOs per band, DXCC entities and latest callsigns), so maps of 100,000+ QSOs stay light; the map says so.
 - **Static map for QRZ.com** (`map-qrz.php`): 600 × 600 px, showing one view chosen per station (SSB by default, or CW, RTTY, FT8/FT4 or confirmed QSOs), with its name and number of locations; HTML + SVG rendered on the server, no JavaScript (QRZ does not allow scripts on profile pages).
@@ -112,6 +112,8 @@ Requirements: hosting with PHP 7.4+ and the cURL and GD extensions, Apache with 
    `PHP_BIN` must be a PHP **CLI** binary: on cPanel the default `php` is often the CGI build, and the sync then stops with `is not a PHP CLI binary` in `data/sync.log`. [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#choosing-the-php-binary) shows how to find the right path without a terminal.
 
 5. **Open** `https://your-domain.com/qsomap/map-ssb.html?YOUR_CALLSIGN`.
+
+Upgrading to 2.6.0? Upload the new files: the DXCC map of each station appears after its next nightly sync, with nothing to download again ([details](docs/DEPLOYMENT.md#upgrading-to-260-dxcc-map)).
 
 Upgrading to 2.5.0? Each station downloads its whole log once more on its next sync, into the new files by year; its map and ranking stay as they are until that ends ([details](docs/DEPLOYMENT.md#upgrading-to-250-log-by-year)).
 

@@ -22,7 +22,7 @@ The maps take the station's callsign in the query string; one set of pages serve
 
 | Page | URL |
 | --- | --- |
-| Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-cw.html`, `map-rtty.html`, `map-ft.html` for FT8/FT4, and `map-qsl.html` for confirmed QSOs in any mode) |
+| Interactive maps | `https://your-domain.com/qsomap/map-ssb.html?LU9XYZ` (also `map-cw.html`, `map-rtty.html`, `map-ft.html` for FT8/FT4, `map-qsl.html` for confirmed QSOs in any mode, and `map-dxcc.html` for confirmed DXCC entities) |
 | Static map for QRZ.com | `https://your-domain.com/qsomap/map-qrz.php?LU9XYZ` |
 | Image for a GitHub README | `https://your-domain.com/qsomap/map-github.php?LU9XYZ` |
 | Club ranking (all stations) | `https://your-domain.com/qsomap/ranking.php?mode=cw` (see step 9) |
@@ -225,6 +225,8 @@ The popups name each contact's DXCC entity using `js/dxcc.js`, a base list with 
 
 The same script downloads `vuccgrids.dat`, the list of 4-character grids in each DXCC entity maintained in ARRL's [TrustedQSL repository](https://sourceforge.net/p/trustedqsl/tqsl/ci/master/tree/apps/vuccgrids.dat), and writes it to `data/vuccgrids.json`. It also runs when that file is missing.
 
+From `cty.csv` it also keeps each entity's position (latitude and longitude) in `data/dxcc_positions.json`: the DXCC map (`map-dxcc.html`) draws each confirmed entity there. The script also runs when this file is missing, so an installation upgraded to 2.6.0 gets it on the next nightly sync.
+
 If a download fails, the log shows `DXCC list update failed, keeping the current one`, the sync continues, and the update is retried the next day. To force an update, delete `data/dxcc_last_update.txt` or open `scripts/update_dxcc.php?token=YOUR_TOKEN`.
 
 ### Grid check
@@ -335,6 +337,10 @@ Tell the station owner what they are entrusting to the server:
 
 **Data.** `sync_lotw.php` keeps each station's LoTW confirmations in `stations/<CALL>/data/lotw_confirmed_<YEAR>.json` and writes its totals by mode and band to `dxcc_counts.json`; `ranking.php` only reads those totals. Stations synced from LoTW get them on every sync; stations synced from Clublog get them from a confirmations-only LoTW download (`sync_lotw.php --confirmations-only`) that `sync_daily.sh` runs while the ranking is on. The settings are in `data/ranking_settings.json`. The list of deleted entities comes from the ADIF specification and is part of `scripts/ranking_data.php`.
 
+## Upgrading to 2.6.0 (DXCC map)
+
+Upload the new and changed files (`map-dxcc.html`, the other `map-*.html` pages, `js/map.js`, `scripts/common.php`, `scripts/build_cache.php`, `scripts/update_dxcc.php`, `scripts/sync_daily.sh`). Nothing needs to be synced again: the next nightly sync downloads the entity positions (`data/dxcc_positions.json`) and rebuilds each map with its confirmed entities. Until then `map-dxcc.html` says *No DXCC data yet*. To see it right away, open `scripts/update_dxcc.php?token=YOUR_TOKEN` and then `scripts/build_cache.php?token=YOUR_TOKEN&station=CALL`.
+
 ## Upgrading to 2.5.0 (log by year)
 
 Version 2.5.0 keeps each station's log in one file per year instead of a single `qso_data.json`, and the ranking's confirmations likewise instead of `lotw_confirmed.json`. There is no conversion: upload the new files, and on its next sync (the nightly Cron, or the sync URLs) each station finds no year files and downloads its whole log again, from Clublog or LoTW (see *Big logs* in step 2). Meanwhile:
@@ -362,7 +368,7 @@ Until it runs, the maps show *No station selected*.
 - [ ] `scripts/sync_clublog.php` without `?token=` returns 403, and `scripts/sync_lotw.php?key=anything` returns 403.
 - [ ] `admin/` asks for a user and password, and shows no *Storage* warning (see [Protecting stored passwords](#protecting-stored-passwords)).
 - [ ] With `key_file` set, the stations' `config.json` show `enc:v1:` instead of passwords, and you have a copy of the key file.
-- [ ] `map-ssb.html?LU2MET`, `map-cw.html`, `map-rtty.html`, `map-ft.html` and `map-qsl.html` (each with `?LU2MET`) show markers, the box shows `LU2MET SSB` (and so on), and the mode links keep the callsign.
+- [ ] `map-ssb.html?LU2MET`, `map-cw.html`, `map-rtty.html`, `map-ft.html`, `map-qsl.html` and `map-dxcc.html` (each with `?LU2MET`) show markers, the box shows `LU2MET SSB` (and so on), and the mode links keep the callsign.
 - [ ] `map-qrz.php?LU2MET` shows the background, points and paths, and its box names the station's static map mode.
 - [ ] Changing that mode in `admin/` changes the points and the box of `map-qrz.php?LU2MET`; the old `map-ssb-qrz.php?LU2MET` shows the same.
 - [ ] `map-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.

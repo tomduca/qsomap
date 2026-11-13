@@ -20,6 +20,11 @@
  * count, the confirmed count, the latest callsigns and the DXCC entities. The
  * maps then show one point per grid square and say why.
  *
+ * Every cache also has "entities": one per DXCC entity with a confirmed QSO
+ * (QSL_RCVD = Y, as on the QSL map), with the number of confirmed QSOs, the
+ * first one (by QSO date) and the entity's position from
+ * data/dxcc_positions.json (see update_dxcc.php). The DXCC map draws them.
+ *
  * From a browser it can run in batches, so a first sync with many lookups fits
  * in short web requests: ?max_lookups=N looks up at most N callsigns, starting
  * at the QSO number given by ?offset=. The cache and the lookups are written
@@ -100,6 +105,7 @@ $lookupsDone = 0;
 $rejected = [];
 $processed = []; // per-QSO entries (small logs)
 $groups = [];    // grid square|band|class => group (big logs)
+$entities = [];  // DXCC code => confirmed QSOs and the first one
 
 $index = -1;
 foreach (storedQsos(QSOS_FILES) as $qso) {
@@ -173,6 +179,7 @@ foreach (storedQsos(QSOS_FILES) as $qso) {
     }
 
     if ($entry['grid'] !== '') $stats['with_grid']++;
+    countConfirmedEntity($entities, $entry);
     if ($grouped) {
         addToGroup($groups, $entry);
     } else {
@@ -196,6 +203,7 @@ if ($grouped) {
 } else {
     $cache['qsos'] = $processed;
 }
+$cache['entities'] = finishEntities($entities);
 writeJson($lookupsFile, $lookups);
 writeJson($cacheFile, $cache, false);
 
@@ -203,6 +211,7 @@ echo "QSOs with grid: {$stats['with_grid']} / " . ($index + 1) . "\n";
 echo "Grids logged for the callsign in another QSO: {$stats['logged_elsewhere']}\n";
 echo "New lookups: HamQTH {$stats['hamqth']}, Spothole {$stats['spothole']}, not found {$stats['not_found']}\n";
 if ($grouped) echo 'Groups (grid square, band, mode): ' . count($cache['groups']) . "\n";
+echo 'Confirmed DXCC entities: ' . count($cache['entities']) . "\n";
 if ($nextOffset !== null) {
     echo 'Lookups left for the next batch: ' . count($remaining) . "\n";
     echo "Next offset: $nextOffset\n";
@@ -268,6 +277,38 @@ function finishGroups(array &$groups): array {
         $group['qsl_calls'] = array_map('strval', array_keys($group['qsl_calls']));
         $group['dxcc'] = array_map('strval', array_keys($group['dxcc']));
         $list[] = $group;
+    }
+    return $list;
+}
+
+/** Count a confirmed QSO for its DXCC entity, keeping the entity's first one. */
+function countConfirmedEntity(array &$entities, array $entry): void {
+    $code = trim((string)$entry['dxcc']);
+    if (strtoupper((string)$entry['qsl_rcvd']) !== 'Y' || !ctype_digit($code) || (int)$code === 0) return;
+    $code = (string)(int)$code;
+    $when = str_pad(substr($entry['date'] . '00000000', 0, 8) . substr($entry['time'] . '0000', 0, 4), 12);
+    $entity = &$entities[$code];
+    $entity ??= ['n' => 0, 'when' => null, 'first' => null];
+    $entity['n']++;
+    if ($entity['when'] === null || $when < $entity['when']) {
+        $entity['when'] = $when;
+        $entity['first'] = [
+            'call' => $entry['call'], 'band' => $entry['band'], 'mode' => $entry['submode'] !== '' ? $entry['submode'] : $entry['mode'],
+            'date' => $entry['date'], 'time' => $entry['time'], 'grid' => $entry['grid'],
+        ];
+    }
+}
+
+/**
+ * Entities as the DXCC map reads them, by code: position from
+ * data/dxcc_positions.json, or null (the map then uses the first QSO's grid).
+ */
+function finishEntities(array $entities): array {
+    $positions = readJson(QSOMAP_DATA . '/dxcc_positions.json') ?? [];
+    ksort($entities, SORT_NUMERIC);
+    $list = [];
+    foreach ($entities as $code => $entity) {
+        $list[] = ['dxcc' => (string)$code, 'n' => $entity['n'], 'pos' => $positions[$code] ?? null, 'first' => $entity['first']];
     }
     return $list;
 }
