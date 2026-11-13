@@ -52,7 +52,7 @@ html, body { margin: 0; padding: 0; background: #d9e2e5; }
 <?php foreach ($map['groups'] as $group): ?>
     <div class="qrz-map-point" style="left:<?= round(mapX($group['position'][1], $qth[1]), 1) ?>px;top:<?= round(mapY($group['position'][0]), 1) ?>px;background:<?= $group['color'] ?>" title="<?= esc($group['label']) ?>"></div>
 <?php endforeach; ?>
-    <div class="qrz-map-label"><?= esc($title) ?> <span class="qrz-map-count"><?= locationCount(count($map['groups'])) ?></span></div>
+    <div class="qrz-map-label"><?= esc($title) ?> <span class="qrz-map-count"><?= locationCount(count($map['groups']), $map['view']) ?></span></div>
 </a>
 </body>
 </html>

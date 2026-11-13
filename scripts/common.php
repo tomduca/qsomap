@@ -40,6 +40,8 @@ const MAP_VIEWS = [
     'rtty' => ['name' => 'RTTY', 'page' => 'map-rtty.html', 'modes' => ['RTTY']],
     'ft' => ['name' => 'FT8/FT4', 'page' => 'map-ft.html', 'modes' => ['FT8', 'FT4']],
     'qsl' => ['name' => 'QSL LoTW', 'page' => 'map-qsl.html', 'modes' => null],
+    // One point per confirmed DXCC entity, from the cache's "entities" (not per QSO).
+    'dxcc' => ['name' => 'DXCC', 'page' => 'map-dxcc.html', 'modes' => null],
 ];
 const DEFAULT_STATIC_VIEW = 'ssb';
 

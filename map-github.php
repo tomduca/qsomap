@@ -34,7 +34,7 @@ function esc(string $value): string {
 $map = staticMapData();
 $qth = $map['qth'];
 $heading = trim($map['call'] . ' ' . $map['name']);
-$count = locationCount(count($map['groups']));
+$count = locationCount(count($map['groups']), $map['view']);
 $title = "$heading map: $count";
 $labelWidth = 24 + 8.5 * strlen($heading) + 7 * strlen($count);
 $background = is_file($backgroundPath) ? 'data:image/png;base64,' . base64_encode((string)file_get_contents($backgroundPath)) : null;
