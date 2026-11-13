@@ -6,7 +6,8 @@
  * Points and great-circle paths are projected onto the background generated
  * by scripts/make_background.php: longitude centred on the QTH, latitude in
  * Web Mercator (clamped to +/-85.05). The map shows the station's chosen view
- * (map.static_mode: SSB, CW, RTTY, FT8/FT4 or confirmed QSOs).
+ * (map.static_mode: SSB, CW, RTTY, FT8/FT4, confirmed QSOs or confirmed DXCC
+ * entities).
  */
 
 require_once __DIR__ . '/common.php';
@@ -14,6 +15,7 @@ require_once __DIR__ . '/common.php';
 const MAP_SIZE = 600;
 const BAND_COLORS = ['10M' => '#e45756', '15M' => '#f28e2b', '20M' => '#59a14f', '40M' => '#4e79a7', '80M' => '#7b61a8'];
 const DEFAULT_COLOR = '#68747d';
+const DXCC_COLOR = '#087f8c'; // same as the interactive DXCC map
 
 /**
  * What a static map draws for the current station: callsign, grid, QTH, view
@@ -31,6 +33,20 @@ function staticMapData(): array {
     $view = staticView($config);
 
     $groups = [];
+    if ($view === 'dxcc') {
+        // One point per confirmed entity, at its cty.csv position or else the
+        // grid of its first confirmed QSO (see build_cache.php).
+        $names = readJson(QSOMAP_DATA . '/dxcc.json') ?? [];
+        foreach ($cache['entities'] ?? [] as $entity) {
+            $position = is_array($entity['pos'] ?? null) ? $entity['pos'] : gridCentre((string)($entity['first']['grid'] ?? ''));
+            if ($position === null) continue;
+            $groups[] = [
+                'label' => ($names[$entity['dxcc']] ?? 'DXCC') . ' (' . $entity['dxcc'] . ')',
+                'position' => [(float)$position[0], shortestLongitude((float)$position[1], $qth[1])],
+                'color' => DXCC_COLOR,
+            ];
+        }
+    }
     // Big logs come grouped by grid square (see build_cache.php): one point per
     // square, in the color of its band with most QSOs.
     $bySquare = [];
@@ -49,7 +65,7 @@ function staticMapData(): array {
         ];
     }
     foreach ($cache['qsos'] ?? [] as $qso) {
-        if (!qsoInView($qso, $view)) continue;
+        if ($view === 'dxcc' || !qsoInView($qso, $view)) continue;
         $position = gridCentre((string)($qso['grid'] ?? ''));
         if ($position === null) continue;
         $band = strtoupper((string)($qso['band'] ?? ''));
@@ -72,8 +88,9 @@ function staticMapData(): array {
     ];
 }
 
-/** "1 location", "25 locations". */
-function locationCount(int $count): string {
+/** "1 location", "25 locations"; on the DXCC view "1 entity", "25 entities". */
+function locationCount(int $count, string $view = ''): string {
+    if ($view === 'dxcc') return $count . ($count === 1 ? ' entity' : ' entities');
     return $count . ($count === 1 ? ' location' : ' locations');
 }
 
