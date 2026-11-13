@@ -5,6 +5,8 @@
  *   rtty - RTTY
  *   ft   - FT8 and FT4
  *   qsl  - confirmed QSOs in any mode (QSL_RCVD = Y)
+ *   dxcc - DXCC entities with a confirmed QSO, one point per entity, from
+ *          the cache's "entities" (first confirmed QSO of each)
  * Other modes (PSK, JT65...) only appear on the QSL map once confirmed.
  * The station is the bare callsign in the query string (map-ssb.html?LU2MET);
  * without one, cache.php serves the installation's default station. Data
@@ -21,7 +23,8 @@
         cw: { name: 'CW', page: 'map-cw.html', modes: ['CW'] },
         rtty: { name: 'RTTY', page: 'map-rtty.html', modes: ['RTTY'] },
         ft: { name: 'FT', page: 'map-ft.html', modes: ['FT8', 'FT4'] },
-        qsl: { name: 'QSL LoTW', page: 'map-qsl.html', modes: null }
+        qsl: { name: 'QSL LoTW', page: 'map-qsl.html', modes: null },
+        dxcc: { name: 'DXCC', page: 'map-dxcc.html', modes: null }
     };
     const view = views[document.body.dataset.view] ? document.body.dataset.view : 'ssb';
     const repositoryUrl = 'https://github.com/tomduca/qsomap';
@@ -150,6 +153,45 @@
             if (qso.comment) html += '<tr><td colspan="3" class="popup-comment">' + escapeHtml(qso.comment) + '</td></tr>';
         });
         return html + '</tbody></table>';
+    }
+
+    /** Popup of a confirmed DXCC entity: name, number and first confirmed QSO. */
+    function popupForEntity(entity) {
+        const known = typeof DXCC_DATA !== 'undefined' && DXCC_DATA[entity.dxcc];
+        const first = entity.first || {};
+        let html = '<div class="popup-title">' + (known && known.flag ? escapeHtml(known.flag) + ' ' : '')
+            + '<strong>' + escapeHtml(known ? known.name : 'DXCC ' + entity.dxcc) + '</strong></div>'
+            + '<div>DXCC #' + escapeHtml(entity.dxcc) + ' &nbsp;' + escapeHtml(entity.n + (entity.n === 1 ? ' confirmed QSO' : ' confirmed QSOs')) + '</div>';
+        html += '<table class="popup-table"><thead><tr><th colspan="2">First confirmed QSO</th></tr></thead><tbody>'
+            + '<tr><td>Date</td><td>' + escapeHtml(formatDate(first)) + '</td></tr>'
+            + '<tr><td>Band</td><td>' + escapeHtml(first.band || 'n/a') + (first.mode ? ' &nbsp;' + escapeHtml(first.mode) : '') + '</td></tr>';
+        if (first.call) {
+            html += '<tr><td>Call</td><td><a href="' + escapeHtml(qrzUrl(first.call)) + '" target="_blank" rel="noopener">'
+                + escapeHtml(first.call) + '</a></td></tr>';
+        }
+        return html + '</tbody></table>';
+    }
+
+    /**
+     * Draw one point and path per confirmed DXCC entity, at the entity's
+     * position (cty.csv), or the first confirmed QSO's grid when it has none.
+     * Returns the number of entities shown.
+     */
+    function drawEntities(map, entities, qthPosition, oms) {
+        const color = '#087f8c';
+        let shown = 0;
+        entities.forEach(entity => {
+            const point = Array.isArray(entity.pos) ? entity.pos : gridCentre(entity.first && entity.first.grid);
+            if (!point) return;
+            const position = [point[0], shortestLongitude(point[1], qthPosition[1])];
+            L.polyline(greatCirclePoints(qthPosition, position), { color, weight: 1, opacity: 0.55, interactive: false }).addTo(map);
+            const marker = L.circleMarker(position, { radius: 5, color: '#ffffff', weight: 1, fillColor: color, fillOpacity: 0.95 })
+                .bindPopup(popupForEntity(entity))
+                .addTo(map);
+            oms.addMarker(marker);
+            shown += 1;
+        });
+        return shown;
     }
 
     /** Popup of a grid square of a grouped (big) log. */
@@ -284,6 +326,23 @@
         });
     }
 
+    /**
+     * The navigation box sits at the bottom left and Leaflet's attribution at
+     * the bottom right. On a narrow screen they meet and the attribution
+     * covers the links: then the box moves up, just above the attribution.
+     */
+    function placeNavAboveAttribution() {
+        const nav = document.querySelector('.map-nav');
+        const attribution = document.querySelector('.leaflet-control-attribution');
+        if (!nav || !attribution) return;
+        nav.style.bottom = '';
+        const navRect = nav.getBoundingClientRect();
+        const attributionRect = attribution.getBoundingClientRect();
+        if (navRect.right > attributionRect.left && navRect.bottom > attributionRect.top) {
+            nav.style.bottom = (window.innerHeight - attributionRect.top + 6) + 'px';
+        }
+    }
+
     function setStatus(message, isError = false, note = '') {
         status.innerHTML = '<strong>' + escapeHtml((stationName + ' ' + views[view].name).trim()) + '</strong><span class="' + (isError ? 'error' : '') + '">'
             + escapeHtml(message) + '</span>' + (note ? '<span class="map-note">' + escapeHtml(note) + '</span>' : '');
@@ -383,9 +442,21 @@
             if (popup) fadeBoxesUnder(popup);
         });
         L.tileLayer.provider('Esri.NatGeoWorldMap', { maxZoom: 17 }).addTo(map);
+        placeNavAboveAttribution();
+        map.on('resize', placeNavAboveAttribution);
         const oms = new OverlappingMarkerSpiderfier(map, { nearbyDistance: 20, keepSpiderfied: true });
         L.circleMarker(qthPosition, { radius: 4, color: '#18343a', fillColor: '#f3c969', fillOpacity: 1, weight: 1 })
             .bindTooltip(station.callsign + ' (' + String(station.grid).toUpperCase() + ')').addTo(map);
+
+        if (view === 'dxcc') {
+            if (!Array.isArray(cache.entities)) throw new Error('No DXCC data yet: it appears after the next sync of this station');
+            await dxccUpdates;
+            const shown = drawEntities(map, cache.entities, qthPosition, oms);
+            map.setView(qthPosition, 3);
+            setStatus(shown + (shown === 1 ? ' confirmed DXCC entity' : ' confirmed DXCC entities'), false,
+                'Click an entity for its first confirmed QSO.');
+            return;
+        }
 
         if (cache.groups) {
             await dxccUpdates;

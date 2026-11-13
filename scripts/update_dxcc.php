@@ -5,6 +5,8 @@
  *     country file (cty.csv, country-files.com). js/dxcc.js stays the base
  *     list (names, flags and deleted entities); the maps load data/dxcc.json
  *     on top of it to pick up entities added since.
+ *   - data/dxcc_positions.json: code => [lat, lon] of each entity, the
+ *     point cty.csv gives for it, where the DXCC map draws the entity.
  *   - data/vuccgrids.json: the 4-character grids of each entity, from TQSL's
  *     vuccgrids.dat (ARRL's TrustedQSL repository), so build_cache.php can drop grids
  *     that do not match the QSO's DXCC entity.
@@ -31,22 +33,30 @@ if ($csv === null) {
 // Columns: primary prefix, name, DXCC code, continent, CQ zone, ITU zone, lat, lon, UTC offset, prefixes.
 // A primary prefix starting with '*' marks a WAE/CQ-only country (e.g. *IT9 Sicily), not a DXCC entity.
 $entities = [];
+$positions = [];
 foreach (preg_split('/\R/', $csv) as $line) {
     $fields = str_getcsv($line);
     if (count($fields) < 3 || substr($fields[0], 0, 1) === '*') continue;
     $code = trim($fields[2]);
     $name = trim($fields[1]);
-    if (ctype_digit($code) && $name !== '') $entities[(int)$code] = $name;
+    if (!ctype_digit($code) || $name === '') continue;
+    $entities[(int)$code] = $name;
+    // cty.csv gives west longitudes as positive (cty.dat convention): flip them.
+    if (count($fields) >= 8 && is_numeric(trim($fields[6])) && is_numeric(trim($fields[7]))) {
+        $positions[(int)$code] = [round((float)$fields[6], 2), round(-(float)$fields[7], 2)];
+    }
 }
 if (count($entities) < MIN_ENTITIES) {
     fail('unexpected cty.csv content: only ' . count($entities) . ' entities found');
 }
 ksort($entities);
+ksort($positions);
 
 $jsonFile = QSOMAP_DATA . '/dxcc.json';
 $previous = readJson($jsonFile) ?? [];
 $added = array_diff_key($entities, $previous);
 writeJson($jsonFile, $entities);
+writeJson(QSOMAP_DATA . '/dxcc_positions.json', $positions);
 
 echo count($entities) . " entities saved to data/dxcc.json\n";
 if ($previous && $added) {

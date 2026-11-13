@@ -15,6 +15,10 @@
  * (storage.key_file, a key kept outside the web folder; see secretKey()).
  */
 
+// Write floats in JSON as their shortest form (144.42, not 144.41999999999998...):
+// some hosts set serialize_precision to 17 or more, which bloats the map caches.
+ini_set('serialize_precision', '-1');
+
 define('QSOMAP_ROOT', dirname(__DIR__));
 define('QSOMAP_DATA', QSOMAP_ROOT . '/data');
 define('QSOMAP_STATIONS', storagePath('stations_dir') ?? QSOMAP_ROOT . '/stations');
