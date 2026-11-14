@@ -6,7 +6,7 @@
  *   ft   - FT8 and FT4
  *   qsl  - confirmed QSOs in any mode (QSL_RCVD = Y)
  *   dxcc - DXCC entities with a confirmed QSO, one point per entity, from
- *          the cache's "entities" (first confirmed QSO of each)
+ *          the cache's "entities" (first confirmed QSO of each, CW first)
  * Other modes (PSK, JT65...) only appear on the QSL map once confirmed.
  * The station is the bare callsign in the query string (map-ssb.html?LU2MET);
  * without one, cache.php serves the installation's default station. Data
