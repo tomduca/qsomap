@@ -281,9 +281,6 @@ function finishGroups(array &$groups): array {
     return $list;
 }
 
-/** Mode classes in the order the DXCC map prefers them for an entity's QSO. */
-const ENTITY_MODE_PRIORITY = ['cw' => 0, 'ssb' => 1, 'rtty' => 2, 'ft' => 3];
-
 /**
  * Count a confirmed QSO for its DXCC entity, keeping the one the map shows:
  * the first CW QSO, else the first SSB, then RTTY, then FT8/FT4, then others.
@@ -292,7 +289,10 @@ function countConfirmedEntity(array &$entities, array $entry): void {
     $code = trim((string)$entry['dxcc']);
     if (strtoupper((string)$entry['qsl_rcvd']) !== 'Y' || !ctype_digit($code) || (int)$code === 0) return;
     $code = (string)(int)$code;
-    $rank = ENTITY_MODE_PRIORITY[modeClass($entry)] ?? count(ENTITY_MODE_PRIORITY);
+    // Mode classes in order of preference. Not a top-level const: this
+    // function runs before the end of the file defines one.
+    static $priority = ['cw' => 0, 'ssb' => 1, 'rtty' => 2, 'ft' => 3];
+    $rank = $priority[modeClass($entry)] ?? count($priority);
     $when = $rank . str_pad(substr($entry['date'] . '00000000', 0, 8) . substr($entry['time'] . '0000', 0, 4), 12);
     $entity = &$entities[$code];
     $entity ??= ['n' => 0, 'when' => null, 'first' => null];
