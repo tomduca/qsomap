@@ -189,10 +189,11 @@
      * Draw one point and path per confirmed DXCC entity into layer, at the
      * entity's position (cty.csv), or its first confirmed QSO's grid when it
      * has none. Entities without a QSO in the preferred mode get a hollow point
-     * and a dashed path. Returns [entities shown, of them in the preferred mode].
+     * and a dashed path. Crimson contrasts with the sea, land and desert of
+     * the base map. Returns [entities shown, of them in the preferred mode].
      */
     function drawEntities(layer, entities, qthPosition, oms, preference) {
-        const color = '#087f8c';
+        const color = '#d7263d';
         let shown = 0;
         let inPreferred = 0;
         entities.forEach(entity => {
@@ -200,9 +201,12 @@
             if (!point) return;
             const { inMode } = entityQso(entity, preference);
             const position = [point[0], shortestLongitude(point[1], qthPosition[1])];
-            L.polyline(greatCirclePoints(qthPosition, position), inMode
-                ? { color, weight: 1, opacity: 0.55, interactive: false }
-                : { color, weight: 1, opacity: 0.35, dashArray: '3 4', interactive: false }).addTo(layer);
+            // A light casing under each path keeps it visible on any part of the map.
+            const path = greatCirclePoints(qthPosition, position);
+            L.polyline(path, { color: '#ffffff', weight: 3.5, opacity: 0.55, interactive: false }).addTo(layer);
+            L.polyline(path, inMode
+                ? { color, weight: 1.5, opacity: 0.9, interactive: false }
+                : { color, weight: 1.5, opacity: 0.9, dashArray: '4 4', interactive: false }).addTo(layer);
             const marker = L.circleMarker(position, inMode
                 ? { radius: 5, color: '#ffffff', weight: 1, fillColor: color, fillOpacity: 0.95 }
                 : { radius: 4, color, weight: 2, fillColor: '#ffffff', fillOpacity: 0.9 })
