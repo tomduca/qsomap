@@ -6,7 +6,7 @@
  *   ft   - FT8 and FT4
  *   qsl  - confirmed QSOs in any mode (QSL_RCVD = Y)
  *   dxcc - DXCC entities with a confirmed QSO, one point per entity, from
- *          the cache's "entities" (first confirmed QSO of each, CW first)
+ *          the cache's "entities" (first confirmed QSO of each, in a preferred mode if picked)
  * Other modes (PSK, JT65...) only appear on the QSL map once confirmed.
  * The station is the bare callsign in the query string (map-ssb.html?LU2MET);
  * without one, cache.php serves the installation's default station. Data
@@ -19,7 +19,7 @@
     // Pages and their modes, in the order of the navigation links. A QSO
     // matches on MODE or SUBMODE (FT4 is logged as MFSK with SUBMODE FT4).
     const views = {
-        ssb: { name: 'SSB', page: 'map-ssb.html', modes: ['SSB', 'USB', 'LSB', 'FM', 'AM'] },
+        ssb: { name: 'Phone', page: 'map-ssb.html', modes: ['SSB', 'USB', 'LSB', 'FM', 'AM'] },
         cw: { name: 'CW', page: 'map-cw.html', modes: ['CW'] },
         rtty: { name: 'RTTY', page: 'map-rtty.html', modes: ['RTTY'] },
         ft: { name: 'FT', page: 'map-ft.html', modes: ['FT8', 'FT4'] },
@@ -155,14 +155,27 @@
         return html + '</tbody></table>';
     }
 
-    /** Popup of a confirmed DXCC entity: name, number and first confirmed QSO. */
-    function popupForEntity(entity) {
+    // Mode the DXCC map prefers for each entity's QSO: ?pref= in the URL,
+    // else the last one picked in this browser, else any mode (the first QSO).
+    const entityModes = { any: 'Any', cw: 'CW', ssb: 'Phone', rtty: 'RTTY', ft: 'FT' };
+
+    /** QSO the DXCC map shows for an entity, and whether it is in the preferred mode. */
+    function entityQso(entity, preference) {
+        const inMode = preference !== 'any' && entity.by_mode ? entity.by_mode[preference] : null;
+        return { qso: inMode || entity.first || {}, inMode: preference === 'any' || Boolean(inMode) };
+    }
+
+    /** Popup of a confirmed DXCC entity: name, number and the QSO shown. */
+    function popupForEntity(entity, preference) {
         const known = typeof DXCC_DATA !== 'undefined' && DXCC_DATA[entity.dxcc];
-        const first = entity.first || {};
+        const { qso: first, inMode } = entityQso(entity, preference);
+        const title = preference === 'any' ? 'First confirmed QSO'
+            : inMode ? 'First confirmed ' + entityModes[preference] + ' QSO'
+            : 'No confirmed ' + entityModes[preference] + ' QSO. First confirmed QSO';
         let html = '<div class="popup-title">' + (known && known.flag ? escapeHtml(known.flag) + ' ' : '')
             + '<strong>' + escapeHtml(known ? known.name : 'DXCC ' + entity.dxcc) + '</strong></div>'
             + '<div>DXCC #' + escapeHtml(entity.dxcc) + ' &nbsp;' + escapeHtml(entity.n + (entity.n === 1 ? ' confirmed QSO' : ' confirmed QSOs')) + '</div>';
-        html += '<table class="popup-table"><thead><tr><th colspan="2">First confirmed QSO</th></tr></thead><tbody>'
+        html += '<table class="popup-table"><thead><tr><th colspan="2">' + escapeHtml(title) + '</th></tr></thead><tbody>'
             + '<tr><td>Date</td><td>' + escapeHtml(formatDate(first)) + '</td></tr>'
             + '<tr><td>Band</td><td>' + escapeHtml(first.band || 'n/a') + (first.mode ? ' &nbsp;' + escapeHtml(first.mode) : '') + '</td></tr>';
         if (first.call) {
@@ -173,25 +186,76 @@
     }
 
     /**
-     * Draw one point and path per confirmed DXCC entity, at the entity's
-     * position (cty.csv), or the first confirmed QSO's grid when it has none.
-     * Returns the number of entities shown.
+     * Draw one point and path per confirmed DXCC entity into layer, at the
+     * entity's position (cty.csv), or its first confirmed QSO's grid when it
+     * has none. Entities without a QSO in the preferred mode get a hollow point
+     * and a dashed path. Crimson contrasts with the sea, land and desert of
+     * the base map. Returns [entities shown, of them in the preferred mode].
      */
-    function drawEntities(map, entities, qthPosition, oms) {
-        const color = '#087f8c';
+    function drawEntities(layer, entities, qthPosition, oms, preference) {
+        const color = '#d7263d';
         let shown = 0;
+        let inPreferred = 0;
         entities.forEach(entity => {
             const point = Array.isArray(entity.pos) ? entity.pos : gridCentre(entity.first && entity.first.grid);
             if (!point) return;
+            const { inMode } = entityQso(entity, preference);
             const position = [point[0], shortestLongitude(point[1], qthPosition[1])];
-            L.polyline(greatCirclePoints(qthPosition, position), { color, weight: 1, opacity: 0.55, interactive: false }).addTo(map);
-            const marker = L.circleMarker(position, { radius: 5, color: '#ffffff', weight: 1, fillColor: color, fillOpacity: 0.95 })
-                .bindPopup(popupForEntity(entity))
-                .addTo(map);
+            // A light casing under each path keeps it visible on any part of the map.
+            const path = greatCirclePoints(qthPosition, position);
+            L.polyline(path, { color: '#ffffff', weight: 3.5, opacity: 0.55, interactive: false }).addTo(layer);
+            L.polyline(path, inMode
+                ? { color, weight: 1.5, opacity: 0.9, interactive: false }
+                : { color, weight: 1.5, opacity: 0.9, dashArray: '4 4', interactive: false }).addTo(layer);
+            const marker = L.circleMarker(position, inMode
+                ? { radius: 5, color: '#ffffff', weight: 1, fillColor: color, fillOpacity: 0.95 }
+                : { radius: 4, color, weight: 2, fillColor: '#ffffff', fillOpacity: 0.9 })
+                .bindPopup(popupForEntity(entity, preference))
+                .addTo(layer);
             oms.addMarker(marker);
             shown += 1;
+            if (inMode) inPreferred += 1;
         });
-        return shown;
+        return [shown, inPreferred];
+    }
+
+    /** Draw the DXCC view with a mode selector in the status box; redraws when it changes. */
+    function showEntities(map, entities, qthPosition, oms) {
+        const fromUrl = new URLSearchParams(location.search).get('pref');
+        // Caches built before 2.7.0 have no QSO per mode: no selector until the next rebuild.
+        const hasModes = entities.some(entity => entity.by_mode);
+        let preference = hasModes ? [fromUrl, storage('qsomap-dxcc-pref')].find(value => entityModes[value]) || 'any' : 'any';
+        const layer = L.layerGroup().addTo(map);
+        const draw = () => {
+            layer.clearLayers();
+            oms.clearMarkers();
+            map.closePopup();
+            const [shown, inPreferred] = drawEntities(layer, entities, qthPosition, oms, preference);
+            const count = shown + (shown === 1 ? ' confirmed DXCC entity' : ' confirmed DXCC entities');
+            setStatus(preference === 'any' ? count : count + ': ' + inPreferred + ' in ' + entityModes[preference]
+                + ', ' + (shown - inPreferred) + ' only in other modes', false,
+                preference === 'any' ? 'Click an entity for its first confirmed QSO.'
+                    : 'Hollow points have no confirmed ' + entityModes[preference] + ' QSO and show the first one in any mode.');
+            if (!hasModes) return;
+            const picker = document.createElement('div');
+            picker.className = 'mode-picker';
+            picker.innerHTML = '<span>First QSO in</span>' + Object.entries(entityModes).map(([key, name]) =>
+                '<button type="button" data-pref="' + key + '"' + (key === preference ? ' aria-pressed="true"' : '') + '>'
+                + escapeHtml(name) + '</button>').join('');
+            picker.addEventListener('click', event => {
+                const button = event.target.closest('button');
+                if (!button || button.dataset.pref === preference) return;
+                preference = button.dataset.pref;
+                storage('qsomap-dxcc-pref', preference === 'any' ? null : preference);
+                const url = new URL(location.href);
+                if (preference === 'any') url.searchParams.delete('pref');
+                else url.searchParams.set('pref', preference);
+                history.replaceState(null, '', url.toString().replace(/=(?=&|$)/g, ''));
+                draw();
+            });
+            status.appendChild(picker);
+        };
+        draw();
     }
 
     /** Popup of a grid square of a grouped (big) log. */
@@ -451,10 +515,8 @@
         if (view === 'dxcc') {
             if (!Array.isArray(cache.entities)) throw new Error('No DXCC data yet: it appears after the next sync of this station');
             await dxccUpdates;
-            const shown = drawEntities(map, cache.entities, qthPosition, oms);
+            showEntities(map, cache.entities, qthPosition, oms);
             map.setView(qthPosition, 3);
-            setStatus(shown + (shown === 1 ? ' confirmed DXCC entity' : ' confirmed DXCC entities'), false,
-                'Click an entity for its first confirmed QSO.');
             return;
         }
 

@@ -21,9 +21,11 @@
  * maps then show one point per grid square and say why.
  *
  * Every cache also has "entities": one per DXCC entity with a confirmed QSO
- * (QSL_RCVD = Y, as on the QSL map), with the number of confirmed QSOs, one
- * of them (the first in CW, else SSB, RTTY, FT8/FT4, any other mode) and the entity's position from
- * data/dxcc_positions.json (see update_dxcc.php). The DXCC map draws them.
+ * (QSL_RCVD = Y, as on the QSL map), with the number of confirmed QSOs, the
+ * first confirmed QSO in any mode ("first"), the first in each mode class
+ * that has one ("by_mode": cw, ssb, rtty, ft) and the entity's position from
+ * data/dxcc_positions.json (see update_dxcc.php). The DXCC map draws them and
+ * lets the viewer prefer a mode.
  *
  * From a browser it can run in batches, so a first sync with many lookups fits
  * in short web requests: ?max_lookups=N looks up at most N callsigns, starting
@@ -282,27 +284,28 @@ function finishGroups(array &$groups): array {
 }
 
 /**
- * Count a confirmed QSO for its DXCC entity, keeping the one the map shows:
- * the first CW QSO, else the first SSB, then RTTY, then FT8/FT4, then others.
+ * Count a confirmed QSO for its DXCC entity, keeping its first confirmed QSO
+ * in any mode and its first in each mode class (other modes count only for
+ * the first in any mode).
  */
 function countConfirmedEntity(array &$entities, array $entry): void {
     $code = trim((string)$entry['dxcc']);
     if (strtoupper((string)$entry['qsl_rcvd']) !== 'Y' || !ctype_digit($code) || (int)$code === 0) return;
     $code = (string)(int)$code;
-    // Mode classes in order of preference. Not a top-level const: this
-    // function runs before the end of the file defines one.
-    static $priority = ['cw' => 0, 'ssb' => 1, 'rtty' => 2, 'ft' => 3];
-    $rank = $priority[modeClass($entry)] ?? count($priority);
-    $when = $rank . str_pad(substr($entry['date'] . '00000000', 0, 8) . substr($entry['time'] . '0000', 0, 4), 12);
+    $when = str_pad(substr($entry['date'] . '00000000', 0, 8) . substr($entry['time'] . '0000', 0, 4), 12);
+    $qso = [
+        'call' => $entry['call'], 'band' => $entry['band'], 'mode' => $entry['submode'] !== '' ? $entry['submode'] : $entry['mode'],
+        'date' => $entry['date'], 'time' => $entry['time'], 'grid' => $entry['grid'],
+    ];
     $entity = &$entities[$code];
-    $entity ??= ['n' => 0, 'when' => null, 'first' => null];
+    $entity ??= ['n' => 0, 'first' => null, 'by_mode' => []];
     $entity['n']++;
-    if ($entity['when'] === null || $when < $entity['when']) {
-        $entity['when'] = $when;
-        $entity['first'] = [
-            'call' => $entry['call'], 'band' => $entry['band'], 'mode' => $entry['submode'] !== '' ? $entry['submode'] : $entry['mode'],
-            'date' => $entry['date'], 'time' => $entry['time'], 'grid' => $entry['grid'],
-        ];
+    foreach (['any', modeClass($entry)] as $class) {
+        if ($class === 'other') continue;
+        $kept = $class === 'any' ? $entity['first'] : ($entity['by_mode'][$class] ?? null);
+        if ($kept !== null && $kept['when'] <= $when) continue;
+        if ($class === 'any') $entity['first'] = ['when' => $when, 'qso' => $qso];
+        else $entity['by_mode'][$class] = ['when' => $when, 'qso' => $qso];
     }
 }
 
@@ -315,7 +318,14 @@ function finishEntities(array $entities): array {
     ksort($entities, SORT_NUMERIC);
     $list = [];
     foreach ($entities as $code => $entity) {
-        $list[] = ['dxcc' => (string)$code, 'n' => $entity['n'], 'pos' => $positions[$code] ?? null, 'first' => $entity['first']];
+        $byMode = [];
+        foreach (['cw', 'ssb', 'rtty', 'ft'] as $class) {
+            if (isset($entity['by_mode'][$class])) $byMode[$class] = $entity['by_mode'][$class]['qso'];
+        }
+        $list[] = [
+            'dxcc' => (string)$code, 'n' => $entity['n'], 'pos' => $positions[$code] ?? null,
+            'first' => $entity['first']['qso'], 'by_mode' => (object)$byMode,
+        ];
     }
     return $list;
 }

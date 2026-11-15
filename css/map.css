@@ -170,3 +170,33 @@ body {
 .has-update-banner .leaflet-top {
     margin-top: 40px;
 }
+
+.map-status .mode-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.mode-picker span {
+    margin-right: 4px;
+    color: #5b6b70;
+}
+
+.mode-picker button {
+    padding: 3px 9px;
+    border: 1px solid rgba(24, 52, 58, 0.25);
+    border-radius: 4px;
+    background: #ffffff;
+    color: #18343a;
+    font: inherit;
+    cursor: pointer;
+}
+
+.mode-picker button[aria-pressed="true"] {
+    border-color: #087f8c;
+    background: #087f8c;
+    color: #ffffff;
+}
