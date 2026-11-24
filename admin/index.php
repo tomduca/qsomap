@@ -3,7 +3,8 @@
  * Manager portal: create invites for new stations, see and cancel pending
  * ones, list the stations with their status, choose what each static map
  * shows, turn the club ranking on or off (with its title and language) and
- * leave stations out of it, delete a station, and read the event log.
+ * leave stations out of it, change a station's callsign, delete a station,
+ * and read the event log.
  *
  * The folder must be password-protected by the web server (cPanel →
  * Directory Privacy, i.e. HTTP Basic auth). The page refuses to work if the
@@ -47,6 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['flash'] = ['message' => 'Ranking settings saved.'];
     } elseif ($call === null) {
         $_SESSION['flash'] = ['error' => 'Enter a callsign without prefixes or suffixes (e.g. LU9XYZ, not LU9XYZ/P).'];
+    } elseif ($action === 'invite' && ($renamed = stationAlias($call)) !== null) {
+        $_SESSION['flash'] = ['error' => "$call is a previous callsign of $renamed. Invite $renamed instead."];
     } elseif ($action === 'invite') {
         $_SESSION['flash'] = ['invite' => createInvite($call, $user)];
     } elseif ($action === 'cancel') {
@@ -62,6 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setRankingOptOut($call, $optOut);
         logEvent("$call " . ($optOut ? 'left out of' : 'back in') . " the ranking, by $user");
         $_SESSION['flash'] = ['message' => "$call is " . ($optOut ? 'no longer shown' : 'shown again') . ' in the ranking.'];
+    } elseif ($action === 'rename' && stationExists($call)) {
+        $newCall = normalizeCall((string)($_POST['new_callsign'] ?? ''));
+        $error = $newCall === null ? 'Enter the new callsign without prefixes or suffixes (e.g. LU9XYZ, not LU9XYZ/P).' : renameStation($call, $newCall);
+        if ($error === null) {
+            logEvent("station renamed: $call is now $newCall, by $user");
+            $_SESSION['flash'] = ['message' => "$call is now $newCall. Its QSOs were kept, the LoTW username is now $newCall "
+                . "and the addresses with ?$call keep working. The map shows the new callsign after the next sync."];
+        } else {
+            $_SESSION['flash'] = ['error' => $error];
+        }
     } elseif ($action === 'delete' && stationExists($call)) {
         deleteStation($call);
         logEvent("station deleted: $call, by $user");
@@ -147,6 +160,57 @@ function rankingCell(string $call, array $config, string $csrf): string {
         . '<input type="hidden" name="opt_out" value="' . ($optOut ? '' : '1') . '"><button>' . ($optOut ? 'Show in ranking' : 'Leave out') . '</button></form>';
 }
 
+/**
+ * A station that changed its callsign (e.g. LU2MET to LU2XYZ, with the new
+ * certificate requested from the same LoTW account): move stations/LU2MET/ to
+ * stations/LU2XYZ/ with its QSOs, use LU2XYZ as callsign and LoTW username
+ * (ARRL renames the account to the new call; the password stays), and keep
+ * LU2MET as an alias so the addresses already published keep working. The
+ * LoTW account keeps the QSOs of both callsigns, and the sync downloads them
+ * all. Clublog settings are left as they are: a Clublog log is per callsign.
+ * Returns an error message, or null when done.
+ */
+function renameStation(string $call, string $newCall): ?string {
+    if ($newCall === $call) return "$call already uses that callsign.";
+    if (stationExists($newCall)) return "There is already a station $newCall.";
+    $aliases = readJson(STATION_ALIASES_FILE) ?? [];
+    if (isset($aliases[$newCall]) && $aliases[$newCall] !== $call && stationExists($aliases[$newCall])) {
+        return "$newCall is a previous callsign of {$aliases[$newCall]}.";
+    }
+    $invites = readJson(INVITES_FILE) ?? [];
+    foreach ([$call, $newCall] as $pending) {
+        if ((int)($invites[$pending]['expires'] ?? 0) >= time()) return "There is a pending invite for $pending: cancel it first.";
+    }
+
+    // Not while its LoTW sync runs (nightly Cron or a browser): it writes into the folder.
+    $dir = QSOMAP_STATIONS . "/$call";
+    if (!is_dir("$dir/data")) mkdir("$dir/data", 0755, true);
+    $lock = fopen("$dir/data/lotw_sync.lock", 'c');
+    if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
+        return "A LoTW sync of $call is running. Try again when it ends.";
+    }
+    $renamed = rename($dir, QSOMAP_STATIONS . "/$newCall");
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    if (!$renamed) return "Could not rename the folder of $call.";
+
+    $config = readJson(QSOMAP_STATIONS . "/$newCall/config.json") ?? [];
+    $config['map']['my_callsign'] = $newCall;
+    $previous = $config['map']['previous_callsigns'] ?? [];
+    $config['map']['previous_callsigns'] = array_values(array_diff(array_unique(array_merge($previous, [$call])), [$newCall]));
+    if (($config['lotw']['username'] ?? '') === $call) $config['lotw']['username'] = $newCall;
+    writeStationConfig($newCall, $config);
+
+    // Every earlier callsign of this station now leads to the new one.
+    foreach ($aliases as $old => $target) {
+        if ($target === $call) $aliases[$old] = $newCall;
+    }
+    $aliases[$call] = $newCall;
+    unset($aliases[$newCall]);
+    writeJson(STATION_ALIASES_FILE, $aliases, true);
+    return null;
+}
+
 /** Remove stations/<CALL>/ with its config (credentials included) and data. */
 function deleteStation(string $call): void {
     $dir = QSOMAP_STATIONS . "/$call";
@@ -156,6 +220,10 @@ function deleteStation(string $call): void {
     }
     rmdir($dir);
     withInvites(function (array &$invites) use ($call): void { unset($invites[$call]); });
+    // Its previous callsigns no longer lead anywhere.
+    $aliases = readJson(STATION_ALIASES_FILE) ?? [];
+    $kept = array_filter($aliases, fn($target) => $target !== $call);
+    if ($kept !== $aliases) writeJson(STATION_ALIASES_FILE, $kept, true);
 }
 
 /** Last "=== Sync complete/FAILED ===" line of a station's sync.log, with its date. */
@@ -223,6 +291,7 @@ function portalPage(array $flash, string $csrf): string {
         . $rows . '</table></div>' : '<p class="note">None.</p>');
 
     $default = normalizeCall((string)(rootConfig()['default_station'] ?? ''));
+    if ($default !== null && !stationExists($default)) $default = stationAlias($default);
     $rows = '';
     foreach (stationList() as $call) {
         $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
@@ -237,8 +306,16 @@ function portalPage(array $flash, string $csrf): string {
         $viewForm = '<form method="post" class="inline"><input type="hidden" name="csrf" value="' . $csrf . '">'
             . '<input type="hidden" name="action" value="static_mode"><input type="hidden" name="callsign" value="' . h($call) . '">'
             . viewSelect('view', $view) . '<button>Save</button></form>';
-        $rows .= '<tr><td><strong>' . h($call) . '</strong>' . ($call === $default ? ' (default)' : '') . '<br>'
-            . h($config['map']['my_grid'] ?? '') . '</td><td>' . h($sources) . '</td><td>'
+        $previous = $config['map']['previous_callsigns'] ?? [];
+        $renameForm = '<details><summary>Change callsign</summary><form method="post" onsubmit="return confirm('
+            . h(json_encode("Change the callsign of $call? Its QSOs are kept, its LoTW username becomes the new callsign and the addresses with ?$call keep working."))
+            . ')"><input type="hidden" name="csrf" value="' . $csrf . '"><input type="hidden" name="action" value="rename">'
+            . '<input type="hidden" name="callsign" value="' . h($call) . '"><input name="new_callsign" placeholder="New callsign" required>'
+            . '<button>Change</button></form><p class="note">Only after ARRL renamed the LoTW account to the new callsign '
+            . '(new certificate requested signed with the current one).</p></details>';
+        $rows .= '<tr><td><strong>' . h($call) . '</strong>' . ($call === $default ? ' (default)' : '')
+            . ($previous ? '<br><span class="note">ex ' . h(implode(', ', $previous)) . '</span>' : '') . '<br>'
+            . h($config['map']['my_grid'] ?? '') . $renameForm . '</td><td>' . h($sources) . '</td><td>'
             . (int)($cache['total_qsos'] ?? 0) . ' QSOs<br><span class="note">' . h($cache['generated'] ?? 'no map yet') . '</span></td><td>'
             . h(lastSyncResult($call)) . '</td><td>' . $viewForm . '</td><td><a href="' . h("$base/" . MAP_VIEWS[$view]['page'] . "?$call") . '" target="_blank" rel="noopener">Map</a> · '
             . '<a href="' . h("$base/map-qrz.php?$call") . '" target="_blank" rel="noopener">QRZ</a>'

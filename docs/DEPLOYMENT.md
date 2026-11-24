@@ -303,13 +303,29 @@ Nothing is left for you to do: the daily Cron job (step 5) picks up the new stat
 
 Inviting an existing station lets its owner change the grid, passwords or static map mode; its QSOs are kept. The code is stored hashed in `data/invites.json`, and the pages refuse plain `http://`.
 
+### Change a station's callsign
+
+When a station gets a new callsign (e.g. LU2MET becomes LU2XYZ), ARRL's recommended path keeps everything in one LoTW account: the owner requests the certificate for the new call **signed with the current certificate**, and ARRL renames the account so the new callsign becomes the LoTW username (the password does not change). That account then holds the QSOs of both callsigns, and the sync downloads them all: the map and the ranking count them together.
+
+Once ARRL has renamed the account, open *Change callsign* under the station in the *Stations* table of `admin/` and enter the new callsign. QSO Map then:
+
+- moves `stations/LU2MET/` to `stations/LU2XYZ/`, with all its QSOs and settings;
+- uses LU2XYZ as the station's callsign and LoTW username, and lists LU2MET as `previous_callsigns` (shown as "ex LU2MET");
+- keeps LU2MET as an alias in `data/station_aliases.json`, so `map-qrz.php?LU2MET` and the other addresses already published keep showing the station's map. Updating the embeds to the new callsign is still a good idea.
+
+The map shows the new callsign after the next sync. Clublog settings are not changed, since a Clublog log belongs to one callsign. The change is refused while a LoTW sync of the station is running or an invite for either callsign is pending, and an invite for a previous callsign is refused.
+
+Until the callsign is changed in `admin/`, the sync stops with `LoTW rejected the username or password (if the station got a new callsign, ...)`; nothing is lost, and it catches up on the next sync after the change.
+
+Not supported yet: a new callsign whose certificate was requested **unsigned**, which creates a second LoTW account. QSO Map downloads one LoTW account per station.
+
 ### Delete a station
 
 In the *Stations* table of `admin/`, *Delete* removes `stations/<CALL>/` with its settings, passwords and QSOs, after a confirmation. Its map URLs stop working right away. A station can also stop its own sync at any time by changing its LoTW password.
 
 ### Event log
 
-`data/events.log` records invites (created, cancelled, failed attempts), stations created, updated and deleted, with date and IP, never passwords or codes. The admin portal shows the last 40 lines.
+`data/events.log` records invites (created, cancelled, failed attempts), stations created, updated, renamed and deleted, with date and IP, never passwords or codes. The admin portal shows the last 40 lines.
 
 ### What the LoTW password gives access to
 
