@@ -30,10 +30,12 @@ const RANKING_MODES = [
 /**
  * Key of the all-modes totals in dxcc_counts.json: entities confirmed in any
  * mode, PSK and others included, each counted once (as DXCC Mixed). Its
- * callsign links open the map of QSOs confirmed in LoTW.
+ * callsign links open the DXCC map without a preferred mode. The tables of
+ * one mode link to the DXCC map preferring it (RANKING_MODES 'view', the
+ * same keys as its ?pref=).
  */
 const RANKING_MIXED = 'mixed';
-const RANKING_MIXED_VIEW = 'qsl';
+const RANKING_MIXED_PREF = 'any';
 
 /**
  * Deleted DXCC entities (ADIF specification, DXCC_Entity_Code enumeration,
