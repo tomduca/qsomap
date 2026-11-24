@@ -47,6 +47,8 @@ const DEFAULT_STATIC_VIEW = 'ssb';
 
 /** Invites from the admin portal and setups in progress, keyed by callsign. */
 const INVITES_FILE = QSOMAP_DATA . '/invites.json';
+// Previous callsigns of renamed stations: old call => current call (admin/, "Change callsign").
+const STATION_ALIASES_FILE = QSOMAP_DATA . '/station_aliases.json';
 
 /**
  * Sync scripts handle credentials and call external APIs. They always run from
@@ -151,10 +153,22 @@ function requestedStation(): ?string {
     $candidates[] = getenv('QSOMAP_STATION') ?: null;
     foreach ($candidates as $candidate) {
         $call = normalizeCall((string)$candidate);
-        if ($call !== null) return stationExists($call) ? $call : null;
+        if ($call !== null) return stationExists($call) ? $call : stationAlias($call);
     }
     $default = normalizeCall((string)(rootConfig()['default_station'] ?? ''));
-    return $default !== null && stationExists($default) ? $default : null;
+    if ($default === null) return null;
+    return stationExists($default) ? $default : stationAlias($default);
+}
+
+/**
+ * The station that now uses a previous callsign of a renamed station, so
+ * map-ssb.html?LU2MET and the embeds already published keep working after
+ * LU2MET becomes LU2XYZ. Null if $call is no station's previous callsign.
+ */
+function stationAlias(string $call): ?string {
+    $aliases = readJson(STATION_ALIASES_FILE) ?? [];
+    $target = $aliases[$call] ?? null;
+    return is_string($target) && stationExists($target) ? $target : null;
 }
 
 /**
