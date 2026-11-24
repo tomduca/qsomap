@@ -12,7 +12,7 @@
  *
  * Positions count current entities only; confirmed deleted entities are shown
  * next to the total and explained in a footnote. Each callsign opens that
- * station's interactive map of the mode (the map of confirmed QSOs for the
+ * station's DXCC map, preferring the table's mode (any mode for the
  * all-modes table). The mode and band menus only offer
  * what the stations have confirmed. The page needs no JavaScript: the menus
  * submit themselves when scripts run and have a button otherwise. The
@@ -188,7 +188,7 @@ a:hover { text-decoration: underline; }
 <p class="note"><?= esc($text['empty']) ?></p>
 <?php endif; ?>
 <?php foreach ($tables as $tableMode => $rows): ?>
-<?php $mapPage = MAP_VIEWS[$tableMode === RANKING_MIXED ? RANKING_MIXED_VIEW : RANKING_MODES[$tableMode]['view']]['page']; ?>
+<?php $mapPref = $tableMode === RANKING_MIXED ? RANKING_MIXED_PREF : RANKING_MODES[$tableMode]['view']; ?>
 <h2><?= esc($tableMode === RANKING_MIXED ? $text['all_modes'] : RANKING_MODES[$tableMode][$lang]) ?> · <?= esc($bandName($band)) ?></h2>
 <?php if (!$rows): ?>
 <p class="note"><?= esc($text['empty']) ?></p>
@@ -196,7 +196,7 @@ a:hover { text-decoration: underline; }
 <table>
     <tr><th class="position"><?= esc($text['position']) ?></th><th><?= esc($text['callsign']) ?></th><th class="entities"><?= esc($text['entities']) ?></th></tr>
 <?php foreach ($rows as $row): ?>
-    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc($mapPage . '?' . $row['call']) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
+    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc(MAP_VIEWS['dxcc']['page'] . '?' . $row['call'] . '&pref=' . $mapPref) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
 <?php endforeach; ?>
 </table>
 <?php endif; ?>
