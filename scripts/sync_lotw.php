@@ -351,7 +351,9 @@ function lotwReport(array $query, string $kind, array $params, int $timeout, ?in
         if ($header === null) {
             $text = trim(preg_replace('/\s+/', ' ', strip_tags((string)file_get_contents($path, false, null, 0, 4096))));
             if (stripos($text, 'password') !== false) {
-                throw new RuntimeException('LoTW rejected the username or password');
+                // ARRL renames the account when its owner gets a new callsign.
+                throw new RuntimeException('LoTW rejected the username or password (if the station got a new callsign, '
+                    . 'its LoTW username is now that callsign: use "Change callsign" in admin/)');
             }
             throw new RuntimeException("LoTW did not send an ADIF report ($received in $took): " . substr($text, 0, 200));
         }
