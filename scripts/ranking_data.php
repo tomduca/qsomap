@@ -60,7 +60,7 @@ const BAND_ORDER = [
  * older format are recounted from the confirmations the next time the
  * ranking is shown, so no station has to sync again.
  */
-const COUNTS_VERSION = 2;
+const COUNTS_VERSION = 3;
 
 /** Fields kept from each LoTW confirmation: enough to count entities by mode and band. */
 const CONFIRMED_FIELDS = ['CALL', 'QSO_DATE', 'TIME_ON', 'BAND', 'MODE', 'SUBMODE', 'DXCC', 'QSL_RCVD'];
@@ -138,14 +138,29 @@ function writeDxccCounts(bool $onlyIfMore = false): int {
 /**
  * Entities confirmed per ranking mode and band ('all' = every band), as
  * [current, deleted] counts, plus RANKING_MIXED for any mode. Code 0 (no
- * entity, e.g. /MM) is ignored.
+ * entity, e.g. /MM) is ignored. 'firsts' keeps, per entity code, the
+ * confirmed QSO with the earliest date and time in any mode
+ * ({date YYYYMMDD, time HHMM, call, band, mode}) for dxcc-list.php.
  */
 function dxccCounts(iterable $confirmed): array {
     $deleted = array_flip(DELETED_DXCC);
     $sets = [];
+    $firsts = [];
     foreach ($confirmed as $qso) {
         $code = (int)($qso['DXCC'] ?? 0);
         if ($code <= 0) continue;
+        $date = preg_replace('/\D/', '', (string)($qso['QSO_DATE'] ?? ''));
+        $time = substr(preg_replace('/\D/', '', (string)($qso['TIME_ON'] ?? '')) . '0000', 0, 4);
+        if (strlen($date) === 8 && (!isset($firsts[$code]) || $date . $time < $firsts[$code]['date'] . $firsts[$code]['time'])) {
+            $submode = strtoupper(trim((string)($qso['SUBMODE'] ?? '')));
+            $firsts[$code] = [
+                'date' => $date,
+                'time' => $time,
+                'call' => strtoupper(trim((string)($qso['CALL'] ?? ''))),
+                'band' => strtoupper(trim((string)($qso['BAND'] ?? ''))),
+                'mode' => $submode !== '' ? $submode : strtoupper(trim((string)($qso['MODE'] ?? ''))),
+            ];
+        }
         $mode = rankingMode($qso);
         $kind = isset($deleted[$code]) ? 1 : 0;
         $band = strtoupper(trim((string)($qso['BAND'] ?? '')));
@@ -160,7 +175,7 @@ function dxccCounts(iterable $confirmed): array {
             $counts[$mode][$band] = [count($kinds[0] ?? []), count($kinds[1] ?? [])];
         }
     }
-    return ['version' => COUNTS_VERSION, 'generated' => date('Y-m-d H:i:s'), 'modes' => $counts];
+    return ['version' => COUNTS_VERSION, 'generated' => date('Y-m-d H:i:s'), 'modes' => $counts, 'firsts' => $firsts];
 }
 
 /**
@@ -182,23 +197,44 @@ function rankingRows(array $stations, string $mode, string $band): array {
     return $rows;
 }
 
+/**
+ * A station's dxcc_counts.json, recounted from its confirmations if it has
+ * an older format; null if the station is out of the ranking (opted out)
+ * or has no totals.
+ */
+function stationDxccCounts(string $call): ?array {
+    $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
+    if (rankingOptOut($config)) return null;
+    $file = QSOMAP_STATIONS . "/$call/data/dxcc_counts.json";
+    $counts = readJson($file);
+    if ($counts !== null && ($counts['version'] ?? 1) < COUNTS_VERSION) {
+        if (yearFiles(CONFIRMED_FILES, dirname($file))) {
+            $counts = dxccCounts(storedQsos(CONFIRMED_FILES, dirname($file)));
+            writeJson($file, $counts);
+        }
+    }
+    return $counts;
+}
+
 /** dxcc_counts.json modes of every station in the ranking (not opted out), by callsign. */
 function rankingStations(): array {
     $stations = [];
     foreach (stationList() as $call) {
-        $config = readJson(QSOMAP_STATIONS . "/$call/config.json") ?? [];
-        if (rankingOptOut($config)) continue;
-        $file = QSOMAP_STATIONS . "/$call/data/dxcc_counts.json";
-        $counts = readJson($file);
-        if ($counts !== null && ($counts['version'] ?? 1) < COUNTS_VERSION) {
-            if (yearFiles(CONFIRMED_FILES, dirname($file))) {
-                $counts = dxccCounts(storedQsos(CONFIRMED_FILES, dirname($file)));
-                writeJson($file, $counts);
-            }
-        }
+        $counts = stationDxccCounts($call);
         if ($counts !== null) $stations[$call] = $counts['modes'] ?? [];
     }
     return $stations;
+}
+
+/**
+ * Names and flags of the DXCC entities by code, from js/dxcc.js (the list
+ * the maps use): code => {name, flag}.
+ */
+function dxccNames(): array {
+    $source = (string)@file_get_contents(QSOMAP_ROOT . '/js/dxcc.js');
+    $start = strpos($source, '{');
+    $names = $start === false ? null : json_decode(rtrim(substr($source, $start), " \t\r\n;"), true);
+    return is_array($names) ? $names : [];
 }
 
 /** Bands with any count in $modes among $stations, in BAND_ORDER (unknown bands last). */

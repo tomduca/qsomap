@@ -351,7 +351,7 @@ Tell the station owner what they are entrusting to the server:
   <iframe src="https://your-domain.com/qsomap/ranking.php?mode=cw&lang=es" width="480" height="700" frameborder="0"></iframe>
   ```
 
-**Data.** `sync_lotw.php` keeps each station's LoTW confirmations in `stations/<CALL>/data/lotw_confirmed_<YEAR>.json` and writes its totals by mode and band to `dxcc_counts.json`; `ranking.php` only reads those totals. Stations synced from LoTW get them on every sync; stations synced from Clublog get them from a confirmations-only LoTW download (`sync_lotw.php --confirmations-only`) that `sync_daily.sh` runs while the ranking is on. The settings are in `data/ranking_settings.json`. The list of deleted entities comes from the ADIF specification and is part of `scripts/ranking_data.php`.
+**Data.** `sync_lotw.php` keeps each station's LoTW confirmations in `stations/<CALL>/data/lotw_confirmed_<YEAR>.json` and writes its totals by mode and band to `dxcc_counts.json`, with the first confirmed QSO of each entity (`firsts`); `ranking.php` and `dxcc-list.php` (the *List* link of each callsign: entities newest first by QSO date) only read that file. Totals of an older format are recounted from the stored confirmations the first time the ranking is shown, with no new sync. Stations synced from LoTW get them on every sync; stations synced from Clublog get them from a confirmations-only LoTW download (`sync_lotw.php --confirmations-only`) that `sync_daily.sh` runs while the ranking is on. The settings are in `data/ranking_settings.json`. The list of deleted entities comes from the ADIF specification and is part of `scripts/ranking_data.php`.
 
 ## Upgrading to 2.6.0 (DXCC map)
 
@@ -389,7 +389,7 @@ Until it runs, the maps show *No station selected*.
 - [ ] Changing that mode in `admin/` changes the points and the box of `map-qrz.php?LU2MET`; the old `map-ssb-qrz.php?LU2MET` shows the same.
 - [ ] `map-github.php?LU2MET` opens as an image (SVG) with the same background, points and paths.
 - [ ] Cron ran and added a `CALL: sync complete` line per station to `data/sync.log`.
-- [ ] With the ranking on, `ranking.php?mode=cw` lists the stations with CW entities, the band menu changes the table, and a callsign opens `map-cw.html?CALL`; a station left out in `admin/` disappears from it. With the ranking off it returns 404.
+- [ ] With the ranking on, `ranking.php?mode=cw` lists the stations with CW entities, the band menu changes the table, and a callsign opens `map-cw.html?CALL`; a station left out in `admin/` disappears from it. With the ranking off it returns 404. A callsign's *List* link opens `dxcc-list.php?station=CALL` with its entities newest first; it returns 404 for stations left out and while the ranking is off.
 
 ## Troubleshooting
 
