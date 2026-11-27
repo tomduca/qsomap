@@ -13,7 +13,8 @@
  * Positions count current entities only; confirmed deleted entities are shown
  * next to the total and explained in a footnote. Each callsign opens that
  * station's DXCC map, preferring the table's mode (any mode for the
- * all-modes table). The mode and band menus only offer
+ * all-modes table), and its list link opens dxcc-list.php (the first QSO
+ * confirmed with each entity, any mode). The mode and band menus only offer
  * what the stations have confirmed. The page needs no JavaScript: the menus
  * submit themselves when scripts run and have a button otherwise. The
  * manager turns the ranking on in admin/; while it is off this answers 404.
@@ -36,7 +37,9 @@ const RANKING_TEXTS = [
         'entities' => 'Entities',
         'empty' => 'No stations with confirmed entities yet.',
         'deleted_note' => '* Confirmed deleted DXCC entities; they do not count for the position.',
-        'source' => 'Data from LoTW, updated every night. Click a callsign to open its map.',
+        'source' => 'Data from LoTW, updated every night. Click a callsign to open its map, or List for its entities by date.',
+        'list' => 'List',
+        'list_title' => 'Confirmed DXCC entities of %s, newest first',
         'off' => 'The ranking is not available.',
         'switch' => 'Ver en español',
         'credit' => 'Developed by %s for the ham radio community.',
@@ -55,7 +58,9 @@ const RANKING_TEXTS = [
         'entities' => 'Entidades',
         'empty' => 'Todavía no hay estaciones con entidades confirmadas.',
         'deleted_note' => '* Entidades DXCC borradas (deleted) confirmadas; no cuentan para el puesto.',
-        'source' => 'Datos de LoTW, actualizados cada noche. Haz clic en un indicativo para ver su mapa.',
+        'source' => 'Datos de LoTW, actualizados cada noche. Haz clic en un indicativo para ver su mapa, o en Lista para ver sus entidades por fecha.',
+        'list' => 'Lista',
+        'list_title' => 'Entidades DXCC confirmadas de %s, de la más reciente a la más antigua',
         'off' => 'El ranking no está disponible.',
         'switch' => 'View in English',
         'credit' => 'Desarrollado por %s para la comunidad de radioaficionados.',
@@ -149,6 +154,7 @@ th, td { padding: 4px 8px; border-bottom: 1px solid var(--line); text-align: lef
 th { border-bottom: 2px solid var(--line-strong); }
 td.position, th.position { width: 3em; }
 td.entities, th.entities { text-align: right; white-space: nowrap; }
+td.list { width: 1%; text-align: right; white-space: nowrap; font-size: 12px; }
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .lang-switch { position: absolute; top: 12px; right: 12px; padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 3px; color: var(--button); font-size: 12px; font-weight: bold; }
@@ -194,9 +200,9 @@ a:hover { text-decoration: underline; }
 <p class="note"><?= esc($text['empty']) ?></p>
 <?php else: ?>
 <table>
-    <tr><th class="position"><?= esc($text['position']) ?></th><th><?= esc($text['callsign']) ?></th><th class="entities"><?= esc($text['entities']) ?></th></tr>
+    <tr><th class="position"><?= esc($text['position']) ?></th><th><?= esc($text['callsign']) ?></th><th class="entities"><?= esc($text['entities']) ?></th><th></th></tr>
 <?php foreach ($rows as $row): ?>
-    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc(MAP_VIEWS['dxcc']['page'] . '?' . $row['call'] . '&pref=' . $mapPref) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td></tr>
+    <tr><td class="position"><?= $row['position'] ?></td><td><a href="<?= esc(MAP_VIEWS['dxcc']['page'] . '?' . $row['call'] . '&pref=' . $mapPref) ?>" target="_blank" rel="noopener"><?= esc($row['call']) ?></a></td><td class="entities"><?= $row['current'] ?><?= $row['deleted'] > 0 ? ' (+' . $row['deleted'] . '*)' : '' ?></td><td class="list"><a href="<?= esc('dxcc-list.php?' . http_build_query(array_filter(['station' => $row['call'], 'lang' => $lang, 'theme' => $theme]))) ?>" title="<?= esc(sprintf($text['list_title'], $row['call'])) ?>"><?= esc($text['list']) ?></a></td></tr>
 <?php endforeach; ?>
 </table>
 <?php endif; ?>
